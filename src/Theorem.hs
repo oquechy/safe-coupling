@@ -1,7 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
 
-
 module Theorem where
 
 import           Prelude                 hiding ( head
@@ -35,13 +34,6 @@ type DataDistr = Distr DataPoint
 relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 relationalchoice _ _ _ _ _ _ = ()
 
-
-
-{-@ measure SGDu.unif :: zs:DataSet -> DataDistr @-}
-{-@ assume unif :: x:DataSet -> {v:DataDistr | v == unif x } @-}
-unif :: DataSet -> DataDistr
-unif _ = (0,0)
-
 {-@ assume relationalupdatep :: z1:DataPoint -> ws1:Weight -> α1:StepSize -> f1:LossFunction -> 
                           z2:DataPoint -> ws2:Weight -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} -> 
                             {dist (update z1 ws1 α1 f1) (update z2 ws2 α2 f2) = dist ws1 ws2 + 2.0 * α1} @-}
@@ -54,7 +46,7 @@ lend :: [a] -> Double
 lend []       = 0
 lend (_ : xs) = 1 + lend xs
 
-{-@ measure SGDu.update :: DataPoint -> Weight -> StepSize -> LossFunction -> Weight @-}
+{-@ measure Theorem.update :: DataPoint -> Weight -> StepSize -> LossFunction -> Weight @-}
 update :: DataPoint -> Weight -> StepSize -> LossFunction -> Weight
 update _ w _ _ = w
 
@@ -68,13 +60,6 @@ one = 1
                                     {dist (update z1 ws1 α1 f1) (update z2 ws2 α2 f2) = dist ws1 ws2} @-}
 relationalupdateq ::  DataPoint  -> Weight  -> StepSize  -> LossFunction  -> DataPoint  -> Weight  -> StepSize  -> LossFunction  -> ()
 relationalupdateq = undefined
-
-
-
-
-
--- TODO: diamond
-        -- {v:() | dist (f1 e1) (f2 e2) <= dist ws1 ws2 + 2 * α + estab zs as} -> 
 
 
 {-@ reduce :: p:Double -> ws1:Weight -> ws2:Weight -> {p * dist ws1 ws2 + (1 - p) * dist ws1 ws2 = dist ws1 ws2} @-}
@@ -93,7 +78,7 @@ estab :: DataSet -> StepSizes -> Double
 estab zs as = 2.0 / (lend zs) * sum as
 
 {-@ ple estabconsR @-}
-{-@ measure SGDu.estabconsR  :: DataSet -> StepSize -> StepSizes -> ()  @-}
+{-@ measure Theorem.estabconsR  :: DataSet -> StepSize -> StepSizes -> ()  @-}
 {-@ estabconsR :: zs:{DataSet | lend zs /= 0} -> x:StepSize -> xs:StepSizes 
                      -> { estab zs (SS x xs) == 2.0 * x * (one / lend zs) + estab zs xs } @-}
 estabconsR :: DataSet -> StepSize -> StepSizes -> () 
@@ -147,15 +132,18 @@ rconst x _ = x
 {-@ thm :: zs1:{DataSet | 1 < lend zs1 && 1 < len zs1 } -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
            zs2:{DataSet | 1 < lend zs2 && 1 < len zs2 && lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
             ws2:Weight -> {α2:StepSizes| α2 = α1} -> {f2:LossFunction|f1 = f2} -> 
-            {dist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist ws1 ws2 + estab zs1 α1} @-}
+            {expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist ws1 ws2 + estab zs1 α1} @-}
 thm :: DataSet  -> Weight  -> StepSizes  -> LossFunction  -> DataSet  -> Weight  -> StepSizes  -> LossFunction  -> ()
 thm zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
-  dist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
-    =<= dist (ppure ws1) (ppure ws2) + estab zs1 α1
+  expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
+    === expDist (ppure ws1) (ppure ws2)
+        ? relationalppure ws1 ws2
+    === dist ws1 ws2
+    === dist ws1 ws2 + estab zs1 α1
     *** QED 
 
 thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
-  dist (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
+  expDist (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
     ==. dist
           (choice (one / lend zs1) (pbind uhead1 updWs1) (qbind utail1 updWs1) `rconst` estabconsR zs1 α1 a1)
           (choice (one / lend zs2) (pbind uhead2 updWs2) (qbind utail2 updWs2) `rconst` estabconsR zs2 α2 a2)
