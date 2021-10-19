@@ -11,7 +11,7 @@ type Distr a = a
 type Prob = Double
 
 {-@ measure expDist :: Distr a -> Distr a -> Double @-}
-{-@ assume expDist :: x1:_ -> x2:_ -> {v:Double | v == expDist x1 x2 } @-}
+{-@ assume expDist :: x1:_ -> x2:_ -> {v:Double | v == dist x1 x2 } @-}
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
 
@@ -28,23 +28,23 @@ maxExpDist _ _ = 0
 -------------------------------------------------------------------------------
 
 {-@ assume relationalpbind :: e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) -> 
-        { expDist (pbind e1 f1) (pbind e2 f2) <= expDist e1 e2 + maxExpDist f1 f2 } @-}
+        { dist (pbind e1 f1) (pbind e2 f2) == dist (f1 e1) (f2 e2)  } @-}
 relationalpbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b) -> ()
 relationalpbind = undefined
 
 {-@ assume relationalqbind :: e1:Distr a -> f1:(a -> Distr b) -> {e2:Distr a | e1 = e2} -> f2:(a -> Distr b) -> 
-        { expDist (qbind e1 f1) (qbind e2 f2) <= expDist e1 e2 + maxExpDist f1 f2 } @-}
+         { dist (qbind e1 f1) (qbind e2 f2) == dist (f1 e1) (f2 e2)  } @-}
 relationalqbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b)  ->  ()
 relationalqbind = undefined
 
 {-@ assume relationalppure :: x1:a -> x2:a 
-                    -> { expDist (ppure x1) (ppure x2) = dist x1 x2 } @-}
+                    -> { dist (ppure x1) (ppure x2) = dist x1 x2 } @-}
 relationalppure :: a -> a -> () 
 relationalppure _ _ = () 
 
 {-@ assume relationalchoice :: p:Prob -> e1:Distr a -> e1':Distr a 
         ->  q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
-        ->  { expDist (choice p e1 e1') (choice q e2 e2') <= p * (expDist e1 e2) + (1.0 - p) * (expDist e1' e2')} @-}
+        ->  { dist (choice p e1 e1') (choice q e2 e2') <= p * (dist e1 e2) + (1.0 - p) * (dist e1' e2')} @-}
 relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 relationalchoice _ _ _ _ _ _ = ()
 
@@ -66,7 +66,7 @@ qbind = undefined
 
 
 {-@ measure Monad.Distr.ppure :: a -> Distr a @-}
-{-@ ppure :: x:a -> {v:Distr a | v = ppure x } @-}
+{-@ ppure :: x:a -> {v:Distr a | v = Monad.Distr.ppure x } @-}
 ppure :: a -> Distr a
 ppure x = undefined
 
