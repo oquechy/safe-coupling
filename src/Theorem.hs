@@ -1,9 +1,8 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
-{- LIQUID "--no-termination" @-}
 
 
-module SGDu where
+module Theorem where
 
 import           Prelude                 hiding ( head
                                                 , tail
@@ -11,11 +10,11 @@ import           Prelude                 hiding ( head
                                                 )
 import           Data.Functor.Identity
 import           Language.Haskell.Liquid.ProofCombinators
-import Monad.Distr 
+import           Monad.Distr 
+import           Data.Dist 
 
 {-@ infix : @-}
-{-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
-type Prob = Double
+
 
 {-@ type StepSize = {v:Double | 0.0 <= v } @-}
 type StepSize = Double
@@ -30,21 +29,13 @@ type Set a = [a]
 type DataSet = Set DataPoint
 type DataDistr = Distr DataPoint
 
-{-@ measure dist :: a -> a -> Double @-}
-{-@ assume dist :: x1:a -> x2:a -> {v:Double | v == dist x1 x2 } @-}
-dist :: a -> a -> Double
-dist _ _ = 0
-
 {-@ assume relationalchoice :: p:Prob -> e1:Distr a -> e1':Distr a 
         ->  q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
         ->  {dist (choice p e1 e1') (choice q e2 e2') <= p * (dist e1 e2) + (1.0 - p) * (dist e1' e2')} @-}
 relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 relationalchoice _ _ _ _ _ _ = ()
 
-{-@ measure SGDu.choice :: Prob -> Distr a -> Distr a -> Distr a @-}
-{-@ assume choice :: x1:Prob -> x2:Distr a -> x3:Distr a -> {v:Distr a |  v == choice x1 x2 x3 } @-}
-choice :: Prob -> Distr a -> Distr a -> Distr a
-choice _ x _ = x
+
 
 {-@ measure SGDu.unif :: zs:DataSet -> DataDistr @-}
 {-@ assume unif :: x:DataSet -> {v:DataDistr | v == unif x } @-}
