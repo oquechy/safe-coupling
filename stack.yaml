@@ -1,0 +1,12 @@
+resolver: lts-17.2
+packages:
+  - .
+extra-deps:
+  - ../../liquidtypes/liquidhaskell
+  - ../../liquidtypes/liquidhaskell/liquid-base
+  - ../../liquidtypes/liquidhaskell/liquid-containers
+  - ../../liquidtypes/liquidhaskell/liquid-prelude
+  - ../../liquidtypes/liquidhaskell/liquid-ghc-prim
+  - ../../liquidtypes/liquidhaskell/liquid-fixpoint
+
+allow-newer: true

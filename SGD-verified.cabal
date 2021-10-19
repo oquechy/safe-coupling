@@ -1,0 +1,14 @@
+name:                SGD-verified
+version:             0.1.0.0
+license:             BSD3
+license-file:        LICENSE
+build-type:          Simple
+extra-source-files:  ChangeLog.md, README.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Theorem, Monad.Distr
+  build-depends:       base >=4.15 && <4.16, liquidhaskell
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:  -fplugin=LiquidHaskell 
