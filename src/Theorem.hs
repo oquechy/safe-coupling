@@ -135,7 +135,7 @@ ___________________________________________________________
 {-@ sgdRecUpd :: zs:{DataSet | 1 < len zs && 1 < lend zs } -> Weight -> StepSize -> ss:StepSizes -> LossFunction 
        -> DataPoint -> Distr Weight / [ sslen ss, 1 ] @-}
 sgdRecUpd :: DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataPoint -> Distr Weight
-sgdRecUpd zs w0 α a f z = bind (sgd zs w0 a f) (ppure . update z α f)
+sgdRecUpd zs w0 α a f z = bind (sgd zs w0 a f) (pureUpdate z α f)
 
 {-@ reflect sgd @-}
 {-@ sgd :: zs:{DataSet | 1 < len zs && 1 < lend zs } -> Weight -> ss:StepSizes -> LossFunction 
@@ -160,8 +160,9 @@ distZero :: Distr a -> Distr a -> ()
 {-@ assume distZero :: x1:Distr a -> x2:{Distr a | x1 == x2 } ->  {expDist x1 x2 == 0 }  @-}
 distZero _ _ = () 
 
-{-@ assume maxExpDistLess :: m:_ -> f1:_ -> f2:_ -> (x1:_ -> x2:_ -> {expDist (f1 x1) (f2 x2) <= m}) -> { maxExpDist f1 f2 <= m } @-}
-maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
+{-@ assume maxExpDistLess :: m:_ -> f1:_ -> f2:_ -> (x:_ -> {expDist (f1 x) (f2 x) <= m}) 
+                          -> { maxExpDist f1 f2 <= m } @-}
+maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
 maxExpDistLess _ _ _ _ = ()
 
 {-@ assume maxExpDistEqLess :: m:_ -> f1:_ -> f2:_ -> 
@@ -215,13 +216,7 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
 
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + maxExpDist pureUpd1 pureUpd2) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-        ?   maxExpDistLess (2 * α1) pureUpd1 pureUpd2 (\ws1' ws2' -> 
-              expDist (pureUpd1 ws1') (pureUpd2 ws2')
-                  ? expDistPure (update (head zs1) α1 f1 ws1') (update (head zs2) α2 f2 ws2')
-              === dist (update (head zs1) α1 f1 ws1') (update (head zs2) α2 f2 ws2')
-                  ? relationalupdatep (head zs1) α1 f1 ws1' (head zs2) α2 f2 ws2'
-              =<= 2 * α1 
-              *** QED)
+        ?   maxExpDistLess (2 * α1) pureUpd1 pureUpd2  (maxExpDistLess1 zs1 α1 f1 zs2 α2 f2)
 
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + 2 * α1) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
@@ -233,16 +228,19 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
 
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + 2 * α1) 
         + (1 - (one / lend zs1)) * (maxExpDist sgdRec1 sgdRec2)
-        ?   maxExpDistLess (dist ws1 ws2 + estab zs1 a1) sgdRec1 sgdRec2 (\z1 z2 ->
-              expDist (sgdRec1 z1) (sgdRec2 z2)
-                  ? relationalbind (sgd zs1 ws1 a1 f1) (ppure . update z1 α1 f1)
-                                   (sgd zs2 ws2 a2 f2) (ppure . update z2 α2 f2)
+        ?   maxExpDistLess (dist ws1 ws2 + estab zs1 a1) sgdRec1 sgdRec2 
+              (maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2) {- 
+              expDist (sgdRec1 z) (sgdRec2 z)
+                  ? relationalbind (sgd zs1 ws1 a1 f1) (ppure . update z α1 f1)
+                                   (sgd zs2 ws2 a2 f2) (ppure . update z α2 f2)
               =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
                   + maxExpDist (ppure . update z1 α1 f1) (ppure . update z2 α2 f2)
                   ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
-              =<= dist ws1 ws2 + estab zs1 a1 + maxExpDist (ppure . update z1 α1 f1) (ppure . update z2 α2 f2)
-              =<= estab zs1 a1
-              *** QED)
+
+              =<= dist ws1 ws2 + estab zs1 a1 + maxExpDist (ppure . update z α1 f1) (ppure . update z α2 f2)
+              ? relationalupdateq
+              =<= estab zs a1
+              *** QED) -}
 
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + 2 * α1) 
             + (1 - (one / lend zs1)) * (dist ws1 ws2 + estab zs1 a1)
@@ -254,8 +252,8 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     =<= dist ws1 ws2 + estab zs1 as1
     *** QED 
  where
-  pureUpd1 = ppure . update (head zs1) α1 f1
-  pureUpd2 = ppure . update (head zs2) α2 f2
+  pureUpd1 = pureUpdate (head zs1) α1 f1
+  pureUpd2 = pureUpdate (head zs2) α2 f2
   sgdRec1 = sgdRecUpd zs1 ws1 α1 a1 f1
   sgdRec2 = sgdRecUpd zs2 ws2 α2 a2 f2
   uhead1 = ppure (head zs1)
@@ -263,3 +261,43 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
 thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
+
+
+{-@ reflect pureUpdate @-}
+pureUpdate :: DataPoint -> StepSize -> LossFunction ->Weight -> Distr Weight 
+pureUpdate zs a f = ppure . update zs a f
+
+
+{-@
+assume maxExpDistLess2 :: zs1:DataSet -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> ws1: Weight
+                -> zs2:DataSet -> {α2:StepSize|α1 = α2} -> a2:StepSizes -> f2:{LossFunction | f1 == f2} -> ws2:Weight
+                -> z:DataPoint  -> {expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= dist ws1 ws2 + estab zs1 a1 }
+@-}
+
+maxExpDistLess2 :: DataSet -> StepSize -> StepSizes -> LossFunction -> Weight
+                -> DataSet -> StepSize -> StepSizes -> LossFunction -> Weight
+                -> DataPoint -> ()
+maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2 z  = () 
+
+
+
+{-@
+maxExpDistLess1 :: zs1:DataSet -> α1:StepSize -> f1:LossFunction 
+                -> zs2:DataSet -> {α2:StepSize|α1 = α2} -> f2:{LossFunction | f1 == f2}
+                -> ws:Weight  -> {expDist (pureUpdate (head zs1) α1 f1 ws) (pureUpdate (head zs2) α2 f2 ws) <= 2.0 * α1 }
+@-}
+
+maxExpDistLess1 :: DataSet -> StepSize -> LossFunction 
+                -> DataSet -> StepSize -> LossFunction
+                -> Weight -> ()
+maxExpDistLess1 zs1 α1 f1 zs2 α2 f2 ws  =
+              expDist (pureUpdate (head zs1) α1 f1 ws) (pureUpdate (head zs2) α2 f2 ws)
+              === expDist ((ppure . update (head zs1) α1 f1) ws) ((ppure . update (head zs2) α2 f2) ws)
+              === expDist (ppure ((update (head zs1) α1 f1) ws)) (ppure ((update (head zs2) α2 f2) ws))
+                  ? expDistPure (update (head zs1) α1 f1 ws) (update (head zs2) α2 f2 ws)
+              === dist (update (head zs1) α1 f1 ws) (update (head zs2) α2 f2 ws)
+                  ? relationalupdatep (head zs1) α1 f1 ws (head zs2) α2 f2 ws
+              === dist ws ws + 2.0 * α1
+                  ? distEq ws ws
+              =<= 2 * α1 
+              *** QED
