@@ -1,7 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
 {-@ LIQUID "--no-termination" @-}
-{-@ LIQUID "--savequery" @-}
 {- LIQUID "--ple"            @-}
 
 module Theorem where
@@ -14,21 +13,7 @@ import           Data.Functor.Identity
 import           Language.Haskell.Liquid.ProofCombinators
 import           Monad.Distr 
 import           Data.Dist 
-
-
-{-@ type StepSize = {v:Double | 0.0 <= v } @-}
-type StepSize = Double
-{-@ data StepSizes = SSEmp | SS StepSize StepSizes @-}
-data StepSizes = SSEmp | SS StepSize StepSizes
-type DataPoint = (Double, Double)
-type Weight = Double
-type LossFunction = DataPoint -> Weight -> Double
-
-type Set a = [a]
-{-@ type DataSet = {v:Set DataPoint| 1 < lend v && 1 < len v } @-}
-type DataSet = Set DataPoint
-type DataDistr = Distr DataPoint
-
+import           SGD 
 
 
 {-@ assume relationalupdatep :: z1:DataPoint -> α1:StepSize -> f1:LossFunction -> ws1:Weight -> 
@@ -37,20 +22,6 @@ type DataDistr = Distr DataPoint
 relationalupdatep :: DataPoint -> StepSize -> LossFunction -> Weight -> DataPoint -> StepSize -> LossFunction -> Weight -> ()
 relationalupdatep _ _ _ _ _ _ _ _ = ()
 
-{-@ measure lend @-}
-{-@ lend :: xs:[a] -> {v:Double| 0.0 <= v } @-}
-lend :: [a] -> Double
-lend []       = 0
-lend (_ : xs) = 1 + lend xs
-
-{-@ measure Theorem.update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight @-}
-update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight
-update _ w _ _ = w
-
-{-@ reflect one @-}
-{-@ one :: {v:Double| v = 1.0 } @-}
-one :: Double
-one = 1
 
 {-@ assume relationalupdateq :: z1:DataPoint -> ws1:Weight -> α1:StepSize -> f1:LossFunction -> 
                                   {z2:DataPoint|z1 = z2} -> ws2:Weight -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} -> 
@@ -94,21 +65,6 @@ estabconsR zs x xs
   *** QED 
 
 
-{-@ reflect head @-}
-{-@ head :: {xs:[a] | len xs > 0 } -> a @-}
-head :: [a] -> a
-head (z : _) = z
-
-{-@ reflect tail @-}
-{-@ tail :: {xs:[a] | len xs > 0 } -> {v:[a] | len v == len xs - 1 && lend v == lend xs - 1 } @-}
-tail :: [a] -> [a]
-tail (_ : zs) = zs
-
-{-@ measure sslen @-}
-sslen :: StepSizes -> Int 
-{-@ sslen :: StepSizes -> Nat @-}
-sslen SSEmp = 0 
-sslen (SS _ ss) = 1 + sslen ss 
 
 -- {-@ reflect upd @-}
 -- {-@ upd :: zs:{DataSet | 1 < len zs  && 1 < lend zs } -> Weight -> StepSize -> ss:StepSizes -> LossFunction -> DataPoint 
@@ -133,34 +89,6 @@ ___________________________________________________________
                                       + |S|-1/|S| deltaeq 
 -}
 
-{-@ reflect sgdRecUpd @-}
-{-@ sgdRecUpd :: zs:{DataSet | 1 < len zs && 1 < lend zs } -> Weight -> StepSize -> ss:StepSizes -> LossFunction 
-       -> DataPoint -> Distr Weight / [ sslen ss, 1 ] @-}
-sgdRecUpd :: DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataPoint -> Distr Weight
-sgdRecUpd zs w0 α a f z = bind (sgd zs w0 a f) (pureUpdate z α f)
-
-{-@ reflect sgd @-}
-{-@ sgd :: zs:{DataSet | 1 < len zs && 1 < lend zs } -> Weight -> ss:StepSizes -> LossFunction 
-       -> Distr Weight / [ sslen ss, 0 ] @-}
-sgd :: DataSet -> Weight -> StepSizes -> LossFunction -> Distr Weight
-sgd _  w0 SSEmp    _ = ppure w0
-sgd zs w0 (SS α a) f = 
-  choice (one / lend zs)
-         (bind uhead (sgdRecUpd zs w0 α a f))
-         (bind utail (sgdRecUpd zs w0 α a f)) -- `rconst` estabconsR zs α a
- where
-  uhead = ppure (head zs)
-  utail = unif (tail zs)
-
-
-{-@ reflect rconst @-}
-rconst :: a -> b -> a 
-rconst x _ = x 
-
-
-distZero :: Distr a -> Distr a -> ()
-{-@ assume distZero :: x1:Distr a -> x2:{Distr a | x1 == x2 } ->  {expDist x1 x2 == 0 }  @-}
-distZero _ _ = () 
 
 
 
@@ -181,9 +109,6 @@ thm zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
 
 thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   expDist (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
-    -- === expDist
-    --       (choice (one / lend zs1) (pbind uhead1 sgdRec1) (qbind utail1 sgdRec1) `rconst` estabconsR zs1 α1 a1)
-    --       (choice (one / lend zs2) (pbind uhead2 sgdRec2) (qbind utail2 sgdRec2) `rconst` estabconsR zs2 α2 a2)
     === expDist
           (choice (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
           (choice (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
@@ -222,18 +147,7 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + 2 * α1) 
         + (1 - (one / lend zs1)) * (maxExpDist sgdRec1 sgdRec2)
         ?   maxExpDistLess (dist ws1 ws2 + estab zs1 a1) sgdRec1 sgdRec2 
-              (maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2) {- 
-              expDist (sgdRec1 z) (sgdRec2 z)
-                  ? relationalbind (sgd zs1 ws1 a1 f1) (ppure . update z α1 f1)
-                                   (sgd zs2 ws2 a2 f2) (ppure . update z α2 f2)
-              =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
-                  + maxExpDist (ppure . update z1 α1 f1) (ppure . update z2 α2 f2)
-                  ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
-
-              =<= dist ws1 ws2 + estab zs1 a1 + maxExpDist (ppure . update z α1 f1) (ppure . update z α2 f2)
-              ? relationalupdateq
-              =<= estab zs a1
-              *** QED) -}
+              (maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2) 
 
     =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + 2 * α1) 
             + (1 - (one / lend zs1)) * (dist ws1 ws2 + estab zs1 a1)
@@ -254,11 +168,6 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
 thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
-
-
-{-@ reflect pureUpdate @-}
-pureUpdate :: DataPoint -> StepSize -> LossFunction ->Weight -> Distr Weight 
-pureUpdate zs a f = ppure . update zs a f
 
 
 {-@

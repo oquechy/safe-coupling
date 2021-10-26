@@ -1,5 +1,4 @@
 {-@ LIQUID "--reflection" @-}
-{-@ LIQUID "--fast"       @-}
 
 module Data.Dist
   ( dist

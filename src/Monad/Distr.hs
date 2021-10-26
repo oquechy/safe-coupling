@@ -1,5 +1,4 @@
 {-@ LIQUID "--reflection"     @-}
-{-@ LIQUID "--fast"           @-}
 
 module Monad.Distr where 
 
@@ -32,22 +31,12 @@ expDistEq _ _ = ()
 maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double
 maxExpDist _ _ = undefined
 
-
-{-@ measure maxExpDistEq :: (a -> Distr b) -> (a -> Distr b) -> Double @-}
-{-@ assume maxExpDistEq :: x1:(a -> Distr b) -> x2:(a -> Distr b) -> {v:Double | v == maxExpDistEq x1 x2 } @-}
-maxExpDistEq :: (a -> Distr b) -> (a -> Distr b) -> Double
-maxExpDistEq _ _ = undefined
-
-{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
+{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) 
+                          -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
                           -> { maxExpDist f1 f2 <= m } @-}
 maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
 maxExpDistLess _ _ _ _ = ()
 
-{-@ assume maxExpDistEqLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) -> 
-                (x:a -> {expDist (f1 x) (f2 x) <= m}) -> 
-                { maxExpDistEq f1 f2 <= m } @-}
-maxExpDistEqLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
-maxExpDistEqLess _ _ _ _ = ()
 
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
@@ -63,11 +52,6 @@ relationalbind = undefined
         { expDist (pbind e1 f1) (pbind e2 f2) <= expDist e1 e2 + maxExpDist f1 f2 } @-}
 relationalpbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b) -> ()
 relationalpbind = undefined
-
-{-@ assume relationalqbind :: e1:Distr a -> f1:(a -> Distr b) -> {e2:Distr a | e1 = e2 && bijCoupling} -> f2:(a -> Distr b) ->
-        { expDist (qbind e1 f1) (qbind e2 f2) <= maxExpDistEq f1 f2 } @-}
-relationalqbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b)  ->  ()
-relationalqbind = undefined
 
 {-@ assume relationalppure :: x1:a -> x2:a 
                     -> { expDist (ppure x1) (ppure x2) = dist x1 x2 } @-}
