@@ -1,5 +1,5 @@
-{-@ LIQUID "--reflection" @-}
-
+{-@ LIQUID "--reflection"     @-}
+{-@ LIQUID "--fast"           @-}
 
 module Monad.Distr where 
 
@@ -15,38 +15,39 @@ bijCoupling = True
 type Prob = Double
 
 {-@ measure expDist :: Distr a -> Distr a -> Double @-}
-{-@ assume expDist :: x1:_ -> x2:_ -> {v:Double | v == expDist x1 x2 } @-}
+{-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == expDist x1 x2 } @-}
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
 
-{-@ assume expDistPure :: x1:_ -> x2:_ -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
+{-@ assume expDistPure :: x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
 expDistPure :: a -> a -> ()
 expDistPure _ _ = ()
 
-{-@ assume expDistEq :: x1:_ -> {x2:_|x1 = x2 && bijCoupling} -> {expDist x1 x2 = 0} @-}
+{-@ assume expDistEq :: x1:Distr a -> {x2:Distr a |x1 = x2 && bijCoupling} -> {expDist x1 x2 = 0} @-}
 expDistEq :: Distr a -> Distr a -> ()
 expDistEq _ _ = ()
 
 {-@ measure maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double @-}
-{-@ assume maxExpDist :: x1:_ -> x2:_ -> {v:Double | v == maxExpDist x1 x2 } @-}
+{-@ assume maxExpDist :: x1:(a -> Distr b) -> x2:(a -> Distr b) -> {v:Double | v == maxExpDist x1 x2 } @-}
 maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double
 maxExpDist _ _ = undefined
 
 
 {-@ measure maxExpDistEq :: (a -> Distr b) -> (a -> Distr b) -> Double @-}
-{-@ assume maxExpDistEq :: x1:_ -> x2:_ -> {v:Double | v == maxExpDistEq x1 x2 } @-}
+{-@ assume maxExpDistEq :: x1:(a -> Distr b) -> x2:(a -> Distr b) -> {v:Double | v == maxExpDistEq x1 x2 } @-}
 maxExpDistEq :: (a -> Distr b) -> (a -> Distr b) -> Double
 maxExpDistEq _ _ = undefined
 
--- {-@ assume maxExpDistLess :: m:_ -> f1:_ -> f2:_ -> (x1:_ -> x2:_ -> {expDist (f1 x1) (f2 x2) <= m}) -> { maxExpDist f1 f2 <= m } @-}
--- maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
--- maxExpDistLess _ _ _ _ = ()
+{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
+                          -> { maxExpDist f1 f2 <= m } @-}
+maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
+maxExpDistLess _ _ _ _ = ()
 
--- {-@ assume maxExpDistEqLess :: m:_ -> f1:_ -> f2:_ -> 
---                 (x:_ -> {expDist (f1 x) (f2 x) <= m}) -> 
---                 { maxExpDistEq f1 f2 <= m } @-}
--- maxExpDistEqLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
--- maxExpDistEqLess _ _ _ _ = ()
+{-@ assume maxExpDistEqLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) -> 
+                (x:a -> {expDist (f1 x) (f2 x) <= m}) -> 
+                { maxExpDistEq f1 f2 <= m } @-}
+maxExpDistEqLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
+maxExpDistEqLess _ _ _ _ = ()
 
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------

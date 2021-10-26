@@ -1,6 +1,7 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
 {-@ LIQUID "--no-termination" @-}
+{-@ LIQUID "--savequery" @-}
 {- LIQUID "--ple"            @-}
 
 module Theorem where
@@ -161,16 +162,7 @@ distZero :: Distr a -> Distr a -> ()
 {-@ assume distZero :: x1:Distr a -> x2:{Distr a | x1 == x2 } ->  {expDist x1 x2 == 0 }  @-}
 distZero _ _ = () 
 
-{-@ assume maxExpDistLess :: m:_ -> f1:_ -> f2:_ -> (x:_ -> {expDist (f1 x) (f2 x) <= m}) 
-                          -> { maxExpDist f1 f2 <= m } @-}
-maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
-maxExpDistLess _ _ _ _ = ()
 
-{-@ assume maxExpDistEqLess :: m:_ -> f1:_ -> f2:_ -> 
-                (x:_ -> {expDist (f1 x) (f2 x) <= m}) -> 
-                { maxExpDistEq f1 f2 <= m } @-}
-maxExpDistEqLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ()) -> ()
-maxExpDistEqLess _ _ _ _ = ()
 
 {-@ ple thm @-}
 {-@ thm :: zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 

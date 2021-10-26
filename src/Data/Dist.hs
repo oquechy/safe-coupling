@@ -1,4 +1,5 @@
 {-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--fast"       @-}
 
 module Data.Dist
   ( dist
@@ -7,7 +8,7 @@ module Data.Dist
 where
 
 {-@ measure dist :: a -> a -> Double @-}
-{-@ assume dist :: x1:_ -> x2:_ -> {v:Double | v == dist x1 x2 } @-}
+{-@ assume dist :: x1:a -> x2:a -> {v:Double | v == dist x1 x2 } @-}
 dist :: a -> a -> Double
 dist _ _ = 0
 
