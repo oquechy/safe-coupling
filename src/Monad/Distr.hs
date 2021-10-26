@@ -4,11 +4,41 @@ module Monad.Distr where
 
 import Data.Dist (dist)
 
-newtype Distr a = Distr (Distr a)
+newtype Distr a = Distr a
 
-{-@ reflect bijCoupling @-}
-bijCoupling :: Bool
-bijCoupling = True
+
+{-@ assume expDistPure :: x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
+expDistPure :: a -> a -> ()
+expDistPure _ _ = ()
+
+{-@ assume expDistEq :: x1:Distr a -> {x2:Distr a | x1 = x2 } -> {expDist x1 x2 = 0} @-}
+expDistEq :: Distr a -> Distr a -> ()
+expDistEq _ _ = ()
+
+
+{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) 
+                          -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
+                          -> { maxExpDist f1 f2 <= m } @-}
+maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
+maxExpDistLess _ _ _ _ = ()
+
+-- The above is wrong because it does not check bij coupling of the argument 
+-- distributions, we need to replace it with the below  
+
+{-@ assume expDistBind :: m:Double 
+                          -> f1:(a -> Distr b) -> e1:Distr a 
+                          -> f2:(a -> Distr b) -> e2:{Distr a | BijCoupling e1 e2 } 
+                          -> (x:a -> { expDist (f1 x) (f2 x) <= m}) 
+                          -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
+expDistBind :: Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
+expDistBind _ _ _ _ _ _ = ()
+
+
+-------------------------------------------------------------------------------
+-- | (Non( Definitions --------------------------------------------------------
+-------------------------------------------------------------------------------
+
+{-@ predicate BijCoupling X Y = X == Y @-}
 
 {-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
 type Prob = Double
@@ -18,26 +48,12 @@ type Prob = Double
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
 
-{-@ assume expDistPure :: x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
-expDistPure :: a -> a -> ()
-expDistPure _ _ = ()
-
-{-@ assume expDistEq :: x1:Distr a -> {x2:Distr a |x1 = x2 && bijCoupling} -> {expDist x1 x2 = 0} @-}
-expDistEq :: Distr a -> Distr a -> ()
-expDistEq _ _ = ()
 
 {-@ measure maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double @-}
-{-@ assume maxExpDist :: x1:(a -> Distr b) -> x2:(a -> Distr b) -> {v:Double | v == maxExpDist x1 x2 } @-}
+{-@ assume maxExpDist :: x1:(a -> Distr b) -> x2:(a -> Distr b) 
+                      -> {v:Double | v == maxExpDist x1 x2 } @-}
 maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double
-maxExpDist _ _ = undefined
-
-{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) 
-                          -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
-                          -> { maxExpDist f1 f2 <= m } @-}
-maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
-maxExpDistLess _ _ _ _ = ()
-
-
+maxExpDist _ _ = 0.0
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
 -------------------------------------------------------------------------------

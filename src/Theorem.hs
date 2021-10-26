@@ -196,15 +196,24 @@ maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2 z  =
     *** QED
 
 {-@
-assume maxExpDistLess3 :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
-                -> z2:DataPoint -> α2:StepSize -> f2:LossFunction 
+maxExpDistLess3 :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
+                -> z2:{DataPoint | z1 == z2 } -> {α2:StepSize| α1 = α2} -> f2:{LossFunction | f1 == f2}
                 -> w:Weight -> {expDist (pureUpdate z1 α2 f2 w) (pureUpdate z2 α2 f2 w) = 0.0}
 @-}
 maxExpDistLess3 :: DataPoint -> StepSize -> LossFunction 
                 -> DataPoint -> StepSize -> LossFunction 
                 -> Weight -> ()
-maxExpDistLess3 zs1 α1 f1 zs2 α2 f2 ws = ()
-
+maxExpDistLess3 z1 α1 f1 z2 α2 f2 ws =
+                  expDist (pureUpdate z1 α1 f1 ws) (pureUpdate z2 α2 f2 ws)
+              === expDist ((ppure . update z1 α1 f1) ws) ((ppure . update z2 α2 f2) ws)
+              === expDist (ppure ((update z1 α1 f1) ws)) (ppure ((update z2 α2 f2) ws))
+                  ? expDistPure (update z1 α1 f1 ws) (update z2 α2 f2 ws)
+              === dist (update z1 α1 f1 ws) (update z2 α2 f2 ws)
+                  ? relationalupdateq z1 ws α1 f1 z2 ws α2 f2 
+              === dist ws ws 
+                  ? distEq ws ws
+              =<= 0
+              *** QED
 {-@
 maxExpDistLess1 :: zs1:DataSet -> α1:StepSize -> f1:LossFunction 
                 -> zs2:DataSet -> {α2:StepSize|α1 = α2} -> f2:{LossFunction | f1 == f2}
