@@ -1,5 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
+{-@ LIQUID "--no-termination" @-}
 {- LIQUID "--ple"            @-}
 
 module Theorem where
@@ -23,7 +24,7 @@ type Weight = Double
 type LossFunction = DataPoint -> Weight -> Double
 
 type Set a = [a]
-{-@ type DataSet = {v:Set DataPoint| 0 < len v && 0.0 < lend v } @-}
+{-@ type DataSet = {v:Set DataPoint| 1 < lend v && 1 < len v } @-}
 type DataSet = Set DataPoint
 type DataDistr = Distr DataPoint
 
@@ -172,8 +173,8 @@ maxExpDistEqLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> a -> ())
 maxExpDistEqLess _ _ _ _ = ()
 
 {-@ ple thm @-}
-{-@ thm :: zs1:{DataSet | 1 < lend zs1 && 1 < len zs1 } -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
-           zs2:{DataSet | 1 < lend zs2 && 1 < len zs2 && lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
+{-@ thm :: zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
+           zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
             ws2:Weight -> {α2:StepSizes| α2 = α1} -> {f2:LossFunction|f1 = f2} -> 
             { expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist ws1 ws2 + estab zs1 α1} @-}
 thm :: DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
@@ -269,17 +270,39 @@ pureUpdate zs a f = ppure . update zs a f
 
 
 {-@
-assume maxExpDistLess2 :: zs1:DataSet -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> ws1: Weight
-                -> zs2:DataSet -> {α2:StepSize|α1 = α2} -> a2:StepSizes -> f2:{LossFunction | f1 == f2} -> ws2:Weight
+maxExpDistLess2 :: zs1:DataSet -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> ws1: Weight
+                -> {zs2:DataSet| lend zs1 == lend zs2 && tail zs1 = tail zs2} -> {α2:StepSize|α1 = α2} 
+                -> {a2:StepSizes|a1 = a2} -> f2:{LossFunction | f1 == f2} -> ws2:Weight
                 -> z:DataPoint  -> {expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= dist ws1 ws2 + estab zs1 a1 }
 @-}
 
 maxExpDistLess2 :: DataSet -> StepSize -> StepSizes -> LossFunction -> Weight
                 -> DataSet -> StepSize -> StepSizes -> LossFunction -> Weight
                 -> DataPoint -> ()
-maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2 z  = () 
+maxExpDistLess2 zs1 α1 a1 f1 ws1 zs2 α2 a2 f2 ws2 z  = 
+    expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
+    === expDist (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
+        ? relationalbind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1) (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2)
+    
+    =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) + maxExpDist (pureUpdate z α1 f1) (pureUpdate z α2 f2)
+        ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
 
+    =<= dist ws1 ws2 + estab zs1 a1 + maxExpDist (pureUpdate z α1 f1) (pureUpdate z α2 f2)
+        ? maxExpDistLess 0 (pureUpdate z α2 f2) (pureUpdate z α2 f2) (maxExpDistLess3 z α1 f1 z α2 f2)
 
+    =<= dist ws1 ws2 + estab zs1 a1
+
+    *** QED
+
+{-@
+assume maxExpDistLess3 :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
+                -> z2:DataPoint -> α2:StepSize -> f2:LossFunction 
+                -> w:Weight -> {expDist (pureUpdate z1 α2 f2 w) (pureUpdate z2 α2 f2 w) = 0.0}
+@-}
+maxExpDistLess3 :: DataPoint -> StepSize -> LossFunction 
+                -> DataPoint -> StepSize -> LossFunction 
+                -> Weight -> ()
+maxExpDistLess3 zs1 α1 f1 zs2 α2 f2 ws = ()
 
 {-@
 maxExpDistLess1 :: zs1:DataSet -> α1:StepSize -> f1:LossFunction 
