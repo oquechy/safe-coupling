@@ -1,4 +1,5 @@
 {-@ LIQUID "--reflection"     @-}
+{-@ LIQUID "--ple-local"     @-}
 
 module Monad.Distr where 
 
@@ -15,35 +16,23 @@ expDistPure _ _ = ()
 expDistEq :: Distr a -> Distr a -> ()
 expDistEq _ _ = ()
 
--- The below is WRONG because it does not check bij coupling of the argument 
--- distributions, we need to replace it with the below  
 
-{-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) 
-                          -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
-                          -> { maxExpDist f1 f2 <= m } @-}
-maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
-maxExpDistLess _ _ _ _ = ()
-
--- END OF WRONG RULE 
-
-
-
-
-
-
+-- CHECK IF THIS IS CORRECT 
+{-@ ple relUnitBindTry @-}
 {-@ assume relUnitBindTry :: m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
                           -> f2:(a -> b) -> e2:Distr a 
                           -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= dist x1 x2 + m}) 
                           -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= expDist e1 e2 + m } @-}
 relUnitBindTry :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
-relUnitBindTry _ _ _ _ _ _ = ()
+relUnitBindTry m f1 e1 f2 e2 t = () --  maxExpDistLemma e1 e2 `const` relUnitBind m f1 e1 f2 e2 t
+
 
 {-@ assume relUnitBind :: m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
                           -> f2:(a -> b) -> e2:Distr a 
-                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= m}) 
-                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= m } @-}
+                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= dist x1 x2 + m}) 
+                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= maxExpDist e1 e2 + m } @-}
 relUnitBind :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
 relUnitBind _ _ _ _ _ _ = ()
 
@@ -67,32 +56,26 @@ expDistBind _ _ _ _ _ _ = ()
 {-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
 type Prob = Double
 
+
+{-@ assume maxExpDistLemma :: x1:Distr a -> x2:Distr a -> { expDist x1 x2 <=  maxExpDist x1 x2 } @-}
+maxExpDistLemma :: Distr a -> Distr a -> ()
+maxExpDistLemma _ _ = ()
+
+
+{-@ measure maxExpDist :: Distr a -> Distr a -> Double @-}
+{-@ assume maxExpDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == maxExpDist x1 x2 } @-}
+maxExpDist :: Distr a -> Distr a -> Double
+maxExpDist _ _ = 0
+
+
 {-@ measure expDist :: Distr a -> Distr a -> Double @-}
 {-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == expDist x1 x2 } @-}
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
 
-
-{-@ measure maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double @-}
-{-@ assume maxExpDist :: x1:(a -> Distr b) -> x2:(a -> Distr b) 
-                      -> {v:Double | v == maxExpDist x1 x2 } @-}
-maxExpDist :: (a -> Distr b) -> (a -> Distr b) -> Double
-maxExpDist _ _ = 0.0
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
 -------------------------------------------------------------------------------
-
-
-{-@ assume relationalbind :: e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) -> 
-        { expDist (bind e1 f1) (bind e2 f2) <= expDist e1 e2 + maxExpDist f1 f2 } @-}
-relationalbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b) -> ()
-relationalbind = undefined
-
-{-@ assume relationalpbind :: e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) -> 
-        { expDist (pbind e1 f1) (pbind e2 f2) <= expDist e1 e2 + maxExpDist f1 f2 } @-}
-relationalpbind :: Distr a  -> (a -> Distr b)  -> Distr a  -> (a -> Distr b) -> ()
-relationalpbind = undefined
-
 {-@ assume relationalppure :: x1:a -> x2:a 
                     -> { expDist (ppure x1) (ppure x2) = dist x1 x2 } @-}
 relationalppure :: a -> a -> () 
