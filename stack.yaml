@@ -8,5 +8,5 @@ extra-deps:
   - ../../liquidtypes/liquidhaskell/liquid-prelude
   - ../../liquidtypes/liquidhaskell/liquid-ghc-prim
   - ../../liquidtypes/liquidhaskell/liquid-fixpoint
-
+  - rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
 allow-newer: true

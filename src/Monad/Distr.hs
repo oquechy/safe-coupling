@@ -29,9 +29,9 @@ maxExpDistLess _ _ _ _ = ()
 
 {-@ assume relUnitBind :: m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
-                          -> f2:(a -> b) -> e2:{Distr a} 
-                          -> (x1:a -> x2:a -> { dist (f1 x) (f2 x) <= m}) 
-                          -> { expDist (bind e1 (return . f1 )) (bind e2 (return . f2)) <= m } @-}
+                          -> f2:(a -> b) -> e2:Distr a 
+                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= m}) 
+                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= m } @-}
 relUnitBind :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
 relUnitBind _ _ _ _ _ _ = ()
 
@@ -47,7 +47,7 @@ expDistBind _ _ _ _ _ _ = ()
 
 
 -------------------------------------------------------------------------------
--- | (Non( Definitions --------------------------------------------------------
+-- | (Non) Definitions --------------------------------------------------------
 -------------------------------------------------------------------------------
 
 {-@ predicate BijCoupling X Y = X == Y @-}

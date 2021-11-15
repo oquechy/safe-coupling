@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
+    pantry-tree:
+      size: 3353
+      sha256: 136fea6611049098a74a0b13507dfa914b3eff5d4bca6ef0514b35bc478bdb15
+  original:
+    hackage: rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
 snapshots:
 - completed:
     size: 563099

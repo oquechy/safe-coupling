@@ -126,7 +126,8 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     =<= (one / lend zs1) * (expDist (bind (sgd zs1 ws1 a1 f1) pureUpd1) 
                                     (bind (sgd zs2 ws2 a2 f2) pureUpd2)) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-        ?   relationalbind (sgd zs1 ws1 a1 f1) pureUpd1 (sgd zs2 ws2 a2 f2) pureUpd2
+        ?   relUnitBind (2 * α1) (sgd zs1 ws1 a1 f1) (update (head zs1) α1 f1) (sgd zs2 ws2 a2 f2) (update (head zs2) α2 f2)
+                        (\_ _ -> ())
         
     =<= (one / lend zs1) * (expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) + maxExpDist pureUpd1 pureUpd2) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
