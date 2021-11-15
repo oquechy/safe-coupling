@@ -15,6 +15,8 @@ expDistPure _ _ = ()
 expDistEq :: Distr a -> Distr a -> ()
 expDistEq _ _ = ()
 
+-- The below is WRONG because it does not check bij coupling of the argument 
+-- distributions, we need to replace it with the below  
 
 {-@ assume maxExpDistLess :: m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b) 
                           -> (x:a -> {expDist (f1 x) (f2 x) <= m}) 
@@ -22,6 +24,7 @@ expDistEq _ _ = ()
 maxExpDistLess :: Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ()) -> ()
 maxExpDistLess _ _ _ _ = ()
 
+-- END OF WRONG RULE 
 
 
 {-@ assume relUnitBind :: m:Double 
@@ -33,8 +36,6 @@ relUnitBind :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a
 relUnitBind _ _ _ _ _ _ = ()
 
 
--- The above is wrong because it does not check bij coupling of the argument 
--- distributions, we need to replace it with the below  
 
 {-@ assume expDistBind :: m:Double 
                           -> f1:(a -> Distr b) -> e1:Distr a 
