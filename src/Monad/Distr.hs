@@ -27,6 +27,18 @@ maxExpDistLess _ _ _ _ = ()
 -- END OF WRONG RULE 
 
 
+
+
+
+
+{-@ assume relUnitBindTry :: m:Double 
+                          -> f1:(a -> b) -> e1:Distr a 
+                          -> f2:(a -> b) -> e2:Distr a 
+                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= dist x1 x2 + m}) 
+                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= expDist e1 e2 + m } @-}
+relUnitBindTry :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
+relUnitBindTry _ _ _ _ _ _ = ()
+
 {-@ assume relUnitBind :: m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
                           -> f2:(a -> b) -> e2:Distr a 
