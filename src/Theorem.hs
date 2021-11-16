@@ -24,10 +24,11 @@ relationalupdatep :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepS
 relationalupdatep _ _ _ _ _ _ _ _ = ()
 
 
-{-@ assume relationalupdateq :: z1:DataPoint -> ws1:Weight -> α1:StepSize -> f1:LossFunction -> 
-                                  {z2:DataPoint|z1 = z2} -> ws2:Weight -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} -> 
-                                    {dist (update z1 α1 f1 ws1) (update z2 α2 f2 ws2) = dist ws1 ws2} @-}
-relationalupdateq ::  DataPoint -> Weight -> StepSize -> LossFunction -> DataPoint -> Weight -> StepSize -> LossFunction -> ()
+{-@ assume relationalupdateq :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
+                             -> {z2:DataPoint|z1 = z2} -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
+                             -> ws1:Weight -> ws2:Weight -> 
+                            {dist (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = dist ws1 ws2} @-}
+relationalupdateq :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
 relationalupdateq = undefined
 
 
@@ -135,8 +136,8 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
         ?   relUnitBindTry (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
-                           (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
-                           (relationalupdatep (head zs1) α1 f1 (head zs2) α2 f2) 
+                                    (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
+                                    (relationalupdatep (head zs1) α1 f1 (head zs2) α2 f2) 
         
     =<= (one / lend zs1) * (expDist (sgd zs1 ws1 a1 f1)  
                                     (sgd zs2 ws2 a2 f2) + (2.0 * α1)) 
@@ -177,13 +178,25 @@ thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
 assert :: Bool -> ()
 assert _ = ()
 
-{-@ assume lemma :: zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
+{-@ lemma :: zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
-             ws2:Weight -> α2:StepSize -> {a2:StepSizes| a2 = a1} -> {f2:LossFunction|f1 = f2} -> 
-             x:DataPoint -> 
-            { expDist (sgdRecUpd zs1 ws1 α1 a1 f1 x) (sgdRecUpd zs2 ws2 α2 a2 f2 x) <= dist ws1 ws2 + estab zs1 a1} @-}
+             ws2:Weight -> α2:{StepSize | α1 = α2} -> {a2:StepSizes| a2 = a1} -> f2:{LossFunction|f1 = f2} ->  
+             z:DataPoint -> 
+             {expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= dist ws1 ws2 + estab zs1 a1} @-}
 lemma :: DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSize ->  StepSizes -> LossFunction -> DataPoint -> ()
-lemma _ _ _ _ _ _ _ _ _ _ _ = ()
+lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z = 
+  expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
+        ?   pureUpdateEq z α1 f1
+        ?   pureUpdateEq z α2 f2
+    === expDist (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
+                (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
+        ?   relUnitBindTry 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
+                             (update z α2 f2) (sgd zs2 ws2 a2 f2) 
+                             (relationalupdateq z α1 f1 z α2 f2)
+    =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
+        ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
+    =<= dist ws1 ws2 + estab zs1 a1
+    *** QED
 
 
 {-@ assume pureUpdateEq :: zs:DataPoint -> a:StepSize -> f:LossFunction
