@@ -2,11 +2,11 @@ resolver: lts-17.2
 packages:
   - .
 extra-deps:
-  - ../../liquidtypes/liquidhaskell
-  - ../../liquidtypes/liquidhaskell/liquid-base
-  - ../../liquidtypes/liquidhaskell/liquid-containers
-  - ../../liquidtypes/liquidhaskell/liquid-prelude
-  - ../../liquidtypes/liquidhaskell/liquid-ghc-prim
-  - ../../liquidtypes/liquidhaskell/liquid-fixpoint
-  - rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
+  - ../liquidhaskell
+  - ../liquidhaskell/liquid-base
+  - ../liquidhaskell/liquid-containers
+  - ../liquidhaskell/liquid-prelude
+  - ../liquidhaskell/liquid-ghc-prim
+  - ../liquidhaskell/liquid-fixpoint
+
 allow-newer: true
