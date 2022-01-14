@@ -9,7 +9,9 @@ cabal-version:       >=1.10
 library
   exposed-modules:     
        Data.Dist
+     , Data.List
      , Monad.Distr
+     , TD
      , SGD 
      , Theorem 
   build-depends:
