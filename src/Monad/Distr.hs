@@ -8,6 +8,26 @@ import Data.Dist (dist)
 newtype Distr a = Distr a
 
 
+
+{-@ measure sampled :: Distr a ->  a -> Bool @-}
+{-@ assume sampled :: a:Distr a ->  v:a -> {b:Bool | b == sampled a v } @-} 
+sampled :: Distr a ->  a -> Bool 
+sampled _ _ = undefined  
+
+{-@ assume liftPure :: p:(a -> b -> Bool) -> x1:a -> {x2:b|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
+liftPure :: (a -> b -> Bool) -> a -> b -> ()
+liftPure _ _ _ = ()
+
+{-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
+{-@ assume lift :: p1:_ -> x1:_ -> x2:_ -> {v:_ | v == Monad.Distr.lift p1 x1 x2} @-}
+lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
+lift p e1 e2 = True
+  
+  {- do
+      x1 <- e1
+      x2 <- e2
+      return (p x1 x2) -}
+
 {-@ assume expDistPure :: x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
 expDistPure :: a -> a -> ()
 expDistPure _ _ = ()
@@ -46,12 +66,19 @@ relUnitBind _ _ _ _ _ _ = ()
 expDistBind :: Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
 expDistBind _ _ _ _ _ _ = ()
 
+{-@ assume expDistBindP :: m:Double -> p:(a -> a -> Bool )
+                          -> f1:(a -> Distr b) -> e1:Distr a 
+                          -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2 } 
+                          -> (x1:{a | sampled x1 e1} -> {x2:a|p x1 x2 && sampled x2 e2} -> { expDist (f1 x1) (f2 x2) <= m}) 
+                          -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
+expDistBindP :: Double -> (a -> a -> Bool) -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> Distr a -> (a -> a -> ()) -> ()
+expDistBindP _ _ _ _ _ _ _ = ()
 
 -------------------------------------------------------------------------------
 -- | (Non) Definitions --------------------------------------------------------
 -------------------------------------------------------------------------------
 
-{-@ predicate BijCoupling X Y = X == Y @-}
+{-@ predicate BijCoupling X Y = true @-}
 
 {-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
 type Prob = Double
@@ -96,7 +123,7 @@ relationalchoice _ _ _ _ _ _ = ()
 -------------------------------------------------------------------------------
 
 {-@ measure Monad.Distr.bind :: Distr a -> (a -> Distr b) -> Distr b @-}
-{-@ assume bind :: x1:Distr a -> x2:(a -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
+{-@ assume bind :: forall <p :: a -> Bool>.x1:Distr a<p> -> x2:(a<p> -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
 bind :: Distr a -> (a -> Distr b) -> Distr b
 bind = undefined
 

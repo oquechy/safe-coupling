@@ -7,7 +7,9 @@ llen :: List a -> Int
 llen Nil = 0
 llen (Cons _ xs) = 1 + llen xs
 
-{-@ at :: xs:List a -> {i:Nat|i < llen xs} -> a @-}
+{- at :: xs:List a -> {i:Nat|i < llen xs} -> a @-}
 at :: List a -> Int -> a
-at (Cons x _) 0 = x
+at Nil _         = undefined
+-- at _ i | i < 0   = undefined
+at (Cons x _ ) 0 = x
 at (Cons _ xs) i = at xs (i - 1)
