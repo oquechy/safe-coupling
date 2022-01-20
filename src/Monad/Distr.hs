@@ -4,15 +4,11 @@
 module Monad.Distr where 
 
 import Data.Dist (dist)
+import Data.List 
 
 newtype Distr a = Distr a
 
 
-
-{-@ measure sampled :: Distr a ->  a -> Bool @-}
-{-@ assume sampled :: a:Distr a ->  v:a -> {b:Bool | b == sampled a v } @-} 
-sampled :: Distr a ->  a -> Bool 
-sampled _ _ = undefined  
 
 {-@ assume liftPure :: p:(a -> b -> Bool) -> x1:a -> {x2:b|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
 liftPure :: (a -> b -> Bool) -> a -> b -> ()
@@ -69,7 +65,7 @@ expDistBind _ _ _ _ _ _ = ()
 {-@ assume expDistBindP :: m:Double -> p:(a -> a -> Bool )
                           -> f1:(a -> Distr b) -> e1:Distr a 
                           -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2 } 
-                          -> (x1:{a | sampled x1 e1} -> {x2:a|p x1 x2 && sampled x2 e2} -> { expDist (f1 x1) (f2 x2) <= m}) 
+                          -> (x1:a -> {x2:a|p x1 x2} -> { expDist (f1 x1) (f2 x2) <= m}) 
                           -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
 expDistBindP :: Double -> (a -> a -> Bool) -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> Distr a -> (a -> a -> ()) -> ()
 expDistBindP _ _ _ _ _ _ _ = ()
@@ -99,6 +95,11 @@ maxExpDist _ _ = 0
 {-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == expDist x1 x2 } @-}
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
+
+{-@ measure expDistList :: List (Distr a) -> List (Distr b) -> Double @-}
+{-@ assume expDistList :: xs1:List (Distr a) -> xs2:List (Distr a) -> {v:Double | v == expDistList xs1 xs2 } @-}
+expDistList :: List (Distr a) -> List (Distr a) -> Double
+expDistList _ _ = 0 
 
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
