@@ -2,7 +2,8 @@
 
 module TD0 where
 
-import           Monad.Distr
+import           Monad.Implemented.Distr
+-- import           Monad.Distr
 import           Data.Dist
 import           Data.List
 
@@ -35,12 +36,13 @@ foldr f z (Cons x xs) = f x (foldr f z xs)
 td0 :: Int -> Int -> PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> DistrValueFunction
 td0 n s π r p v = foldr (\i v -> act i π r p v) (map ppure v) (range n) 
 
-mapM :: (a -> Distr b) -> List a -> Distr (List b)
-mapM = undefined
 
 inj :: DistrValueFunction -> Distr ValueFunction
 inj Nil = ppure Nil
-inj (Cons x xs) = bind x (\x' -> ppure (Cons x' (inj xs)))
+inj (Cons x xs) = 
+  bind x        (\v -> 
+  bind (inj xs) (\vs -> 
+  ppure (Cons v vs))) 
 
 
 act :: State -> PolicyMap -> RewardFunction -> TransitionFunction -> DistrValueFunction -> DistrValueFunction
