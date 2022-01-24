@@ -11,6 +11,7 @@ import           Data.List
 
 import           Prelude                 hiding ( map
                                                 , repeat
+                                                , foldr
                                                 )
 
 import           Language.Haskell.Liquid.ProofCombinators
@@ -22,7 +23,8 @@ type Reward = Double
 
 type PolicyMap = State -> Distr Action
 type RewardFunction = State -> Action -> Distr Reward
-type TransitionFunction = State -> Action -> Distr State
+type TransitionFunction = Int -> State -> Action -> Distr State
+{-@ type TransitionFunction = n:Nat -> {i:State|i < n} -> Action -> Distr {i:State|i < n} @-}
 -- TODO: make it a list
 type ValueFunction = List Reward
 type DistrValueFunction = List (Distr Reward)
@@ -71,8 +73,8 @@ thm n s π r p v1 v2
     =<= pow k n * dist v1 v2 
     *** QED -}
     where 
-    arg1 = act s π r p v1 
-    arg2 = act s π r p v2 
+    arg1 = act s π r p (map ppure v1) 
+    arg2 = act s π r p (map ppure v2)
     -- m    = pow k (n-1) * expDist arg1 arg2
     -- m' = pow k (n-1) * expDist (act s π r p v1) (act s π r p v2)
 
@@ -134,34 +136,49 @@ lemma n s π r p v1 v2 = undefined
     *** QED
 -}
 
-repeat :: Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction -> DistrValueFunction
-repeat = undefined
+dmap :: (a -> Distr b) -> List (Distr a) -> List (Distr b)
+dmap = undefined 
+
+{-@ repeat :: Nat -> _ -> _ -> _ @-}
+repeat :: Int -> (DistrValueFunction -> DistrValueFunction) -> DistrValueFunction -> DistrValueFunction
+repeat 0 act v = act v
+repeat n act v = act (repeat (n - 1) act v)
+
+{-@ reflect foldr @-}
+foldr :: (a -> b -> b) -> b -> List a -> b
+foldr _ z Nil = z                  
+foldr f z (Cons x xs) = f x (foldr f z xs)
+
+maxDist = undefined 
 
 {-@ reflect td0 @-}
 {-@ td0 :: Nat -> i:State -> _ -> _ -> _ -> {v:ValueFunction|i < llen v} -> DistrValueFunction @-}
 td0 :: Int -> Int -> PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> DistrValueFunction
-td0 n _ _ _ _ v | n <= 0 = map ppure v
-td0 n s π r p v          = act s π r p v
+td0 n s π r p v = foldr (\i v -> act i π r p v) (map ppure v) (range n) 
 
 {-@ reflect γ @-}
 {-@ reflect α @-}
 {-@ reflect k @-}
 
 γ, α, k :: Double
-
+{-@ α :: {k:Double|0 < k && k < 1} @-}
+{-@ γ :: {k:Double|0 < k && k < 1} @-}
 γ = 0.9
 α = 0.5
 
-{-@ k :: {k:Double|k < 1} @-}
+{-@ k :: {k:Double|0 < k && k < 1} @-}
 k = 1 - α + α * γ
 
 -- {-@ forall i < len w1. espDist (w1 i) (w2 i) < k * dist (v1 i) (v2 i) @-}
+{-@ reflect inj @-}
+inj :: DistrValueFunction -> Distr ValueFunction
+inj v = ppure Nil 
 
 {-@ reflect act @-}
 {-@ act :: i:State -> _ -> _ -> _ -> {v:_|i < llen v} -> DistrValueFunction @-}
-act :: State -> PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> DistrValueFunction
-act i _ _ _ v | i <= 0 = map ppure v
-act i π r p v          = map (sample π r p v) (range i)
+act :: State -> PolicyMap -> RewardFunction -> TransitionFunction -> DistrValueFunction -> DistrValueFunction
+act i _ _ _ v | i <= 0 = v
+act i π r p v          = map (\i -> bind (inj v) (\v' -> sample π r p v' i)) (range i)
     
 {-@ relationalf :: π:_ -> r:_ -> p:_ -> v1:_ -> {v2:_|llen v1 = llen v2} -> {i:State|i < llen v1} -> 
                     {expDist (sample π r p v1 i) (sample π r p v2 i) <= k * dist (at v1 i) (at v2 i)} @-}
@@ -194,9 +211,9 @@ lemma1 r p v1 v2 i a
 lemma2 :: TransitionFunction -> ValueFunction -> ValueFunction -> State -> Action -> Reward -> ()
 lemma2 p v1 v2 i a rw 
     =   expDist (sample'' p v1 i a rw) (sample'' p v2 i a rw)
-    === expDist (bind (p i a) (update v1 i rw)) (bind (p i a) (update v2 i rw))
-        ?   expDistBind m (update v1 i rw) (p i a)
-                          (update v2 i rw) (p i a)
+    === expDist (bind (p (llen v1) i a) (update v1 i rw)) (bind (p (llen v2) i a) (update v2 i rw))
+        ?   expDistBind m (update v1 i rw) (p (llen v1) i a)
+                          (update v2 i rw) (p (llen v2) i a)
                           (lemma3 v1 v2 i a rw)
     =<= m
     *** QED
@@ -211,9 +228,19 @@ lemma3 v1 v2 i a rw j
                 (ppure ((1 - α) * v2 `at` i + α * (rw + γ * v2 `at` j)))
         ? expDistPure ((1 - α) * v1 `at` i + α * (rw + γ * v1 `at` j))
                       ((1 - α) * v2 `at` i + α * (rw + γ * v2 `at` j))
-    === dist ((1 - α) * v1 `at` i + α * (rw + γ * v1 `at` j))
+    {- === dist ((1 - α) * v1 `at` i + α * (rw + γ * v1 `at` j))
              ((1 - α) * v2 `at` i + α * (rw + γ * v2 `at` j))
-    =<= k * dist (at v1 i) (at v2 i)
+        ?   triangularIneq -- | a + b - c - d | <= | a - c| + | b - d |
+                           -- | a + b | <= | a | + | b |
+    =<= dist ((1 - α) * v1 `at` i) ((1 - α) * v2 `at` i) 
+        + dist (α * (rw + γ * v1 `at` j)) (α * (rw + γ * v2 `at` j))
+        ?   linearity
+    === (1 - α) * dist (v1 `at` i) (v2 `at` i)
+        + α * γ * dist (v1 `at` j) (v2 `at` j)
+        ?   distLTMax
+    =<= (1 - α + α * γ) * maxDist v1 v2
+    === k * maxDist v1 v2
+    -}
     *** QED
 
 {-@ reflect sample @-}
@@ -229,10 +256,10 @@ sample' r p v i a = bind (r i a) (sample'' p v i a)
 {-@ reflect sample'' @-}
 {-@ sample'' :: _ -> v:ValueFunction -> {i:State|i < llen v} -> _ -> _ -> _ @-}
 sample'' :: TransitionFunction -> ValueFunction -> State -> Action -> Reward -> Distr Reward
-sample'' p v i a rw = bind (p i a) (update v i rw)
-            
+sample'' p v i a rw = bind (p (llen v) i a) (update v i rw) 
+
 {-@ reflect update @-}
-{-@ update :: v:_ -> {i:State|i < llen v} -> _ -> {j:State|j < llen v} -> _ @-}
+{-@ update :: v:ValueFunction -> {i:State|i < llen v} -> _ -> {j:State|j < llen v} -> _ @-}
 update :: ValueFunction -> State -> Reward -> State -> Distr Reward
 update v i rw j = ppure ((1 - α) * v `at` i + α * (rw + γ * v `at` j))
 
