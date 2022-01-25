@@ -33,9 +33,8 @@ foldr :: (a -> b -> b) -> b -> List a -> b
 foldr _ z Nil = z                  
 foldr f z (Cons x xs) = f x (foldr f z xs)
 
-td0 :: Int -> Int -> PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> DistrValueFunction
-td0 n s π r p v = foldr (\i v -> act i π r p v) (map ppure v) (range n) 
-
+td0 :: Int -> PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> DistrValueFunction
+td0 n π r p v = foldr (\_ v -> act π r p v) (map ppure v) (range 0 n) 
 
 inj :: DistrValueFunction -> Distr ValueFunction
 inj Nil = ppure Nil
@@ -45,9 +44,8 @@ inj (Cons x xs) =
   ppure (Cons v vs))) 
 
 
-act :: State -> PolicyMap -> RewardFunction -> TransitionFunction -> DistrValueFunction -> DistrValueFunction
-act i _ _ _ v | i <= 0 = v
-act i π r p v          = map (\i -> bind (inj v) (\v' -> sample π r p v' i)) (range i)
+act :: PolicyMap -> RewardFunction -> TransitionFunction -> DistrValueFunction -> DistrValueFunction
+act π r p v = map (\i -> bind (inj v) (\v' -> sample π r p v' i)) (range 0 (llen v))
     
 sample :: PolicyMap -> RewardFunction -> TransitionFunction -> ValueFunction -> State -> Distr Reward
 sample π r p v i = bind (π i) (sample' r p v i)
@@ -59,7 +57,7 @@ sample'' :: TransitionFunction -> ValueFunction -> State -> Action -> Reward -> 
 sample'' p v i a rw = bind (p (llen v) i a) (update v i rw) 
 
 γ, α :: Double
-γ = 0.9
+γ = 0.2
 α = 0.5
 
 update :: ValueFunction -> State -> Reward -> State -> Distr Reward
