@@ -12,6 +12,7 @@ library
      , Data.List
      , Monad.Distr
      , Monad.Implemented.Distr
+     , TD0Theorem
      , TD0
 --      , TD 
      , SGD 

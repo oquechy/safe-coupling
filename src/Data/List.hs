@@ -12,15 +12,18 @@ data List a = Nil | Cons a (List a)
     deriving (Eq, Show)
 
 {-@ measure llen @-}
+{-@ llen :: List a -> Nat @-}
 llen :: List a -> Int
 llen Nil         = 0
 llen (Cons _ xs) = 1 + llen xs
 
-{-@ reflect at @-}
-{-@ at :: xs:List a -> {i:Nat| i < llen xs} -> a @-}
+{-@ measure Data.List.at :: List a -> Int -> a @-}
+{-@ assume at :: xs:List a -> i:Int -> {v:a|v = Data.List.at xs i} @-}
 at :: List a -> Int -> a
-at (Cons x _ ) 0 = x
-at (Cons _ xs) i = at xs (i - 1)
+at Nil _                 = undefined
+at (Cons x _) i | i <= 0 = x
+at (Cons _ xs) i         = at xs (i - 1)
+
 
 {-@ reflect range @-}
 {-@ range :: i:Nat -> len:Nat -> List {j:Nat|j < i + len} / [len] @-}
