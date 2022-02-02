@@ -6,6 +6,8 @@ module Monad.Distr where
 import Data.Dist (dist)
 import Data.List 
 
+import Prelude hiding (max)
+
 newtype Distr a = Distr a
 
 
@@ -63,10 +65,10 @@ expDistBind :: Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a
 expDistBind _ _ _ _ _ _ = ()
 
 {-@ assume expDistBindP :: m:Double -> p:(a -> a -> Bool )
-                          -> f1:(a -> Distr b) -> e1:Distr a 
-                          -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2 } 
-                          -> (x1:a -> {x2:a|p x1 x2} -> { expDist (f1 x1) (f2 x2) <= m}) 
-                          -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
+                -> f1:(a -> Distr b) -> e1:Distr a 
+                -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2 } 
+                -> lemma:(x1:a -> {x2:a|p x1 x2} -> { expDist (f1 x1) (f2 x2) <= m}) 
+                -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
 expDistBindP :: Double -> (a -> a -> Bool) -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> Distr a -> (a -> a -> ()) -> ()
 expDistBindP _ _ _ _ _ _ _ = ()
 
@@ -79,11 +81,9 @@ expDistBindP _ _ _ _ _ _ _ = ()
 {-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
 type Prob = Double
 
-
 {-@ assume maxExpDistLemma :: x1:Distr a -> x2:Distr a -> { expDist x1 x2 <=  maxExpDist x1 x2 } @-}
 maxExpDistLemma :: Distr a -> Distr a -> ()
 maxExpDistLemma _ _ = ()
-
 
 {-@ measure maxExpDist :: Distr a -> Distr a -> Double @-}
 {-@ assume maxExpDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == maxExpDist x1 x2 } @-}
@@ -91,15 +91,17 @@ maxExpDist :: Distr a -> Distr a -> Double
 maxExpDist _ _ = 0
 
 
-{-@ measure expDist :: Distr a -> Distr a -> Double @-}
-{-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == expDist x1 x2 } @-}
+{-@ measure Monad.Distr.expDist :: Distr a -> Distr a -> Double @-}
+{-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == Monad.Distr.expDist x1 x2 } @-}
 expDist :: Distr a -> Distr a -> Double
 expDist _ _ = 0
 
 {-@ measure expDistList :: List (Distr a) -> List (Distr b) -> Double @-}
 {-@ assume expDistList :: xs1:List (Distr a) -> xs2:List (Distr a) -> {v:Double | v == expDistList xs1 xs2 } @-}
 expDistList :: List (Distr a) -> List (Distr a) -> Double
-expDistList _ _ = 0 
+expDistList Nil _ = 0 
+expDistList _ Nil = 0 
+expDistList (Cons x xs) (Cons y ys) = max (expDist x y) (expDistList xs ys)
 
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
