@@ -10,11 +10,17 @@ import Prelude hiding (max)
 
 newtype Distr a = Distr a
 
-
-
-{-@ assume liftPure :: p:(a -> b -> Bool) -> x1:a -> {x2:b|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
+{-@ assume liftPure :: p:_ -> x1:_ -> {x2:_|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
 liftPure :: (a -> b -> Bool) -> a -> b -> ()
 liftPure _ _ _ = ()
+
+{-@ assume liftBind :: p:_ -> q:_ -> e1:_ -> f1:_ -> {e2:_|lift q e1 e2} -> f2:_ ->   
+              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
+                {lift p (bind e1 f1) (bind e2 f2)} @-}
+liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) -> 
+              Distr a -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> 
+              (a -> a -> ()) -> ()
+liftBind _ _ _ _ _ _ _ = ()
 
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
 {-@ assume lift :: p1:_ -> x1:_ -> x2:_ -> {v:_ | v == Monad.Distr.lift p1 x1 x2} @-}

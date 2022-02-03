@@ -73,3 +73,8 @@ zip3With f (Cons a as) (Cons b bs) (Cons c cs) = Cons (f a b c) (zip3With f as b
 zip4 :: List a -> List b -> List c -> List d -> List (a, b, c, d)
 zip4 Nil Nil Nil Nil = Nil
 zip4 (Cons a as) (Cons b bs) (Cons c cs) (Cons d ds) = Cons (a, b, c, d) (zip4 as bs cs ds)
+
+{-@ reflect foldr @-}
+foldr :: (a -> b -> b) -> b -> List a -> b
+foldr _ z Nil = z                  
+foldr f z (Cons x xs) = f x (foldr f z xs)
