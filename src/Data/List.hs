@@ -6,6 +6,7 @@ import           Prelude                 hiding ( map
                                                 , max
                                                 , zipWith
                                                 , all
+                                                , foldr
                                                 )
 
 
