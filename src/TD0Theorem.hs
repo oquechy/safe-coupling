@@ -1,7 +1,7 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--fast"           @-}
 {-@ LIQUID "--no-termination" @-}
-{-@ LIQUID "--ple"      @-}
+{-@ LIQUID "--ple"            @-}
 
 module TD0Theorem where
 
@@ -21,6 +21,9 @@ import           Prelude                 hiding ( map
 import           Language.Haskell.Liquid.ProofCombinators
 import           Monad.Distr 
 import           Data.Dist 
+
+import           Lemmata.Relational.Iterate 
+import           Lemmata.Relational.Act 
 import           TD0
 
 {-@ relationaltd0 :: n:Nat -> t:_ -> v1:_ -> v2:_ -> 
@@ -29,26 +32,6 @@ relationaltd0 :: Int -> Transition -> ValueFunction -> ValueFunction -> ()
 relationaltd0 n t v1 v2 
     = relationaliterate (distList v1 v2) k n (act t) (relationalact t) v1 v2 
 
-{-@ relationaliterate :: m:_ -> {k:_|k >= 0} -> n:Nat -> f:_ -> 
-                            (m:_ -> x1:_ -> x2:_ -> {bounded m x1 x2 => lift (bounded (k * m)) (f x1) (f x2)}) ->
-                            x1:_ -> x2:_ -> 
-                            {bounded m x1 x2 => lift (bounded (pow k n * m)) (iterate n f x1) (iterate n f x2)} @-}
-relationaliterate :: Double -> Double -> Int -> (List Double -> Distr (List Double)) ->
-                        (Double -> List Double -> List Double -> ()) -> List Double -> List Double -> ()
-relationaliterate m k n _ _ x1 x2 | n <= 0
-    =   undefined
-        -- liftPure (bounded (pow k n * m)) x1 x2  
-            -- ? (distList x1 x2 
-            --     =<= m
-            --     =<= pow k n * m
-            --     *** QED)
-relationaliterate m k n f lemma x1 x2
-    =   undefined
-        -- liftBind (bounded (pow k n * m)) (bounded (k * m)) 
-        --          (f x1) (iterate (n - 1) f)
-        --          (f x2) (iterate (n - 1) f)
-        --          (relationaliterate (k * m) k (n - 1) f lemma)
-        --     ? lemma m x1 x2
             
 
 -- {-@ relationaliterate :: n:Nat -> {k:_|k > 0} -> f:_ -> v1:_ -> v2:_ -> 
@@ -75,13 +58,6 @@ relationaliterate m k n f lemma x1 x2
 shrinks :: Transition -> Double -> ValueFunction -> ValueFunction -> Bool
 shrinks t k v1' v2' = dist (act t v1') (act t v2') <= k * dist v1' v2'
 
-{-@ reflect bounded @-}
-bounded :: Double -> ValueFunction -> ValueFunction -> Bool
-bounded m v1' v2' = distList v1' v2' <= m
-
-{-@ reflect bounded' @-}
-bounded' :: Double -> Double -> Double -> Bool
-bounded' m x1 x2 = dist x1 x2 <= m
 
 -- consM :: 
 -- consM = undefined
@@ -91,34 +67,8 @@ bounded' m x1 x2 = dist x1 x2 <= m
 -- consbounded :: Double -> Distr Double -> Distr (List Double) -> Distr Double -> Distr (List Double) -> ()
 -- consbounded = undefined
 
-{-@ relationalmapM :: m:_ -> k:_ -> f1:_ -> v1:_ -> f2:_ -> v2:_ -> 
-                        (x1:_ -> {x2:_|dist x1 x2 <= m} -> {lift (bounded' (k * m)) (f1 x1) (f2 x2)}) ->
-                        {lift (bounded (k * m)) (mapM f1 v1) (mapM f2 v2)} @-}
-relationalmapM :: Double -> Double -> (Double -> Distr Double) -> List Double -> (Double -> Distr Double) -> List Double -> 
-                    (Double -> Double -> ()) -> ()
--- mapM _ Nil = ppure Nil
-relationalmapM m k _ v1 _ Nil _
-    =   liftPure (bounded (k * m)) v1 Nil
-relationalmapM m k _ Nil _ v2 _
-    =   liftPure (bounded (k * m)) Nil v2
--- mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
-relationalmapM m k f1 v1 f2 (Cons i is) lemma = undefined
-    -- =   liftBind (bounded (k * m)) trueP
-    --         (f1 i1) (cons (mapM f is2))
-    --         (\i1 i2 -> 
-    --             distList (cons (mapM f xs1) x1) (cons (mapM f xs2) x2)) 
-    --             =<= k * m
-    --             *** QED)
 
-{-@ relationalact :: t:_ -> m:_ -> v1:_ -> v2:_ -> 
-                    {bounded m v1 v2 => lift (bounded (k * m)) (act t v1) (act t v2)} @-}
-relationalact :: Transition -> Double -> ValueFunction -> ValueFunction -> ()
-relationalact t m v1 v2 
-    =   undefined
-    -- relationalmapM m k 
-    --         (sample t v1) (range 0 (llen v1)) 
-    --         (sample t v2) (range 0 (llen v2)) 
-    --         (relationalsample m t v1 v2)
+
 
 -- {-@ reflect shrinks @-}
 -- shrinks :: Double -> List (Distr a -> Distr b) -> List (Distr a -> Distr b) -> Distr a -> Distr a -> Bool
@@ -133,10 +83,7 @@ relationalact t m v1 v2
 -- relationalap :: List (a -> b) -> List a -> List (a -> b) -> List a -> (a -> a -> ()) -> ()
 -- relationalap xs1 xs2 f = undefined
 
-{-@ relationalsample :: m:_ -> t:_ -> i:_ -> v1:_ -> v2:_ ->  
-                        {bounded m v1 v2 => lift (bounded' (k * m)) (sample t v1 i) (sample t v2 i)} @-}
-relationalsample :: Double -> Transition -> State -> ValueFunction -> ValueFunction -> ()
-relationalsample = undefined
+
 
 -- maybe bounded m*k w1 w2 => lift (bounded m*k) ...
 -- {-@ relationalcons :: m:_ -> u1:_ -> w1:_ -> u2:_ -> w2:_ -> p:(j:_, r:_) ->
@@ -147,30 +94,6 @@ relationalsample = undefined
 --                             (State, Reward) -> ()
 -- relationalcons = undefined
 
-{-@ relationalupdate :: m:_ -> v1:_ -> v2:_ -> i:_ -> j:_ -> r:_ ->
-                        {dist (update v1 i j r) (update v2 i j r) 
-                            <= k * max (dist (at v1 i) (at v2 i)) (dist (at v1 j) (at v2 j))} @-}
-relationalupdate :: Double -> ValueFunction -> ValueFunction -> State -> State -> Reward -> ()
-relationalupdate m v1 v2 i j r 
-    =   dist (update v1 i j r) (update v2 i j r)
-    === dist ((1 - α) * v1 `at` i + α * (r + γ * v1 `at` j))
-             ((1 - α) * v2 `at` i + α * (r + γ * v2 `at` j))
-        ?   triangularIneq ((1 - α) * v1 `at` i + α * (r + γ * v1 `at` j))
-                           ((1 - α) * v2 `at` i + α * (r + γ * v1 `at` j))
-                           ((1 - α) * v2 `at` i + α * (r + γ * v2 `at` j))
-    =<= dist ((1 - α) * v1 `at` i + α * (r + γ * v1 `at` j))
-             ((1 - α) * v2 `at` i + α * (r + γ * v1 `at` j))
-             + dist ((1 - α) * v2 `at` i + α * (r + γ * v1 `at` j))
-                    ((1 - α) * v2 `at` i + α * (r + γ * v2 `at` j))
-        ?   linearity (1 - α) (α * (r + γ * v1 `at` j)) (v1 `at` i) (v2 `at` i)
-    =<= (1 - α) * dist (v1 `at` i) (v2 `at` i)
-             + dist ((1 - α) * v2 `at` i + α * (r + γ * v1 `at` j))
-                    ((1 - α) * v2 `at` i + α * (r + γ * v2 `at` j))
-        ?   linearity (α * γ) ((1 - α) * v2 `at` i + α * r) (v1 `at` j) (v2 `at` j)
-    =<= (1 - α) * dist (v1 `at` i) (v2 `at` i)
-        + α * γ * dist (v1 `at` j) (v2 `at` j)
-    =<= k * max (dist (v1 `at` i) (v2 `at` i)) (dist (v1 `at` j) (v2 `at` j))
-    *** QED
 
 -- {-@ relationalsample'''' :: v1:_ -> v2:_ -> r:_ -> j:_ -> rw1:_ -> rw2:_ -> 
 --                             {expDist (sample'''' v1 r j rw1) (sample'''' v2 r j rw2) 

@@ -12,6 +12,11 @@ library
      , Data.List
      , Monad.Distr
      , Monad.Implemented.Distr
+     , Lemmata.Relational.Update
+     , Lemmata.Relational.Sample
+     , Lemmata.Relational.Act
+     , Lemmata.Relational.MapM
+     , Lemmata.Relational.Iterate
      , TD0Theorem
      , TD0
 --      , TD 
