@@ -3,12 +3,20 @@
 
 module Monad.Distr where 
 
-import Data.Dist (dist)
+import Data.Dist (dist, distList)
 import Data.List 
 
 import Prelude hiding (max)
 
 newtype Distr a = Distr a
+
+{-@ reflect bounded @-}
+bounded :: Double -> List Double -> List Double -> Bool
+bounded m v1' v2' = distList v1' v2' <= m
+
+{-@ reflect bounded' @-}
+bounded' :: Double -> Double -> Double -> Bool
+bounded' m x1 x2 = dist x1 x2 <= m
 
 {-@ assume liftPure :: p:_ -> x1:_ -> {x2:_|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
 liftPure :: (a -> b -> Bool) -> a -> b -> ()
