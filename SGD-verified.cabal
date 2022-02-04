@@ -17,7 +17,7 @@ library
      , Lemmata.Relational.Act
      , Lemmata.Relational.MapM
      , Lemmata.Relational.Iterate
-     , TD0Theorem
+     , Lemmata.Relational.TD0
      , TD0
 --      , TD 
      , SGD 

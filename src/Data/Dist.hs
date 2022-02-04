@@ -19,8 +19,7 @@ import Data.List
 dist :: a -> a -> Double
 dist _ _ = 0
 
-{-@ measure Data.Dist.distList :: List a -> List a -> Double @-}
-{-@ assume distList :: x1:List a -> x2:List a -> {v:Double | v == Data.Dist.distList x1 x2 && v >= 0} @-}
+{-@ reflect distList @-}
 distList :: List a -> List a -> Double
 distList Nil _ = 0
 distList _ Nil = 0

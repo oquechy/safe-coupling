@@ -13,27 +13,37 @@ import           TD0
 import           Language.Haskell.Liquid.ProofCombinators
 
 
-{-@ relationalmapM :: m:_ -> k:_ -> f1:_ -> v1:_ -> f2:_ -> v2:_ -> 
-                        (x1:_ -> {x2:_|dist x1 x2 <= m} -> {lift (bounded' (k * m)) (f1 x1) (f2 x2)}) ->
-                        {lift (bounded (k * m)) (mapM f1 v1) (mapM f2 v2)} @-}
-relationalmapM :: Double -> Double -> (Double -> Distr Double) -> List Double -> (Double -> Distr Double) -> List Double -> 
-                    (Double -> Double -> ()) -> ()
+{-@ boundedNil :: {m:_|0 <= m} -> {true} @-}
+boundedNil :: Double -> ()
+boundedNil _ = ()
 
-relationalmapM m k f1 v1 f2 v2 _
-    = undefined 
-
-{-     
-relationalmapM m k _ v1 _ Nil _
-    =   liftPure (bounded (k * m)) v1 Nil
-relationalmapM m k _ Nil _ v2 _
-    =   liftPure (bounded (k * m)) Nil v2
+{-@ relationalmapM :: {m:_|0 <= m} -> f1:_ -> is1:_ -> f2:_ -> {is2:_|is1 = is2} -> 
+                        (i:_ -> {lift (bounded' m) (f1 i) (f2 i)}) ->
+                        {lift (bounded m) (mapM f1 is1) (mapM f2 is2)} @-}
+relationalmapM :: Double -> (a -> Distr Double) -> List a -> (a -> Distr Double) -> List a -> 
+                    (a -> ()) -> ()
+-- mapM _ Nil = ppure Nil
+relationalmapM m f1 Nil f2 Nil _
+    =   undefined
+        -- liftPure (bounded (k * m)) Nil Nil (boundedNil (k * m))
 -- mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
-relationalmapM m k f1 v1 f2 (Cons i is) lemma = undefined
-    -- =   liftBind (bounded (k * m)) trueP
-    --         (f1 i1) (cons (mapM f is2))
-    --         (\i1 i2 -> 
-    --             distList (cons (mapM f xs1) x1) (cons (mapM f xs2) x2)) 
-    --             =<= k * m
-    --             *** QED)
+relationalmapM m f1 (Cons i1 is1) f2 (Cons i2 is2) lemma = undefined
+    -- =   liftBind (bounded (k * m)) (bounded' (k * m))
+    --         (f1 i1) (cons (mapM f1 is2))
+    --         (f2 i2) (cons (mapM f2 is2))
+    --         (lemma i1 i2)
+    --         undefined
+            -- (\r1 r2 -> 
+            --     liftBind (bounded (k * m)) (bounded (k * m))
+            --              (mapM f1 is1) (ppure `o` (Cons r1))
+            --              (mapM f2 is2) (ppure `o` (Cons r2))
+            --              (relationalmapM m k f1 is1 f2 is2 lemma)
+            --              (\rs1 rs2 -> 
+            --                 liftPure (bounded (k * m)) (Cons r1 rs1) (Cons r2 rs2) ()))
+            
 
--}
+
+-- {-@ consbounded :: m:Double -> x1:Distr Double -> xs1:Distr (List Double) -> {x2:Distr Double|bounded' m x1 x2} -> {xs2:Distr (List Double)|bounded m xs1 xs2} -> 
+--                     {bounded m (consM x1 xs1) (consM x2 xs2)} @-}
+-- consbounded :: Double -> Distr Double -> Distr (List Double) -> Distr Double -> Distr (List Double) -> ()
+-- consbounded = undefined

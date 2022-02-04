@@ -18,23 +18,39 @@ bounded m v1' v2' = distList v1' v2' <= m
 bounded' :: Double -> Double -> Double -> Bool
 bounded' m x1 x2 = dist x1 x2 <= m
 
-{-@ assume liftPure :: p:_ -> x1:_ -> {x2:_|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
-liftPure :: (a -> b -> Bool) -> a -> b -> ()
-liftPure _ _ _ = ()
+{-@ reflect eqP @-}
+eqP :: Eq a => a -> a -> Bool
+eqP = (==)
 
-{-@ assume liftBind :: p:_ -> q:_ -> e1:_ -> f1:_ -> {e2:_|lift q e1 e2} -> f2:_ ->   
-              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
+{-@ assume liftEq :: e:_ -> {lift eqP e e} @-}
+liftEq :: Distr a -> ()
+liftEq _ = ()
+
+{-@ assume liftPure :: p:_ -> x1:_ -> x2:_ -> {_:_|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
+liftPure :: (a -> b -> Bool) -> a -> b -> () -> ()
+liftPure _ _ _ _ = ()
+   
+--              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
+{-@ assume liftBind :: p:_ -> q:_ -> e1:_ -> f1:_ -> e2:_ -> f2:_ ->   
+                {_:_|lift q e1 e2} ->
+                (x1:_ -> {x2:_|q x1 x2} -> {true}) ->
                 {lift p (bind e1 f1) (bind e2 f2)} @-}
 liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) -> 
               Distr a -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> 
-              (a -> a -> ()) -> ()
-liftBind _ _ _ _ _ _ _ = ()
+              () ->
+              (a -> a -> ()) -> 
+              ()
+liftBind _ _ _ _ _ _ _ _ = ()
 
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
 {-@ assume lift :: p1:_ -> x1:_ -> x2:_ -> {v:_ | v == Monad.Distr.lift p1 x1 x2} @-}
 lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
 lift p e1 e2 = True
-  
+
+{-@ reflect trueP @-}
+trueP :: a -> a -> Bool 
+trueP _ _ = True 
+
   {- do
       x1 <- e1
       x2 <- e2

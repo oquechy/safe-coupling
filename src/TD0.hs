@@ -44,8 +44,7 @@ lq_required _ = ()
 td0 :: Int -> Transition -> ValueFunction -> DistrValueFunction
 td0 n t v = iterate n (act t) v
 
-{-@ measure TD0.foldM :: (b -> a -> Distr b) -> List a -> b -> Distr b @-}
-{-@ assume foldM :: f:(b -> a -> Distr b) -> xs:List a -> z:b -> {v:Distr b|v == TD0.foldM f xs z} @-}
+{-@ reflect foldM @-}
 foldM :: (b -> a -> Distr b) -> List a -> b -> Distr b
 foldM _ Nil z = ppure z
 foldM f (Cons x xs) z = bind (f z x) (foldM f xs)
@@ -58,16 +57,14 @@ cons xs x = bind xs (ppure `o` (Cons x))
 purecons :: a -> List a -> Distr (List a)
 purecons x xs = ppure (Cons x xs)
 
-{-@ measure TD0.mapM :: (a -> Distr b) -> List a -> Distr (List b) @-}
-{-@ assume mapM :: f:_ -> xs:_ -> {v:Distr (List b)|v == TD0.mapM f xs} @-}
+{-@ reflect mapM @-}
 mapM :: (a -> Distr b) -> List a -> Distr (List b)
 mapM _ Nil = ppure Nil
 mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
 
 -- flipConst :: (b -> Distr b) -> b -> a -> Distr b
 
-{-@ measure TD0.iterate :: Nat -> (b -> Distr b) -> b -> Distr b @-}
-{-@ assume iterate :: n:Nat -> f:(b -> Distr b) -> x:b -> {v:Distr b|v == TD0.iterate n f x} @-}
+{-@ reflect iterate @-}
 iterate :: Int -> (b -> Distr b) -> b -> Distr b
 iterate n _ x | n <= 0 = ppure x
 iterate n f x = bind (f x) (iterate (n - 1) f)
