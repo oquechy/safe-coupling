@@ -62,8 +62,8 @@ estabEmp zs =
 estabconsR :: DataSet -> StepSize -> StepSizes -> () 
 estabconsR zs x xs 
   =   estab zs (SS x xs)
-  ==. 2.0 / (lend zs) * sum (SS x xs)
-  ==. 2.0 * x * (one / lend zs) + estab zs xs 
+  === 2.0 / (lend zs) * sum (SS x xs)
+  === 2.0 * x * (one / lend zs) + estab zs xs 
   *** QED 
 
 
@@ -94,6 +94,13 @@ ___________________________________________________________
 
 
 
+
+{-@ check :: x:a -> {v:Distr a | v == Monad.Distr.ppure x } @-}
+check :: a -> Distr a 
+check x = ppure x 
+
+
+
 {-@ ple thm @-}
 {-@ thm :: zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
            zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
@@ -101,14 +108,15 @@ ___________________________________________________________
             { expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist ws1 ws2 + estab zs1 α1} @-}
 thm :: DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
 thm zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
-  expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
-    === expDist (ppure ws1) (ppure ws2)
-        ? relationalppure ws1 ws2
-    === dist ws1 ws2
-        ? estabEmp zs1 
-    === dist ws1 ws2 + estab zs1 α1
-    *** QED 
-
+      dist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
+  === dist (sgd zs1 ws1 SSEmp f1) (sgd zs2 ws2 SSEmp f2)
+  === dist (ppure ws1) (ppure ws2)
+      ? relationalppure ws1 ws2 
+  === dist ws1 ws2
+      ? estabEmp zs1 
+  === dist ws1 ws2 + estab zs1 α1
+  *** QED 
+  
 thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   expDist (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
     === expDist
