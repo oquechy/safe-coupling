@@ -17,9 +17,7 @@ import           Language.Haskell.Liquid.ProofCombinators
 relationaltd0 :: Int -> Transition -> ValueFunction -> ValueFunction -> ()
 relationaltd0 n t v1 v2 
     = relationaliterate (distList v1 v2) k n (act t) (relationalact t) v1 v2
-        ? (distList v1 v2 
-            =<= distList v1 v2
-            *** QED)
+        
 
 {-@ relationaliterate :: m:_ -> {k:_|k >= 0} -> n:Nat -> f:_ -> 
                             (m:_ -> x1:_ -> x2:_ -> {bounded m x1 x2 => lift (bounded (k * m)) (f x1) (f x2)}) ->
