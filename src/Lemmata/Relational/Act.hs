@@ -16,11 +16,12 @@ import           TD0
 import           Language.Haskell.Liquid.ProofCombinators
 
 
-{-@ relationalact :: t:_ -> m:_ -> v1:_ -> {v2:_|llen v1 = llen v2} -> 
+{-@ relationalact :: t:_ -> m:{_|0 <= m} -> v1:_ -> {v2:_|llen v1 = llen v2} -> 
                     {bounded m v1 v2 => lift (bounded (k * m)) (act t v1) (act t v2)} @-}
 relationalact :: Transition -> Double -> ValueFunction -> ValueFunction -> ()
-relationalact t m v1 v2 
-    = relationalmapM m
+relationalact t m v1 v2 | bounded m v1 v2 
+    = relationalmapM (k * m)
             (sample t v1) (range 0 (llen v1)) 
             (sample t v2) (range 0 (llen v2)) 
             (relationalsample m t v1 v2)
+relationalact _ _ _ _ = ()

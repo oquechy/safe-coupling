@@ -14,7 +14,7 @@ import           Lemmata.Relational.Update
 import           TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 
-
+{- 
 {-@ lemma :: m:_ -> v1:_ -> {v2:_|bounded m v1 v2} -> i:_ -> t1:_ -> {t2:_|eqP t1 t2} -> 
                 {lift (bounded' (m * k)) (ppure (uncurry (update v1 i) t1)) (ppure (uncurry (update v2 i) t2))} @-}
 lemma :: Double -> ValueFunction -> ValueFunction -> State -> (State, Reward) -> (State, Reward) -> ()
@@ -31,7 +31,7 @@ lemma m v1 v2 i (j1, r1) (j2, r2) =
                             *** QED)
                     =<= k * m
                         *** QED)
-
+-}
 {-@ relationalsample :: m:_ -> t:_ -> v1:_ -> v2:_ -> i:_ ->  
                         {bounded m v1 v2 => lift (bounded' (k * m)) (sample t v1 i) (sample t v2 i)} @-}
 relationalsample :: Double -> Transition -> ValueFunction -> ValueFunction -> State -> ()
@@ -40,5 +40,5 @@ relationalsample m t v1 v2 i | bounded m v1 v2
                (t `at` i) (ppure `o` (uncurry (update v1 i)))
                (t `at` i) (ppure `o` (uncurry (update v2 i)))
                (liftEq (t `at` i))
-               (lemma m v1 v2 i)
+               undefined -- (lemma m v1 v2 i)
 relationalsample _ _ _ _ _ = ()
