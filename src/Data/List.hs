@@ -28,7 +28,7 @@ at (Cons x _) i | i == 0 = x
 at (Cons _ xs) i         = at xs (i - 1)
 
 {-@ reflect range @-}
-{-@ range :: i:Nat -> len:Nat -> List {j:Nat|j < i + len} / [len] @-}
+{-@ range :: i:Nat -> len:Nat -> {v:List {j:Nat|j < i + len}|llen v = len} / [len] @-}
 range :: Int -> Int -> List Int
 range _ 0   = Nil
 range i len = Cons i (range (i + 1) (len - 1))

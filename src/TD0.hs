@@ -43,14 +43,20 @@ td0 n v t = iterate n (act (llen v) t) v
 cons :: Distr (List a) -> a -> Distr (List a)
 cons xs x = bind xs (ppure `o` (Cons x))
 
+{-@ reflect ppureDouble @-}
+ppureDouble :: List Double -> Distr (List Double)
+ppureDouble x = ppure x 
+
 {-@ reflect mapM @-}
 {-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double|llen ys = llen xs}) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
-mapM _ Nil = ppure Nil
+mapM _ Nil = ppureDouble Nil
 mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
 
 {-@ reflect iterate @-}
-iterate :: Int -> (b -> Distr b) -> b -> Distr b
+{-@ iterate :: Int -> (v:ValueFunction -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
+                v:ValueFunction -> Distr ({v':ValueFunction|llen v' = llen v}) @-}
+iterate :: Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction -> DistrValueFunction
 iterate n _ x | n <= 0 = ppure x
 iterate n f x = bind (f x) (iterate (n - 1) f)
 
@@ -84,5 +90,5 @@ k = 1 - α + α * γ
 {-@ update :: v:ValueFunction -> StateOf v -> StateOf v -> Reward -> Reward @-}
 update :: ValueFunction -> State -> State -> Reward -> Reward
 update v i j r = (1 - α) * (v `at` i) + α * (r + γ * v `at` j)
-
+-- 
 
