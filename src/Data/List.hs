@@ -34,7 +34,7 @@ range _ 0   = Nil
 range i len = Cons i (range (i + 1) (len - 1))
 
 {-@ reflect map @-}
-{-@ map :: _ -> xs:_ -> {ys:_|llen ys = llen xs} @-}
+{-@ map :: (a -> b) -> xs:List a -> {ys:_|llen ys = llen xs} @-}
 map :: (a -> b) -> List a -> List b
 map f Nil         = Nil
 map f (Cons x xs) = Cons (f x) (map f xs)

@@ -17,8 +17,9 @@ import           Language.Haskell.Liquid.ProofCombinators
 boundedNil :: Double -> ()
 boundedNil _ = ()
 
-{-@ relationalmapM :: {m:_|0 <= m} -> f1:_ -> is1:_ -> f2:_ -> {is2:_|is1 = is2} -> 
-                        (i:_ -> {lift (bounded' m) (f1 i) (f2 i)}) ->
+{-@ relationalmapM :: {m:_|0 <= m} -> f1:(a -> Distr Double) -> is1:List a -> 
+                        f2:(a -> Distr Double) -> {is2:List a|is1 = is2} -> 
+                        (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) ->
                         {lift (bounded m) (mapM f1 is1) (mapM f2 is2)} @-}
 relationalmapM :: Double -> (a -> Distr Double) -> List a -> (a -> Distr Double) -> List a -> 
                     (a -> ()) -> ()

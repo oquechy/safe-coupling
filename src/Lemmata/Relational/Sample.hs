@@ -52,7 +52,7 @@ pureUpdateLemma m v1 v2 i (j1, r1) (j2, r2) =
                 (updateLemma v1 v2 i j1 r1)
 
 {-@ relationalsample :: m:_ -> t:_ -> v1:_ -> v2:_ -> i:_ ->  
-                        {bounded m v1 v2 => lift (bounded' (k * m)) (sample t v1 i) (sample t v2 i)} @-}
+                        {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
 relationalsample :: Double -> Transition -> ValueFunction -> ValueFunction -> State -> ()
 relationalsample m t v1 v2 i | bounded m v1 v2 
     = liftBind (bounded' (k * m)) eqP

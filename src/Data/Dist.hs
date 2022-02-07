@@ -30,11 +30,11 @@ distList (Cons x xs) (Cons y ys) = max (dist x y) (distList xs ys)
 distEq :: a -> a -> () 
 distEq _ _ = ()
 
-{-@ assume triangularIneq :: a:_ -> b:_ -> c:_ -> {dist a c <= dist a b + dist b c} @-}
+{-@ assume triangularIneq :: a:a -> b:a -> c:a -> {dist a c <= dist a b + dist b c} @-}
 triangularIneq :: a -> a -> a -> ()
 triangularIneq _ _ _ = ()
 
-{-@ assume symmetry :: a:_ -> b:_ -> {dist a b = dist b a} @-}
+{-@ assume symmetry :: a:a -> b:a -> {dist a b = dist b a} @-}
 symmetry :: a -> a -> ()
 symmetry _ _ = ()
 
