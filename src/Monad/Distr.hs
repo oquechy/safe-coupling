@@ -8,7 +8,7 @@ import Data.List
 
 import Prelude hiding (max)
 
-newtype Distr a = Distr a
+data Distr a = Distr a
 
 {-@ reflect bounded @-}
 bounded :: Double -> List Double -> List Double -> Bool
@@ -22,16 +22,18 @@ bounded' m x1 x2 = dist x1 x2 <= m
 eqP :: Eq a => a -> a -> Bool
 eqP = (==)
 
-{-@ assume liftEq :: e:_ -> {lift eqP e e} @-}
+{-@ assume liftEq :: e:Distr a -> {lift eqP e e} @-}
 liftEq :: Distr a -> ()
 liftEq _ = ()
 
-{-@ assume liftPure :: p:_ -> x1:_ -> x2:_ -> {_:_|p x1 x2} -> {lift p (ppure x1) (ppure x2)} @-}
+{-@ assume liftPure :: p:(a -> b -> Bool) 
+                    -> x1:a -> x2:b -> {v:()|p x1 x2} 
+                    -> {lift p (ppure x1) (ppure x2)} @-}
 liftPure :: (a -> b -> Bool) -> a -> b -> () -> ()
 liftPure _ _ _ _ = ()
    
 --              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
-{-@ assume liftBind :: p:_ -> q:_ -> e1:_ -> f1:_ -> e2:_ -> f2:_ ->   
+{-@ assume liftBind :: p:_ -> q:_ -> e1:Distr a -> f1:_ -> e2:Distr a -> f2:_ ->   
                 {_:_|lift q e1 e2} ->
                 (x1:_ -> {x2:_|q x1 x2} -> {true}) ->
                 {lift p (bind e1 f1) (bind e2 f2)} @-}
