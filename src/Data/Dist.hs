@@ -38,6 +38,6 @@ triangularIneq _ _ _ = ()
 symmetry :: a -> a -> ()
 symmetry _ _ = ()
 
-{-@ assume linearity :: k:_ -> l:_ -> a:_ -> b:_ -> {dist (k * a + l) (k * b + l) = k * dist a b} @-}
+{-@ assume linearity :: k:Double -> l:Double -> a:Double -> b:Double -> {dist (k * a + l) (k * b + l) = k * dist a b} @-}
 linearity :: Double -> Double -> Double -> Double -> ()
 linearity _ _ _ _ = ()

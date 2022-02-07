@@ -35,7 +35,7 @@ liftPure _ _ _ _ = ()
 --              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
 {-@ assume liftBind :: p:(b -> b -> Bool) -> q:(a -> a -> Bool) -> 
                 e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) ->   
-                {_:_|lift q e1 e2} ->
+                {_:()|lift q e1 e2} ->
                 (x1:a -> {x2:a|q x1 x2} -> {true}) ->
                 {lift p (bind e1 f1) (bind e2 f2)} @-}
 liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) -> 
@@ -46,7 +46,7 @@ liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) ->
 liftBind _ _ _ _ _ _ _ _ = ()
 
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
-{-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b -> {v:_ | v == Monad.Distr.lift p1 x1 x2} @-}
+{-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b -> {v:Bool | v == Monad.Distr.lift p1 x1 x2} @-}
 lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
 lift p e1 e2 = True
 
