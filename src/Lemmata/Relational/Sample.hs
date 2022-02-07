@@ -13,6 +13,7 @@ import           Lemmata.Relational.Update
 
 import           TD0 
 import           Language.Haskell.Liquid.ProofCombinators
+import           Misc.ProofCombinators
 
 -- TODO: listLemma will be unnecessary when `at` is reflected
 {-@ listLemma :: v1:_ -> v2:_ -> i:_ -> {dist (at v1 i) (at v2 i) <= distList v1 v2} @-}

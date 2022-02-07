@@ -19,11 +19,14 @@ llen :: List a -> Int
 llen Nil         = 0
 llen (Cons _ xs) = 1 + llen xs
 
-{-@ measure Data.List.at :: List a -> Int -> a @-}
-{-@ assume at :: xs:List a -> i:Int -> {v:a|v = Data.List.at xs i} @-}
+{-@ ignore at @-}
+{-@ reflect at @-}
+
+{-@ type Idx V = {i:Int | 0 <= i && i < len V} @-}
+
+{-@ at :: xs:List a -> Idx xs -> a @-}
 at :: List a -> Int -> a
-at Nil _                 = undefined
-at (Cons x _) i | i <= 0 = x
+at (Cons x _) i | i == 0 = x
 at (Cons _ xs) i         = at xs (i - 1)
 
 {-@ reflect range @-}

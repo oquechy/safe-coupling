@@ -58,9 +58,13 @@ purecons :: a -> List a -> Distr (List a)
 purecons x xs = ppure (Cons x xs)
 
 {-@ reflect mapM @-}
-mapM :: (a -> Distr b) -> List a -> Distr (List b)
-mapM _ Nil = ppure Nil
+mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
+mapM _ Nil = ppureDouble Nil
 mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
+
+{-@ reflect ppureDouble @-}
+ppureDouble :: List Double -> Distr (List Double)
+ppureDouble x = ppure x 
 
 -- flipConst :: (b -> Distr b) -> b -> a -> Distr b
 

@@ -15,7 +15,7 @@ import           TD0
 import           Language.Haskell.Liquid.ProofCombinators
 
 
-{-@ relationaltd0 :: n:Nat -> t:_ -> v1:_ -> v2:_ -> 
+{-@ relationaltd0 :: n:Nat -> t:_ -> v1:_ -> v2:{_ | llen v1 == llen v2} -> 
         {lift (bounded (pow k n * (distList v1 v2))) (td0 n t v1) (td0 n t v2)} @-}
 relationaltd0 :: Int -> Transition -> ValueFunction -> ValueFunction -> ()
 relationaltd0 n t v1 v2 

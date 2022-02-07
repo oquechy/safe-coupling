@@ -20,6 +20,7 @@ dist :: a -> a -> Double
 dist _ _ = 0
 
 {-@ reflect distList @-}
+{-@ distList :: List a -> List a -> {d:Double | 0 <= d } @-}
 distList :: List a -> List a -> Double
 distList Nil _ = 0
 distList _ Nil = 0
