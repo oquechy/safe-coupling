@@ -21,6 +21,10 @@ llen (Cons _ xs) = 1 + llen xs
 
 {-@ ignore at @-}
 {-@ reflect at @-}
+
+{-@ type Idx V = {i:Int | 0 <= i && i < len V} @-}
+
+{-@ at :: xs:List a -> Idx xs -> a @-}
 at :: List a -> Int -> a
 at (Cons x _) i | i == 0 = x
 at (Cons _ xs) i         = at xs (i - 1)
