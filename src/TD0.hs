@@ -34,14 +34,8 @@ type DistrValueFunction = Distr (List Reward)
 lq_required :: List Int -> ()
 lq_required _ = ()
 
--- {-@ reflect iterate @-}
--- {-@ iterate :: Nat -> (b -> b) -> b -> b @-}
--- iterate :: Int -> (b -> b) -> b -> b
--- iterate 0 _ b = b 
--- iterate n f b = iterate (n - 1) f (f b)
-
 {-@ reflect td0 @-}
-{-@ td0 :: Nat -> v:_ -> TransitionOf (llen v) -> _ @-} 
+{-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> DistrValueFunction @-} 
 td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
 td0 n v t = iterate n (act (llen v) t) v
 
@@ -50,7 +44,7 @@ cons :: Distr (List a) -> a -> Distr (List a)
 cons xs x = bind xs (ppure `o` (Cons x))
 
 {-@ reflect mapM @-}
-{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr {ys:_|llen ys = llen xs} @-}
+{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double|llen ys = llen xs}) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
 mapM _ Nil = ppure Nil
 mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
@@ -65,7 +59,7 @@ o :: (b -> c) -> (a -> b) -> a -> c
 o g f x = g (f x)
 
 {-@ reflect act @-}
-{-@ act :: n:Nat -> TransitionOf n -> {v:_|llen v = n} -> Distr {v':_|llen v' = llen v} @-}
+{-@ act :: n:Nat -> TransitionOf n -> {v:ValueFunction|llen v = n} -> Distr {v':ValueFunction|llen v' = llen v} @-}
 act :: Int -> Transition -> ValueFunction -> DistrValueFunction
 act n t v = mapM (sample v t) (range 0 (llen v)) 
 
@@ -74,7 +68,7 @@ uncurry :: (a -> b -> c) -> (a, b) -> c
 uncurry f (a, b) = f a b
 
 {-@ reflect sample @-}
-{-@ sample :: v:_ -> TransitionOf (llen v) -> StateOf v -> _ @-}
+{-@ sample :: v:ValueFunction -> TransitionOf (llen v) -> StateOf v -> Distr Reward @-}
 sample :: ValueFunction -> Transition -> State -> Distr Reward
 sample v t i = bind (t `at` i) (ppure `o` (uncurry (update v i)))
 
@@ -87,7 +81,7 @@ sample v t i = bind (t `at` i) (ppure `o` (uncurry (update v i)))
 k = 1 - α + α * γ
 
 {-@ reflect update @-}
-{-@ update :: v:_ -> StateOf v -> StateOf v -> _ -> _ @-}
+{-@ update :: v:ValueFunction -> StateOf v -> StateOf v -> Reward -> Reward @-}
 update :: ValueFunction -> State -> State -> Reward -> Reward
 update v i j r = (1 - α) * (v `at` i) + α * (r + γ * v `at` j)
 
