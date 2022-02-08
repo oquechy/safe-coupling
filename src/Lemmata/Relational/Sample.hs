@@ -1,5 +1,4 @@
 {-@ LIQUID "--reflection"     @-}
-{-@ LIQUID "--no-termination" @-}
 {-@ LIQUID "--ple"            @-}
 
 module Lemmata.Relational.Sample where 
@@ -20,7 +19,7 @@ import           Misc.ProofCombinators
 listLemma :: ValueFunction -> ValueFunction -> State -> ()
 listLemma = undefined
 
-{-@ maxLemma :: v1:_ -> v2:_ -> i:_ -> j:_ -> 
+{-@ maxLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> 
                     {max (dist (at v1 i) (at v2 i)) (dist (at v1 j) (at v2 j)) <= distList v1 v2 } @-}
 maxLemma :: ValueFunction -> ValueFunction -> State -> State -> ()
 maxLemma v1 v2 i j 
@@ -32,7 +31,7 @@ maxLemma v1 v2 i j
     =<= distList v1 v2
     *** QED
 
-{-@ updateLemma :: v1:_ -> v2:_ -> i:_ -> j:_ -> r:_ -> 
+{-@ updateLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:_ -> 
                     {dist (update v1 i j r) (update v2 i j r) <= k * distList v1 v2} @-}
 updateLemma :: ValueFunction -> ValueFunction -> State -> State -> Reward -> ()
 updateLemma v1 v2 i j r
@@ -43,7 +42,8 @@ updateLemma v1 v2 i j r
     =<= k * distList v1 v2
     *** QED
 
-{-@ pureUpdateLemma :: m:_ -> v1:_ -> {v2:_|bounded m v1 v2} -> i:_ -> t1:_ -> {t2:_|eqP t1 t2} -> 
+{-@ ignore pureUpdateLemma @-}
+{-@ pureUpdateLemma :: m:_ -> v1:_ -> {v2:_|bounded m v1 v2 && llen v1 = llen v2} -> i:StateOf v1 -> t1:(StateOf v1, Reward) -> {t2:(StateOf v1, Reward)|eqP t1 t2} -> 
                 {lift (bounded' (m * k)) (ppure (uncurry (update v1 i) t1)) (ppure (uncurry (update v2 i) t2))} @-}
 pureUpdateLemma :: Double -> ValueFunction -> ValueFunction -> State -> (State, Reward) -> (State, Reward) -> ()
 pureUpdateLemma m v1 v2 i (j1, r1) (j2, r2) = 
@@ -51,7 +51,10 @@ pureUpdateLemma m v1 v2 i (j1, r1) (j2, r2) =
                 (update v1 i j1 r1) (update v2 i j2 r2) 
                 (updateLemma v1 v2 i j1 r1)
 
-{-@ relationalsample :: m:_ -> t:_ -> v1:_ -> v2:_ -> i:_ ->  
+{-@ ignore relationalsample@-}
+-- INDEXING NV SHOULD FIX 
+
+{-@ relationalsample :: m:_ -> t:_ -> {v1:_|llen t = llen v1} -> {v2:_|llen t = llen v2} -> i:StateOf t ->  
                         {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
 relationalsample :: Double -> Transition -> ValueFunction -> ValueFunction -> State -> ()
 relationalsample m t v1 v2 i | bounded m v1 v2 

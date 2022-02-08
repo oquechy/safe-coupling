@@ -10,6 +10,8 @@ import           Prelude                 hiding ( map
                                                 )
 
 
+{-@ type SameLen L = {v:_|llen v = llen L} @-}
+
 data List a = Nil | Cons a (List a)
     deriving (Eq, Show)
 

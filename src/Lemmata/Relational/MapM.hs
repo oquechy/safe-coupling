@@ -1,5 +1,4 @@
 {-@ LIQUID "--reflection"     @-}
-{-@ LIQUID "--no-termination" @-}
 {-@ LIQUID "--ple"            @-}
 
 module Lemmata.Relational.MapM where 
