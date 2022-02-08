@@ -44,16 +44,6 @@ td0 n v t = iterate n (llen v) (act (llen v) t) v
 cons :: Int -> Distr (List Double) -> Double -> Distr (List Double)
 cons n xs x = bind xs (ppure `o` (consDouble x))
 
-{-@ reflect consDouble @-}
-{-@ consDouble :: Double -> xs:List Double -> {v:List Double | llen v == llen xs + 1  } @-}
-consDouble :: Double -> List Double -> List Double 
-consDouble = Cons 
-
-{-@ reflect ppureDouble @-}
-{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
-ppureDouble :: List Double -> Distr (List Double)
-ppureDouble x = ppure x 
-
 {-@ reflect mapM @-}
 {-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)

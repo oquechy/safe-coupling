@@ -1,5 +1,5 @@
 {-@ LIQUID "--reflection"     @-}
-{-@ LIQUID "--ple-local"     @-}
+{-@ LIQUID "--ple"     @-}
 
 module Monad.Distr where 
 
@@ -18,20 +18,30 @@ bounded m v1' v2' = distList v1' v2' <= m
 bounded' :: Double -> Double -> Double -> Bool
 bounded' m x1 x2 = dist x1 x2 <= m
 
+{-@ boundedNil :: {m:_|0 <= m} -> {bounded m Nil Nil} @-}
+boundedNil :: Double -> ()
+boundedNil _ = ()
+
 {-@ reflect eqP @-}
 eqP :: Eq a => a -> a -> Bool
 eqP = (==)
 
+-- TODO: replace with BijCoupling
 {-@ assume liftEq :: e:Distr a -> {lift eqP e e} @-}
 liftEq :: Distr a -> ()
 liftEq _ = ()
 
 {-@ assume liftPure :: p:(a -> b -> Bool) 
-                    -> x1:a -> x2:b -> {v:()|p x1 x2} 
+                    -> x1:a -> x2:b -> {_:_|p x1 x2} 
                     -> {lift p (ppure x1) (ppure x2)} @-}
 liftPure :: (a -> b -> Bool) -> a -> b -> () -> ()
 liftPure _ _ _ _ = ()
-   
+
+{-@ reflect ppureDouble @-}
+{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
+ppureDouble :: List Double -> Distr (List Double)
+ppureDouble x = ppure x 
+
 --              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
 {-@ assume liftBind :: p:(b -> b -> Bool) -> q:(a -> a -> Bool) -> 
                 e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) ->   
