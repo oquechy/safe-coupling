@@ -40,18 +40,25 @@ td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
 td0 n v t = iterate n (act (llen v) t) v
 
 {-@ reflect cons @-}
-cons :: Distr (List a) -> a -> Distr (List a)
-cons xs x = bind xs (ppure `o` (Cons x))
+{-@ cons :: n:Nat -> Distr ({xs:List Double | llen xs == n}) -> Double -> Distr ({v:List Double | llen v = n + 1}) @-}
+cons :: Int -> Distr (List Double) -> Double -> Distr (List Double)
+cons n xs x = bind xs (ppure `o` (consDouble x))
+
+{-@ reflect consDouble @-}
+{-@ consDouble :: Double -> xs:List Double -> {v:List Double | llen v == llen xs + 1  } @-}
+consDouble :: Double -> List Double -> List Double 
+consDouble = Cons 
 
 {-@ reflect ppureDouble @-}
+{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
 ppureDouble :: List Double -> Distr (List Double)
 ppureDouble x = ppure x 
 
 {-@ reflect mapM @-}
-{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double|llen ys = llen xs}) @-}
+{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
 mapM _ Nil = ppureDouble Nil
-mapM f (Cons x xs) = bind (f x) (cons (mapM f xs))
+mapM f (Cons x xs) = bind (f x) (cons (llen xs) (mapM f xs))
 
 {-@ reflect iterate @-}
 {-@ iterate :: Int -> (v:ValueFunction -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
