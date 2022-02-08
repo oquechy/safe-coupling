@@ -19,4 +19,4 @@ import Misc.ProofCombinators
         {lift (bounded (pow k n * (distList v1 v2))) (td0 n v1 t) (td0 n v2 t)} @-}
 relationaltd0 :: Int -> Int -> Transition -> ValueFunction -> ValueFunction -> ()
 relationaltd0 n l t v1 v2 
-    = relationaliterate (distList v1 v2) k n v1 v2 (act l t) (relationalact l t) 
+    = relationaliterate (distList v1 v2) k n l (act l t) (relationalact l t) v1 v2 
