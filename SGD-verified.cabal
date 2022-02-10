@@ -20,9 +20,8 @@ library
      , Lemmata.Relational.Iterate
      , Lemmata.Relational.TD0
      , TD0
---      , TD 
      , SGD 
---      , Theorem 
+     , Theorem 
   build-depends:
       liquid-base
     , liquid-containers
