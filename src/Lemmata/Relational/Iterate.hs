@@ -34,5 +34,3 @@ relationaliterate m k n l f lemma x1 x2 | bounded m x1 x2
                  (lemma m x1 x2)
                  (relationaliterate (k * m) k (n - 1) l f lemma)
 relationaliterate m k n l f lemma x1 x2 = ()
-
-            
