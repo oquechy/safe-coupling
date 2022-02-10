@@ -1,20 +1,16 @@
 resolver: lts-17.2
 packages:
   - .
+
 extra-deps:
-- location:
-     git: https://github.com/ucsd-progsys/liquidhaskell.git
-     commit: 49912a05de52ce02675d2e0fbfb21be17b2b5b73
-- location:
-     git: https://github.com/liquidhaskell/liquid-base.git
-     commit: fa58c8d93efb834c38bbc9a39edeaaea16a18174
-- location:
-     git: https://github.com/liquidhaskell/liquid-containers.git
-     commit: 845942a8fdca5ab785c2e0e5202e5beaf94bc327
-- location:
-     git: https://github.com/liquidhaskell/liquid-ghc-prim.git
-     commit: 438f7301f637b2d646531f8c4668ed690605c430
-- location:
-     git: https://github.com/ucsd-progsys/liquid-fixpoint.git
-     commit: 783a7c25da0570a48cfb9f4d6679620c9dec9ec8
+- git: https://github.com/ucsd-progsys/liquidhaskell.git
+  commit: 49912a05de52ce02675d2e0fbfb21be17b2b5b73
+- git: https://github.com/liquidhaskell/liquid-base.git
+  commit: fa58c8d93efb834c38bbc9a39edeaaea16a18174
+- git: https://github.com/liquidhaskell/liquid-containers.git
+  commit: 845942a8fdca5ab785c2e0e5202e5beaf94bc327
+- git: https://github.com/liquidhaskell/liquid-ghc-prim.git
+  commit: 438f7301f637b2d646531f8c4668ed690605c430
+- git: https://github.com/ucsd-progsys/liquid-fixpoint.git
+  commit: 783a7c25da0570a48cfb9f4d6679620c9dec9ec8
 allow-newer: true
