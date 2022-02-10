@@ -24,5 +24,5 @@ relationalact _ t m v1 v2 | bounded m v1 v2
     = relationalmapM (k * m)
             (sample v1 t) (sample v2 t) 
             (range 0 (llen v1)) 
-            (relationalsample m t v1 v2)
+            (relationalsample m (llen v1) t v1 v2)
 relationalact _ _ _ _ _ = ()
