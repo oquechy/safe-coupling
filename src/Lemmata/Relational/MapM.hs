@@ -22,8 +22,8 @@ consLemma m r1 rs1 r2 rs2 = ()
                   -> r1:_ 
                   -> {r2:_|bounded' m r1 r2}
                   -> {lift (bounded m) 
-                           (bind (mapM f1 is) (o ppure (consDouble r1))) 
-                           (bind (mapM f2 is) (o ppure (consDouble r2)))} / [llen is, 1] @-}
+                           ((cons (llen is) (mapM f1 is)) (r1)) 
+                           ((cons (llen is) (mapM f2 is)) (r2))} / [llen is, 1] @-}
 consBindLemma :: Double -> (a -> Distr Double) -> (a -> Distr Double) 
               -> List a 
               -> (a -> ()) 
