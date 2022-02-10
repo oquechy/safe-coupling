@@ -6,7 +6,7 @@ extra-deps:
 - git: https://github.com/ucsd-progsys/liquidhaskell.git
   commit: 49912a05de52ce02675d2e0fbfb21be17b2b5b73
 - git: https://github.com/liquidhaskell/liquid-base.git
-  commit: fa58c8d93efb834c38bbc9a39edeaaea16a18174
+  commit: 79e2bee57ef6e34e69a80cd361bc8edde80da34a
 - git: https://github.com/liquidhaskell/liquid-containers.git
   commit: 845942a8fdca5ab785c2e0e5202e5beaf94bc327
 - git: https://github.com/liquidhaskell/liquid-ghc-prim.git

@@ -21,11 +21,11 @@ packages:
     git: https://github.com/liquidhaskell/liquid-base.git
     pantry-tree:
       size: 15497
-      sha256: 372e75f2b2a5fbcb1a9693532549a5555b8dfe1d12656ae3db61401bc4958bff
-    commit: fa58c8d93efb834c38bbc9a39edeaaea16a18174
+      sha256: 9f7e14f859e33a6381278f94cbcb12f4fc29fcd048d081970bc3f748ce857ad8
+    commit: 79e2bee57ef6e34e69a80cd361bc8edde80da34a
   original:
     git: https://github.com/liquidhaskell/liquid-base.git
-    commit: fa58c8d93efb834c38bbc9a39edeaaea16a18174
+    commit: 79e2bee57ef6e34e69a80cd361bc8edde80da34a
 - completed:
     name: liquid-containers
     version: 0.6.2.1
