@@ -35,9 +35,7 @@ consBindLemma m f1 f2 is lemma r1 r2
                          (mapM f2 is) (ppure `o` (consDouble r2))
                          (relationalmapM m f1 f2 is lemma) 
                          (lemma2 m r1 r2 f1 f2 is) 
-    ? assert (lift (bounded m) 
-                           (bind (mapM f1 is) (o ppure (consDouble r1))) 
-                           (bind (mapM f2 is) (o ppure (consDouble r2))))
+
 {-@ lemma2 :: {m:_|0 <= m} 
            -> r1:_ 
            -> {r2:_|bounded' m r1 r2}  
