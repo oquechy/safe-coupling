@@ -42,11 +42,10 @@ liftPure _ _ _ _ = ()
 ppureDouble :: List Double -> Distr (List Double)
 ppureDouble x = ppure x 
 
---              (x1:_ -> {x2:_|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
 {-@ assume liftBind :: p:(b -> b -> Bool) -> q:(a -> a -> Bool) -> 
                 e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) ->   
                 {_:()|lift q e1 e2} ->
-                (x1:a -> {x2:a|q x1 x2} -> {true}) ->
+                (x1:a -> {x2:a|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
                 {lift p (bind e1 f1) (bind e2 f2)} @-}
 liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) -> 
               Distr a -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> 

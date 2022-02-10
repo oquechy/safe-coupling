@@ -88,5 +88,4 @@ k = 1 - α + α * γ
 {-@ update :: v:ValueFunction -> StateOf v -> StateOf v -> Reward -> Reward @-}
 update :: ValueFunction -> State -> State -> Reward -> Reward
 update v i j r = (1 - α) * (v `at` i) + α * (r + γ * v `at` j)
--- 
 
