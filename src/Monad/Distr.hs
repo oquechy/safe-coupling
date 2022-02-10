@@ -149,7 +149,7 @@ expDistList (Cons x xs) (Cons y ys) = max (expDist x y) (expDistList xs ys)
 -- | Relational Specifications ------------------------------------------------
 -------------------------------------------------------------------------------
 {-@ assume relationalppure :: x1:a -> x2:a 
-                    -> { dist (ppure x1) (ppure x2) = dist x1 x2 } @-}
+                    -> { expDist (ppure x1) (ppure x2) = dist x1 x2 } @-}
 relationalppure :: a -> a -> () 
 relationalppure _ _ = () 
 
@@ -159,7 +159,7 @@ leftId _ _ = ()
 
 {-@ assume relationalchoice :: p:Prob -> e1:Distr a -> e1':Distr a 
         ->  q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
-        ->  { dist (choice p e1 e1') (choice q e2 e2') <= p * (dist e1 e2) + (1.0 - p) * (dist e1' e2')} @-}
+        ->  { expDist (choice p e1 e1') (choice q e2 e2') <= p * (expDist e1 e2) + (1.0 - p) * (expDist e1' e2')} @-}
 relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 relationalchoice _ _ _ _ _ _ = ()
 
