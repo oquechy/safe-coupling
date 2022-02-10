@@ -62,7 +62,7 @@ uncurryLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2)
 
 {-@ pureUpdateLemma :: {m:_|0 <= m} -> v1:_ -> v2:SameLen v1 -> {_:_|bounded m v1 v2} -> i:StateOf v1 
                     -> t1:(StateOf v1, Reward) -> {t2:(StateOf v1, Reward)|eqP t1 t2} 
-                    -> {lift (bounded' (m * k)) (ppure (uncurry (update v1 i) t1)) (ppure (uncurry (update v2 i) t2))} @-}
+                    -> {lift (bounded' (k * m)) ((o ppure (uncurry (update v1 i))) (t1)) ((o ppure (uncurry (update v2 i))) (t2))} @-}
 pureUpdateLemma :: Double -> ValueFunction -> ValueFunction -> () -> State -> (State, Reward) -> (State, Reward) -> ()
 pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) = 
     liftPure (bounded' (k * m))
@@ -70,16 +70,14 @@ pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) =
                 (uncurryLemma m v1 v2 b i t1 t2)
         
 
-{-@ ignore relationalsample@-}
--- INDEXING NV SHOULD FIX 
-
-{-@ relationalsample :: {m:_|0 <= m} -> t:_ -> {v1:_|llen t = llen v1} -> {v2:_|llen t = llen v2} -> i:StateOf t ->  
-                        {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
-relationalsample :: Double -> Transition -> ValueFunction -> ValueFunction -> State -> ()
-relationalsample m t v1 v2 i | bounded m v1 v2 
+{-@ relationalsample :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|llen t = llen v1 && llen v1 == n } -> {v2:_|llen t = llen v2} 
+                     -> i:StateOf t 
+                     -> {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
+relationalsample :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()
+relationalsample m n t v1 v2 i | bounded m v1 v2 
     = liftBind (bounded' (k * m)) eqP
                (t `at` i) (ppure `o` (uncurry (update v1 i)))
                (t `at` i) (ppure `o` (uncurry (update v2 i)))
                (liftEq (t `at` i))
                (pureUpdateLemma m v1 v2 () i)
-relationalsample _ _ _ _ _ = ()
+relationalsample _ _ _ _ _ _ = ()
