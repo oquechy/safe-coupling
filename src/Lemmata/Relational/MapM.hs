@@ -37,19 +37,16 @@ consBindLemma m f1 f2 is lemma r1 r2
                          (pureLemma m r1 r2 f1 f2 is) 
 
 {-@ pureLemma :: {m:_|0 <= m} 
-           -> r1:_ 
-           -> {r2:_|bounded' m r1 r2}  
+           -> r1:_ -> {r2:_|bounded' m r1 r2}  
            -> f1:_ -> f2:_ -> is:_ 
-           -> rs1:ValueFunction 
-           -> rs2:{ValueFunction | bounded m rs1 rs2 && llen rs1 == llen rs2 }
+           -> rs1:_ -> rs2:{_|bounded m rs1 rs2}
            -> {lift (bounded m) (o ppure (consDouble r1) rs1)
                                 (o ppure (consDouble r2) rs2)} @-}
 pureLemma :: Double -> Double -> Double -> (a -> Distr Double) -> (a -> Distr Double) 
-       -> List a -> ValueFunction -> ValueFunction -> () 
+       -> List a -> List Double -> List Double -> () 
 pureLemma m r1 r2 f1 f2 is rs1 rs2 = liftPure (bounded m) 
                                      (Cons r1 rs1) (Cons r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
-
 
 {-@ relationalmapM :: {m:_|0 <= m} 
                    -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 
