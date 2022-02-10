@@ -33,11 +33,25 @@ consBindLemma m f1 f2 is lemma r1 r2
     = liftBind (bounded m) (bounded m)
                          (mapM f1 is) (ppure `o` (consDouble r1))
                          (mapM f2 is) (ppure `o` (consDouble r2))
-                         (relationalmapM m f1 f2 is lemma)
-                         (\rs1 rs2 -> 
-                            liftPure (bounded m) 
+                         (relationalmapM m f1 f2 is lemma) 
+                         (lemma2 m r1 r2 f1 f2 is) 
+    ? assert (lift (bounded m) 
+                           (bind (mapM f1 is) (o ppure (consDouble r1))) 
+                           (bind (mapM f2 is) (o ppure (consDouble r2))))
+{-@ lemma2 :: {m:_|0 <= m} 
+           -> r1:_ 
+           -> {r2:_|bounded' m r1 r2}  
+           -> f1:_ -> f2:_ -> is:_ 
+           -> rs1:ValueFunction 
+           -> rs2:{ValueFunction | bounded m rs1 rs2 && llen rs1 == llen rs2 }
+           -> {lift (bounded m) ((o ppure (consDouble r1)) (rs1))
+                                ((o ppure (consDouble r2)) (rs2)) } @-}
+lemma2 :: Double -> Double -> Double -> (a -> Distr Double) -> (a -> Distr Double) 
+       -> List a -> ValueFunction -> ValueFunction -> () 
+lemma2 m r1 r2 f1 f2 is rs1 rs2 = liftPure (bounded m) 
                                      (Cons r1 rs1) (Cons r2 rs2) 
-                                     (consLemma m r1 rs1 r2 rs2))
+                                     (consLemma m r1 rs1 r2 rs2)
+
 
 {-@ relationalmapM :: {m:_|0 <= m} 
                    -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 

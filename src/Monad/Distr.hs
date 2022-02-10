@@ -12,7 +12,7 @@ data Distr a = Distr a
 
 {-@ reflect bounded @-}
 bounded :: Double -> List Double -> List Double -> Bool
-bounded m v1' v2' = distList v1' v2' <= m
+bounded m v1 v2 = distList v1 v2 <= m && llen v1 == llen v2
 
 {-@ reflect bounded' @-}
 bounded' :: Double -> Double -> Double -> Bool
