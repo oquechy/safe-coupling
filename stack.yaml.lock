@@ -3,7 +3,80 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    name: liquidhaskell
+    version: 0.8.10.7.1
+    git: https://github.com/ucsd-progsys/liquidhaskell.git
+    pantry-tree:
+      size: 309937
+      sha256: e4552a574986e90cf510f19caf030cb3cdf17c57ccb3c09f0f74b84bfd14865c
+    commit: 49912a05de52ce02675d2e0fbfb21be17b2b5b73
+  original:
+    git: https://github.com/ucsd-progsys/liquidhaskell.git
+    commit: 49912a05de52ce02675d2e0fbfb21be17b2b5b73
+- completed:
+    name: liquid-base
+    version: 4.15.0.1
+    git: https://github.com/liquidhaskell/liquid-base.git
+    pantry-tree:
+      size: 15497
+      sha256: 9f7e14f859e33a6381278f94cbcb12f4fc29fcd048d081970bc3f748ce857ad8
+    commit: 79e2bee57ef6e34e69a80cd361bc8edde80da34a
+  original:
+    git: https://github.com/liquidhaskell/liquid-base.git
+    commit: 79e2bee57ef6e34e69a80cd361bc8edde80da34a
+- completed:
+    name: liquid-containers
+    version: 0.6.2.1
+    git: https://github.com/liquidhaskell/liquid-containers.git
+    pantry-tree:
+      size: 17631
+      sha256: 04b242be964b3f922ebdd5b2925833ff2089c80fec009846cd6773df2d791ab9
+    commit: 845942a8fdca5ab785c2e0e5202e5beaf94bc327
+  original:
+    git: https://github.com/liquidhaskell/liquid-containers.git
+    commit: 845942a8fdca5ab785c2e0e5202e5beaf94bc327
+- completed:
+    name: liquid-ghc-prim
+    version: 0.7.0
+    git: https://github.com/liquidhaskell/liquid-ghc-prim.git
+    pantry-tree:
+      size: 1181
+      sha256: 9f34888aadc058965dbcbfb30533ccd53c4f9b92fda826cbab5b087fe16c9c70
+    commit: 438f7301f637b2d646531f8c4668ed690605c430
+  original:
+    git: https://github.com/liquidhaskell/liquid-ghc-prim.git
+    commit: 438f7301f637b2d646531f8c4668ed690605c430
+- completed:
+    name: liquid-fixpoint
+    version: 0.8.10.7.1
+    git: https://github.com/ucsd-progsys/liquid-fixpoint.git
+    pantry-tree:
+      size: 22004
+      sha256: 1da7a0a63757873a5acf64fdd8cb57a2d8b588fc3bec21f36bd110b7ce018290
+    commit: 783a7c25da0570a48cfb9f4d6679620c9dec9ec8
+  original:
+    git: https://github.com/ucsd-progsys/liquid-fixpoint.git
+    commit: 783a7c25da0570a48cfb9f4d6679620c9dec9ec8
+- completed:
+    name: rest-rewrite
+    version: 0.2.0
+    git: https://github.com/facundominguez/rest.git
+    pantry-tree:
+      size: 4013
+      sha256: 2a91674ccab6b0bd43dcc41fa5e2cb60cbfd35ad585df8293c2884466091d0c0
+    commit: 31e974979c90e910efe5199ee0d3721b791667f6
+  original:
+    git: https://github.com/facundominguez/rest.git
+    commit: 31e974979c90e910efe5199ee0d3721b791667f6
+- completed:
+    hackage: liquid-prelude-0.8.10.2@sha256:b2a3650092e3eecfff5e5b15052700c2d6ba5eecbf20d91eae552da23783b03e,1604
+    pantry-tree:
+      size: 1029
+      sha256: 17fffd9d59ef7d3e7fa04b89174250bab84af77822d3f5de0124d608aa6827c6
+  original:
+    hackage: liquid-prelude-0.8.10.2@sha256:b2a3650092e3eecfff5e5b15052700c2d6ba5eecbf20d91eae552da23783b03e,1604
 snapshots:
 - completed:
     size: 563099
