@@ -163,6 +163,14 @@ leftId _ _ = ()
 relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 relationalchoice _ _ _ _ _ _ = ()
 
+{-@ reflect impP @-}
+impP :: Bool -> Bool -> Bool
+impP a b = if a then b else True
+
+{-@ assume relationalbernoulli :: p:Prob -> q:Prob
+                               ->  {lift impP (bernoulli p) (bernoulli q)} @-}
+relationalbernoulli :: Prob -> Prob -> ()
+relationalbernoulli _ _ = ()
 -------------------------------------------------------------------------------
 -- | (Non) Implementations ----------------------------------------------------
 -------------------------------------------------------------------------------
@@ -192,7 +200,18 @@ ppure x = undefined
 choice :: Prob -> Distr a -> Distr a -> Distr a
 choice _ x _ = x
 
-{-@ measure Monad.Distr.unif :: zs:[a] -> Distr a @-}
-{-@ assume unif :: x:[a] -> {v:Distr a | v == unif x } @-}
+{-@ measure Monad.Distr.bernoulli :: Prob -> Distr Bool @-}
+{-@ assume bernoulli :: p:Prob -> {v:Distr Bool|v == bernoulli p} @-}
+bernoulli :: Prob -> Distr Bool
+bernoulli p = ppure True
+
+{-@ reflect len @-}
+len :: [a] -> Int
+len [] = 0
+len (_:xs) = 1 + len xs
+
+{-@ reflect unif @-}
+{-@ unif :: {xs:[a]|0 < len xs} -> _ @-}
 unif :: [a] -> Distr a
-unif _ = undefined
+unif [a] = ppure a
+unif (x:xs) = choice (1 / fromIntegral (len xs + 1)) (ppure x) (unif xs)

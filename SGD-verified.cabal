@@ -22,6 +22,7 @@ library
      , TD0
      , SGD 
      , Theorem 
+     , Bins
   build-depends:
       liquid-base
     , liquid-containers
