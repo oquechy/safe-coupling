@@ -157,6 +157,12 @@ relationalppure _ _ = ()
 leftId :: a -> (a -> Distr b) -> ()
 leftId _ _ = ()
 
+
+{-@ assume relationalunif :: xsl:[a] -> xsr:{[a] | xsl == xsr}
+                          -> {expDist (unif xsl) (unif xsr) == 0 } @-}
+relationalunif :: [a] -> [a] -> ()
+relationalunif _ _ = ()
+
 {-@ assume relationalchoice :: p:Prob -> e1:Distr a -> e1':Distr a 
         ->  q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
         ->  { expDist (choice p e1 e1') (choice q e2 e2') <= p * (expDist e1 e2) + (1.0 - p) * (expDist e1' e2')} @-}
@@ -224,9 +230,9 @@ len [] = 0
 len (_:xs) = 1 + len xs
 
 {-@ reflect unif @-}
-{-@ unif :: {xs:[a]|0 < len xs} -> _ @-}
+{-@ unif :: {xs:[a]|0 < len xs} -> Distr a @-}
 unif :: [a] -> Distr a
-unif [a] = ppure a
+unif [a]    = ppure a
 unif (x:xs) = choice (1 `mydiv` fromIntegral (len xs + 1)) (ppure x) (unif xs)
 
 {-@ reflect mydiv @-}
