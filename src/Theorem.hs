@@ -9,6 +9,9 @@ import           Prelude                 hiding ( head
                                                 , sum
                                                 )
 import           Language.Haskell.Liquid.ProofCombinators
+
+import           Misc.ProofCombinators
+
 import           Monad.Distr 
 import           Data.Dist 
 import           SGD 
@@ -138,11 +141,6 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
 thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
-
-
-{-@ assert :: {b:Bool | b} -> () @-}
-assert :: Bool -> ()
-assert _ = ()
 
 {-@ lemma :: zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
