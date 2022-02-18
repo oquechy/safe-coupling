@@ -164,10 +164,25 @@ relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> 
 relationalchoice _ _ _ _ _ _ = ()
 
 {-@ reflect impP @-}
+{-@ impP :: x:Bool -> y:Bool -> {v:Bool|v <=> (x => y)} @-}
 impP :: Bool -> Bool -> Bool
-impP a b = if a then b else True
+impP True False = False
+impP _    _     = True
 
-{-@ assume relationalbernoulli :: p:Prob -> q:Prob
+{-@ reflect leIntP @-}
+{-@ leIntP :: x:Int -> y:Int -> {v:Bool|v <=> (x <= y)} @-}
+leIntP :: Int -> Int -> Bool
+leIntP x y = x <= y
+
+{-@ reflect leDoubleP @-}
+{-@ leDoubleP :: x:Double -> y:Double -> {v:Bool|v <=> (x <= y)} @-}
+leDoubleP :: Double -> Double -> Bool
+leDoubleP x y = x <= y
+
+{-@ lePEq :: x:Int -> {x <= x && leIntP x x} @-}
+lePEq :: Int -> ()
+lePEq x = ()
+{-@ assume relationalbernoulli :: p:Prob -> {q:Prob|leDoubleP p q}
                                ->  {lift impP (bernoulli p) (bernoulli q)} @-}
 relationalbernoulli :: Prob -> Prob -> ()
 relationalbernoulli _ _ = ()
