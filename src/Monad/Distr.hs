@@ -214,4 +214,9 @@ len (_:xs) = 1 + len xs
 {-@ unif :: {xs:[a]|0 < len xs} -> _ @-}
 unif :: [a] -> Distr a
 unif [a] = ppure a
-unif (x:xs) = choice (1 / fromIntegral (len xs + 1)) (ppure x) (unif xs)
+unif (x:xs) = choice (1 `mydiv` fromIntegral (len xs + 1)) (ppure x) (unif xs)
+
+{-@ reflect mydiv @-}
+{-@ mydiv :: Double -> {i:Double | i /= 0 } -> Double @-}
+mydiv :: Double -> Double -> Double
+mydiv x y = x / y 
