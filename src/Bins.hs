@@ -30,27 +30,3 @@ binsRec p n x = bind (bins p n) (incCond x)
 {-@ reflect incCond @-}
 incCond :: Bool -> Int -> Distr Int
 incCond x y = ppure (y + if x then 1 else 0)
-
-{-@ reflect leP @-}
-leP :: Int -> Int -> Bool
-leP = (<=)
-
-{-@ relationalbins :: p:Prob -> q:Prob -> n:Int 
-                   -> {p <= q => lift leP (bins p n) (bins q n)} @-}
-relationalbins :: Double -> Double -> Int -> ()
-relationalbins _ _ 0 = undefined -- liftPure leP 0 0 ()
-relationalbins p q n = undefined
-    -- = liftBind leP leP 
-    --            (bernoulli p) (binsRec p (n - 1))
-    --            (bernoulli q) (binsRec q (n - 1))
-    --            (relationalbernoulli p q)
-    --            (\x1 x2 -> 
-    --                 liftBind leP leP
-    --                      (bins p (n - 1)) (incCond x1)
-    --                      (bins q (n - 1)) (incCond x2)
-    --                      (relationalbins p q (n - 1))
-    --                      (\y1 y2 -> 
-    --                          liftPure (y1 + if x1 then 1 else 0)
-    --                                   (y2 + if x2 then 1 else 0)
-    --                                   ()))
-
