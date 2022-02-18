@@ -23,6 +23,7 @@ library
      , SGD 
      , Theorem 
      , Bins
+     , BinsTheorem
   build-depends:
       liquid-base
     , liquid-containers

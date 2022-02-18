@@ -179,13 +179,11 @@ leIntP x y = x <= y
 leDoubleP :: Double -> Double -> Bool
 leDoubleP x y = x <= y
 
-{-@ lePEq :: x:Int -> {x <= x && leIntP x x} @-}
-lePEq :: Int -> ()
-lePEq x = ()
 {-@ assume relationalbernoulli :: p:Prob -> {q:Prob|leDoubleP p q}
                                ->  {lift impP (bernoulli p) (bernoulli q)} @-}
 relationalbernoulli :: Prob -> Prob -> ()
 relationalbernoulli _ _ = ()
+
 -------------------------------------------------------------------------------
 -- | (Non) Implementations ----------------------------------------------------
 -------------------------------------------------------------------------------
