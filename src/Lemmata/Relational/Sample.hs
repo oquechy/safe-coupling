@@ -14,7 +14,8 @@ import           TD0
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
-{-@ listLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> {dist (at v1 i) (at v2 i) <= distList v1 v2} @-}
+{-@ listLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 
+              -> {distD (at v1 i) (at v2 i) <= distList distDouble v1 v2} @-}
 listLemma :: ValueFunction -> ValueFunction -> State -> ()
 listLemma Nil v2 i = ()
 listLemma v1 Nil i = ()
@@ -22,26 +23,26 @@ listLemma (Cons x xs) (Cons y ys) 0 = ()
 listLemma (Cons x xs) (Cons y ys) i = listLemma xs ys (i - 1)
 
 {-@ maxLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> 
-                    {max (dist (at v1 i) (at v2 i)) (dist (at v1 j) (at v2 j)) <= distList v1 v2 } @-}
+                    {max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j)) <= distList distDouble v1 v2 } @-}
 maxLemma :: ValueFunction -> ValueFunction -> State -> State -> ()
 maxLemma v1 v2 i j 
-    =   max (dist (at v1 i) (at v2 i)) (dist (at v1 j) (at v2 j)) 
+    =   max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j)) 
         ? listLemma v1 v2 i
-    =<= max (distList v1 v2) (dist (at v1 j) (at v2 j))
+    =<= max (distList distDouble v1 v2) (distD (at v1 j) (at v2 j))
         ? listLemma v1 v2 j
-    =<= max (distList v1 v2) (distList v1 v2)
-    =<= distList v1 v2
+    =<= max (distList distDouble v1 v2) (distList distDouble v1 v2)
+    =<= distList distDouble v1 v2
     *** QED
 
 {-@ updateLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:_ -> 
-                    {dist (update v1 i j r) (update v2 i j r) <= k * distList v1 v2} @-}
+                    {distD (update v1 i j r) (update v2 i j r) <= k * distList distDouble v1 v2} @-}
 updateLemma :: ValueFunction -> ValueFunction -> State -> State -> Reward -> ()
 updateLemma v1 v2 i j r
-    =   dist (update v1 i j r) (update v2 i j r)
+    =   distD (update v1 i j r) (update v2 i j r)
         ? relationalupdate v1 v2 i j r
-    =<= k * max (dist (at v1 i) (at v2 i)) (dist (at v1 j) (at v2 j))
+    =<= k * max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j))
         ? maxLemma v1 v2 i j
-    =<= k * distList v1 v2
+    =<= k * distList distDouble v1 v2
     *** QED
 
 {-@ uncurryLemma :: {m:_|0 <= m} -> v1:_ -> v2:SameLen v1 -> {_:_|bounded m v1 v2} -> i:StateOf v1 
@@ -51,11 +52,11 @@ uncurryLemma :: Double -> ValueFunction -> ValueFunction -> () -> State
              -> (State, Reward) -> (State, Reward) 
              -> ()
 uncurryLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) 
-    =   dist (uncurry (update v1 i) t1) (uncurry (update v2 i) t2)
-    === dist (uncurry (update v1 i) t1) (uncurry (update v2 i) t1)
-    === dist (update v1 i j1 r1) (update v2 i j1 r1)
+    =   distD (uncurry (update v1 i) t1) (uncurry (update v2 i) t2)
+    === distD (uncurry (update v1 i) t1) (uncurry (update v2 i) t1)
+    === distD (update v1 i j1 r1) (update v2 i j1 r1)
         ? updateLemma v1 v2 i j1 r1
-    =<= k * distList v1 v2
+    =<= k * distList distDouble v1 v2
         ? b
     =<= k * m
     *** QED
