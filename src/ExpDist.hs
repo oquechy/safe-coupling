@@ -6,6 +6,7 @@ module ExpDist where
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
+import           Misc.ProofCombinators
 
 import           Prelude                 hiding ( map
                                                 , max
@@ -22,13 +23,16 @@ relationalu :: [a] -> ()
 relationalu xs = relationalunif xs xs 
 
 
-{-@ exDistPure :: () -> {expDist (ppure 4) (ppure 2) <= dist 4 2 } @-}
+-- Attention: In the Haskell code you need to write 4.0 instead of just 4 to avoid implicit conversion
+{-@ exDistPure :: () -> {expDist (ppure 4.0) (ppure 2.0) <= 2.0 } @-}
 exDistPure :: () -> ()
-exDistPure _ = relationalppure 4 2  
+exDistPure _ = relationalppure distDouble 4.0 2.0  
 
-
-
-{-@ ex2DistPure :: p:Prob ->  xs:{[Int] | 0 < len xs } -> {expDist (choice p (ppure 4) (unif xs))  (choice p (ppure 2) (unif xs)) <= p * dist 4 2 } @-}
-ex2DistPure :: Prob -> [Int] -> ()
-ex2DistPure p xs = relationalu xs `const` exDistPure () `const` relationalchoice p (ppure 4) (unif xs) p (ppure 2) (unif xs)
+{-@ ex2DistPure :: p:Prob ->  xs:{[Double] | 0 < len xs } 
+                -> {expDist (choice p (ppure 4.0) (unif xs)) (choice p (ppure 2.0) (unif xs)) <= p * 2.0 } @-}
+ex2DistPure :: Prob -> [Double] -> ()
+ex2DistPure p xs 
+  = relationalu xs `const` 
+    exDistPure () `const` 
+    relationalchoice p (ppure 4.0) (unif xs) p (ppure 2.0) (unif xs)
 

@@ -20,7 +20,7 @@ import           SGD
 {-@ assume relationalupdatep :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
                              -> z2:DataPoint -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
                              -> ws1:Weight -> ws2:Weight -> 
-                            {dist (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = dist ws1 ws2 + 2.0 * α1} @-}
+                            {distD (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = distD ws1 ws2 + 2.0 * α1} @-}
 relationalupdatep :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
 relationalupdatep _ _ _ _ _ _ _ _ = ()
 
@@ -28,7 +28,7 @@ relationalupdatep _ _ _ _ _ _ _ _ = ()
 {-@ assume relationalupdateq :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
                              -> {z2:DataPoint|z1 = z2} -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
                              -> ws1:Weight -> ws2:Weight -> 
-                            {dist (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = dist ws1 ws2} @-}
+                            {distD (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = distD ws1 ws2} @-}
 relationalupdateq :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
 relationalupdateq = undefined
 
@@ -59,23 +59,23 @@ estabEmp zs =
 estabconsR :: DataSet -> StepSize -> StepSizes -> () 
 estabconsR zs x xs 
   =   estab zs (SS x xs)
-  ==. 2.0 / (lend zs) * sum (SS x xs)
-  ==. 2.0 * x * (one / lend zs) + estab zs xs 
+  === 2.0 / (lend zs) * sum (SS x xs)
+  === 2.0 * x * (one / lend zs) + estab zs xs 
   *** QED 
 
 {-@ ple thm @-}
 {-@ thm :: zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
            zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
             ws2:Weight -> {α2:StepSizes| α2 = α1} -> {f2:LossFunction|f1 = f2} -> 
-            { expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
+            { expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= distD ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
 thm :: DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
 thm zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
   expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
     === expDist (ppure ws1) (ppure ws2)
-        ? relationalppure ws1 ws2
-    === dist ws1 ws2
+        ? relationalppure distDouble ws1 ws2
+    === distD ws1 ws2
         ? estabEmp zs1 
-    === dist ws1 ws2 + estab zs1 α1
+    === distD ws1 ws2 + estab zs1 α1
     *** QED 
 
 thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
@@ -104,7 +104,7 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
                                     (bind (sgd zs2 ws2 a2 f2) (ppure . update (head zs2) α2 f2 ))) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
-        ?   relUnitBindTry (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
+        ?   relUnitBindTry distDouble distDouble (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
                                     (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
                                     (relationalupdatep (head zs1) α1 f1 (head zs2) α2 f2) 
         
@@ -113,25 +113,29 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
          ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
-         ? assert (expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) <= dist ws1 ws2 + estab zs1 a1)
-    =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+         ? assert (expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) <= distD ws1 ws2 + estab zs1 a1)
+    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-        ? expDistBind (dist ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
+        ? expDistBind (distD ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
                      (lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2)
-        ? assert (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= dist ws1 ws2 + estab zs1 a1)
-    =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
-        + (1 - (one / lend zs1)) * (dist ws1 ws2 + estab zs1 a1)
+        ? assert (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= distD ws1 ws2 + estab zs1 a1)
+        ? assert (0 <= (1 - (one / lend zs1)))
+    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+        + (1 - (one / lend zs1)) * (distD ws1 ws2 + estab zs1 a1)
 
-    =<= (one / lend zs1) * (dist ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
-            + (1 - (one / lend zs1)) * (dist ws1 ws2 + estab zs1 a1)
+    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+            + (1 - (one / lend zs1)) * (distD ws1 ws2 + estab zs1 a1)
 
-    =<= dist ws1 ws2 + 2.0 * α1 * (one / lend zs1) + estab zs1 a1
+    =<= distD ws1 ws2 + 2.0 * α1 * (one / lend zs1) + estab zs1 a1
         ?   estabconsR zs1 α1 a1
                             
-    =<= dist ws1 ws2 + estab zs1 (SS α1 a1)
-    =<= dist ws1 ws2 + estab zs1 as1
+    =<= distD ws1 ws2 + estab zs1 (SS α1 a1)
+    =<= distD ws1 ws2 + estab zs1 as1
     *** QED
  where
+  
+
+
   pureUpd1 = pureUpdate (head zs1) α1 f1
   pureUpd2 = pureUpdate (head zs2) α2 f2
   sgdRec1 = sgdRecUpd zs1 ws1 α1 a1 f1
@@ -146,7 +150,7 @@ thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
              ws2:Weight -> α2:{StepSize | α1 = α2} -> {a2:StepSizes| a2 = a1} -> f2:{LossFunction|f1 = f2} ->  
              z:DataPoint -> 
-             {expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= dist ws1 ws2 + estab zs1 a1} / [sslen a1, 1] @-}
+             {expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= distD ws1 ws2 + estab zs1 a1} / [sslen a1, 1] @-}
 lemma :: DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSize ->  StepSizes -> LossFunction -> DataPoint -> ()
 lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z = 
   expDist (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
@@ -154,12 +158,12 @@ lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z =
         ?   pureUpdateEq z α2 f2
     === expDist (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
                 (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
-        ?   relUnitBindTry 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
+        ?   relUnitBindTry distDouble distDouble 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
                              (update z α2 f2) (sgd zs2 ws2 a2 f2) 
                              (relationalupdateq z α1 f1 z α2 f2)
     =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
         ? thm zs1 ws1 a1 f1 zs2 ws2 a2 f2
-    =<= dist ws1 ws2 + estab zs1 a1
+    =<= distD ws1 ws2 + estab zs1 a1
     *** QED
 
 

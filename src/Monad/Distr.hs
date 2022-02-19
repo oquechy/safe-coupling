@@ -3,7 +3,7 @@
 
 module Monad.Distr where 
 
-import Data.Dist (dist, distList)
+import Data.Dist (distList, distDouble, Dist, dist, distD, triangularIneqD, symmetryD, absEqDouble)
 import Data.List 
 
 import Prelude hiding (max)
@@ -12,11 +12,11 @@ data Distr a = Distr a
 
 {-@ reflect bounded @-}
 bounded :: Double -> List Double -> List Double -> Bool
-bounded m v1 v2 = distList v1 v2 <= m && llen v1 == llen v2
+bounded m v1 v2 = distList distDouble v1 v2 <= m && llen v1 == llen v2
 
 {-@ reflect bounded' @-}
 bounded' :: Double -> Double -> Double -> Bool
-bounded' m x1 x2 = dist x1 x2 <= m
+bounded' m x1 x2 = dist distDouble x1 x2 <= m
 
 {-@ boundedNil :: {m:_|0 <= m} -> {bounded m Nil Nil} @-}
 boundedNil :: Double -> ()
@@ -68,9 +68,9 @@ trueP _ _ = True
       x2 <- e2
       return (p x1 x2) -}
 
-{-@ assume expDistPure :: x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist x1 x2} @-}
-expDistPure :: a -> a -> ()
-expDistPure _ _ = ()
+{-@ assume expDistPure :: d:Dist a -> x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist d x1 x2} @-}
+expDistPure :: Dist a -> a -> a -> ()
+expDistPure _ _ _ = ()
 
 {-@ assume expDistEq :: x1:Distr a -> {x2:Distr a | x1 = x2 } -> {expDist x1 x2 = 0} @-}
 expDistEq :: Distr a -> Distr a -> ()
@@ -79,22 +79,23 @@ expDistEq _ _ = ()
 
 -- CHECK IF THIS IS CORRECT 
 {-@ ple relUnitBindTry @-}
-{-@ assume relUnitBindTry :: m:Double 
+{-@ assume relUnitBindTry :: da:Dist a -> db:Dist b
+                          -> m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
                           -> f2:(a -> b) -> e2:Distr a 
-                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= dist x1 x2 + m}) 
+                          -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
                           -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= expDist e1 e2 + m } @-}
-relUnitBindTry :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
-relUnitBindTry m f1 e1 f2 e2 t = () --  maxExpDistLemma e1 e2 `const` relUnitBind m f1 e1 f2 e2 t
+relUnitBindTry :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
+relUnitBindTry _ _ m f1 e1 f2 e2 t = () --  maxExpDistLemma e1 e2 `const` relUnitBind m f1 e1 f2 e2 t
 
 
-{-@ assume relUnitBind :: m:Double 
+{-@ assume relUnitBind :: da:Dist a -> db:Dist b -> m:Double 
                           -> f1:(a -> b) -> e1:Distr a 
                           -> f2:(a -> b) -> e2:Distr a 
-                          -> (x1:a -> x2:a -> { dist (f1 x1) (f2 x2) <= dist x1 x2 + m}) 
+                          -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
                           -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= maxExpDist e1 e2 + m } @-}
-relUnitBind :: Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
-relUnitBind _ _ _ _ _ _ = ()
+relUnitBind :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
+relUnitBind _ _ _ _ _ _ _ _ = ()
 
 
 
@@ -148,10 +149,10 @@ expDistList (Cons x xs) (Cons y ys) = max (expDist x y) (expDistList xs ys)
 -------------------------------------------------------------------------------
 -- | Relational Specifications ------------------------------------------------
 -------------------------------------------------------------------------------
-{-@ assume relationalppure :: x1:a -> x2:a 
-                    -> { expDist (ppure x1) (ppure x2) = dist x1 x2 } @-}
-relationalppure :: a -> a -> () 
-relationalppure _ _ = () 
+{-@ assume relationalppure :: d:Dist a -> x1:a -> x2:a 
+                    -> { expDist (ppure x1) (ppure x2) = ((dist d) (x1)) (x2) } @-}
+relationalppure :: Dist a -> a -> a -> () 
+relationalppure _ _ _ = () 
 
 {-@ assume leftId :: x:a -> f:(a -> Distr b) -> { bind (ppure x) f = f x } @-}
 leftId :: a -> (a -> Distr b) -> ()

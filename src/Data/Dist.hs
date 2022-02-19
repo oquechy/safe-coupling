@@ -1,43 +1,95 @@
 {-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--ple-local"  @-}
 
 module Data.Dist
-  ( dist
-  , distList
+  ( distList
   , distEq
-  , symmetry
-  , triangularIneq
+  , triangularIneqD
+  , symmetryD
+  , absEqDouble 
   , linearity
+  , Dist (..)
+  , distDouble
+  , distD
   )
 where
 
 import Prelude hiding (max)
-
+import Language.Haskell.Liquid.ProofCombinators
+import Misc.ProofCombinators
 import Data.List
 
-{-@ measure Data.Dist.dist :: a -> a -> Double @-}
-{-@ assume dist :: x1:a -> x2:a -> {v:Double | v == Data.Dist.dist x1 x2 && v >= 0} @-}
-dist :: a -> a -> Double
-dist _ _ = 0
+-- class Dist 
+data Dist a = Dist { 
+    dist :: a -> a -> Double 
+  , triangularIneq :: a -> a -> a -> ()
+  , symmetry       :: a -> a -> ()
+  , absEq          :: a -> a -> ()
+  }
+
+
+
+{-@ data Dist a = Dist { 
+    dist :: a -> a -> Double 
+  , triangularIneq :: a:a -> b:a -> c:a -> {dist a c <= dist a b + dist b c}
+  , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
+  , absEq          :: x:a -> y:a -> {dist x y == dist y x}
+  } @-}
+
+
+
+{-@ reflect distDouble@-}
+distDouble :: Dist Double
+distDouble = Dist distD triangularIneqD symmetryD absEqDouble
+
+{-@ ple absEqDouble @-}
+{-@ reflect absEqDouble @-}
+absEqDouble :: Double -> Double -> ()
+{-@ absEqDouble :: x:Double -> y:Double -> {distD x y == distD y x } @-}
+absEqDouble _ _ = () 
+
+{-@ ple triangularIneqD @-}
+{-@ reflect triangularIneqD @-}
+{-@ triangularIneqD :: a:Double -> b:Double -> c:Double -> { distD a c <= distD a b + distD b c} @-}
+triangularIneqD :: Double -> Double -> Double -> ()
+triangularIneqD _ _ _ = ()
+
+
+
+
+
+
+{-@ ple symmetryD @-}
+{-@ reflect symmetryD @-}
+{-@ symmetryD :: a:Double -> b:Double -> {distD a b = distD b a} @-}
+symmetryD :: Double -> Double -> () 
+symmetryD _ _ = ()
+
+{-@ reflect distD @-}
+distD :: Double -> Double -> Double 
+distD x y = if x <= y then y - x else x - y 
+
+{- measure Data.Dist.dist :: a -> a -> Double @-}
+{- assume dist :: x1:a -> x2:a -> {v:Double | v == Data.Dist.dist x1 x2 && v >= 0} @-}
+-- dist :: a -> a -> Double
+-- dist _ _ = 0
 
 {-@ reflect distList @-}
-{-@ distList :: List a -> List a -> {d:Double | 0 <= d } @-}
-distList :: List a -> List a -> Double
-distList Nil _ = 0
-distList _ Nil = 0
-distList (Cons x xs) (Cons y ys) = max (dist x y) (distList xs ys)
+{-@ distList :: Dist a -> List a -> List a -> {d:Double | 0 <= d } @-}
+distList :: Dist a -> List a -> List a -> Double
+distList d Nil _ = 0
+distList d _ Nil = 0
+distList d (Cons x xs) (Cons y ys) = max (dist d x y) (distList d xs ys)
 
-{-@ assume distEq :: x:a -> y:a -> {x = y <=> dist x y = 0} @-} 
-distEq :: a -> a -> () 
-distEq _ _ = ()
+{-@ assume distEq :: d:Dist a -> x:a -> y:a -> {x = y <=> dist d x y = 0} @-} 
+distEq :: Dist a -> a -> a -> () 
+distEq _ _ _ = ()
 
-{-@ assume triangularIneq :: a:a -> b:a -> c:a -> {dist a c <= dist a b + dist b c} @-}
-triangularIneq :: a -> a -> a -> ()
-triangularIneq _ _ _ = ()
-
-{-@ assume symmetry :: a:a -> b:a -> {dist a b = dist b a} @-}
-symmetry :: a -> a -> ()
-symmetry _ _ = ()
-
-{-@ assume linearity :: k:Double -> l:Double -> a:Double -> b:Double -> {dist (k * a + l) (k * b + l) = k * dist a b} @-}
+{-@ ple linearity @-}
+{-@ linearity :: k:{Double | 0 <= k } -> l:Double -> a:Double -> b:Double 
+                     -> { distD (k * a + l) (k * b + l) = k * distD a b} @-}
 linearity :: Double -> Double -> Double -> Double -> ()
-linearity _ _ _ _ = ()
+linearity k l a b
+  | a <= b    = assert (k * a + l <= k * b + l) ? ()
+  | otherwise = () 
+
