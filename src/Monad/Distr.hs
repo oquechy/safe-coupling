@@ -4,11 +4,12 @@
 module Monad.Distr where 
 
 import Data.Dist (distList, distDouble, Dist, dist, distD, triangularIneqD, symmetryD, absEqDouble)
-import Data.List 
+import Data.List hiding (all) 
 
 import Prelude hiding (max)
+import Numeric.Probability.Distribution hiding (Cons)
 
-data Distr a = Distr a
+type Distr a = T Prob a
 
 {-@ reflect bounded @-}
 bounded :: Double -> List Double -> List Double -> Bool
@@ -57,7 +58,10 @@ liftBind _ _ _ _ _ _ _ _ = ()
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
 {-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b -> {v:Bool | v == Monad.Distr.lift p1 x1 x2} @-}
 lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
-lift p e1 e2 = True
+lift p e1 e2 = and (fst <$> (decons act))
+  where act = do x <- e1 
+                 y <- e2
+                 return (p x y)
 
 {-@ reflect trueP @-}
 trueP :: a -> a -> Bool 
@@ -198,32 +202,26 @@ relationalbernoulli _ _ = ()
 {-@ measure Monad.Distr.bind :: Distr a -> (a -> Distr b) -> Distr b @-}
 {-@ assume bind :: forall <p :: a -> Bool>.x1:Distr a<p> -> x2:(a<p> -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
 bind :: Distr a -> (a -> Distr b) -> Distr b
-bind = undefined
+bind = (>>=)
 
-{-@ measure Monad.Distr.pbind :: Distr a -> (a -> Distr b) -> Distr b @-}
-{-@ assume pbind :: x1:Distr a -> x2:(a -> Distr b) -> {v:Distr b | v = pbind x1 x2 } @-}
-pbind :: Distr a -> (a -> Distr b) -> Distr b
-pbind = undefined
 
-{-@ measure Monad.Distr.qbind :: Distr a -> (a -> Distr b) -> Distr b @-}
-{-@ assume qbind :: x1:Distr a -> x2:(a -> Distr b) -> {v:Distr b | v = qbind x1 x2 } @-}
-qbind :: Distr a -> (a -> Distr b) -> Distr b
-qbind = undefined
+
 
 {-@ measure Monad.Distr.ppure :: a -> Distr a @-}
 {-@ ppure :: x:a -> {v:Distr a | v = Monad.Distr.ppure x } @-}
 ppure :: a -> Distr a
-ppure x = undefined
+ppure = pure 
 
+{-@ ignore choice @-}
 {-@ measure Monad.Distr.choice :: Prob -> Distr a -> Distr a -> Distr a @-}
 {-@ assume choice :: x1:Prob -> x2:Distr a -> x3:Distr a -> {v:Distr a |  v == choice x1 x2 x3 } @-}
 choice :: Prob -> Distr a -> Distr a -> Distr a
-choice _ x _ = x
+choice p x y = cond (bernoulli p) x y
 
 {-@ measure Monad.Distr.bernoulli :: Prob -> Distr Bool @-}
 {-@ assume bernoulli :: p:Prob -> {v:Distr Bool|v == bernoulli p} @-}
 bernoulli :: Prob -> Distr Bool
-bernoulli p = ppure True
+bernoulli p = fromFreqs [(True, p), (False, 1 - p)]
 
 {-@ reflect len @-}
 len :: [a] -> Int
