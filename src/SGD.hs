@@ -5,6 +5,7 @@ module SGD where
 import           Prelude  hiding ( head, tail, sum)
 import           Monad.Distr 
 import           Data.Dist 
+import           Data.Derivative
 
 {-@ type StepSize = {v:Double | 0.0 <= v } @-}
 type StepSize = Double
@@ -50,7 +51,7 @@ pureUpdate zs a f = ppure . update zs a f
 {-@ update :: x1:DataPoint -> x2:StepSize -> x3:LossFunction -> x4:Weight 
            -> {v:Weight | v = SGD.update x1 x2 x3 x4 } @-}
 update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight
-update _ w _ _ = w
+update z α f w = w - α * (grad (f z) w) 
 
 
 -------------------------------------------------------------------------------

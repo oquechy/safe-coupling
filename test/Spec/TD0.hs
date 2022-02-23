@@ -10,6 +10,7 @@ import           Test.HUnit                     ( assertEqual
                                                 )
 import           TD0                            ( td0
                                                 , ValueFunction
+                                                , Transition
                                                 )
 
 import           Monad.Implemented.Distr
@@ -23,19 +24,23 @@ import           Prelude                 hiding ( map
                                                 , mapM
                                                 )
 
+import           Numeric.Probability.Distribution
+                                                ( decons )
+
 v0 :: ValueFunction
 v0 = Cons 1.0 (Cons (-1.0) Nil)
 
+t :: Transition
+t = Cons (ppure (0, 0)) (Cons (ppure (0, 0)) Nil)
+
 unit_td0_base :: Assertion
-unit_td0_base = do
-  eqVf v (map ppure v0) @? "value function want " ++ show v0 ++ " got " ++ show v
-  where v = td0 0 undefined undefined undefined v0
+unit_td0_base =
+  v @?= v0 
+  where [(v, 1)] = decons $ td0 0 v0 undefined
 
 unit_td0_simple :: Assertion
-unit_td0_simple = do
-  eqVf v (map ppure (Cons 0.36 (Cons (-0.14) Nil))) @? "value function want " ++ show v0 ++ " got " ++ show v
+unit_td0_simple =
+  v @?= Cons 0.36 (Cons (-0.14) Nil)
   where 
-      v = td0 2 π r p v0
-      π = const (ppure 0)
-      r = const (const (ppure 0))
-      p = const (const (const (ppure 0)))
+      [(v, 1)] = decons $ td0 2 v0 t 
+      

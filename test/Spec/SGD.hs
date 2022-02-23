@@ -5,16 +5,22 @@ import           Test.HUnit                     ( assertEqual
                                                 , (@?=)
                                                 , Assertion
                                                 )
+import           Numeric.Probability.Distribution
+                                                ( decons )
+import           Spec.Utils
+
 import           SGD                            
 
 {-@ loss :: DataPoint -> {ws:[Weight]|len ws = 1} -> Dbl @-}
-loss :: DataPoint -> [Weight] -> Double
-loss (x, y) [ws] = (y - x + ws) ^ 2
+loss :: DataPoint -> Weight -> Double
+loss (x, y) w = (y - x + w) ^ 2
 
 dp :: DataPoint
 dp = (0, 1)
 
-unit_gd :: Assertion
-unit_gd = do
-  w @?= (-1)
-  where [w] = sgd (replicate 4 dp) [1] 0.5 loss
+ss :: StepSizes
+ss = SS 0.5 (SS 0.5 (SS 0.5 (SS 0.5 SSEmp)))
+
+unit_sgd :: Assertion
+unit_sgd = w @?= (-1)
+  where [(w, 1)] = clean $ decons $ sgd (replicate 4 dp) 1 ss loss
