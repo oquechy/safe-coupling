@@ -120,6 +120,9 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
                      (lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2)
         ? assert (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= distD ws1 ws2 + estab zs1 a1)
         ? assert (0 <= (1 - (one / lend zs1)))
+        ? multHelper ((one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1))) (1 - (one / lend zs1)) 
+                 (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+                 (distD ws1 ws2 + estab zs1 a1)
     =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
         + (1 - (one / lend zs1)) * (distD ws1 ws2 + estab zs1 a1)
 
@@ -133,9 +136,6 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     =<= distD ws1 ws2 + estab zs1 as1
     *** QED
  where
-  
-
-
   pureUpd1 = pureUpdate (head zs1) α1 f1
   pureUpd2 = pureUpdate (head zs2) α2 f2
   sgdRec1 = sgdRecUpd zs1 ws1 α1 a1 f1
@@ -145,6 +145,13 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
 thm zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
+
+{-@ multHelper :: a:Double -> b:{Double | 0 <= b} -> c:Double -> d:{Double | c <= d } 
+               -> { a + b * c <= a + b * d }  @-}
+multHelper :: Double -> Double -> Double -> Double -> () 
+multHelper _ _ _ _ = ()
+
+
 
 {-@ lemma :: zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
