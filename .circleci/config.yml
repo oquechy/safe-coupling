@@ -26,4 +26,4 @@ jobs:
 
       - run:
           name: Test Examples 
-          command: stack setup && stack build
+          command: stack setup && stack build && stack test
