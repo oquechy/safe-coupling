@@ -1,14 +1,14 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.Iterate where 
+module TD.Lemmata.Relational.Iterate where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (iterate)
 
-import           TD0 
+import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 

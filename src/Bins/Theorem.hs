@@ -1,7 +1,7 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module BinsTheorem where
+module Bins.Theorem where
 
 import           Monad.Distr
 import           Data.Dist
@@ -17,7 +17,7 @@ import           Prelude                 hiding ( map
                                                 , uncurry
                                                 )
 
-import           Bins
+import           Bins.Bins
 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators

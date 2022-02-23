@@ -1,6 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 
-module Bins where
+module Bins.Bins where
 
 import           Monad.Distr
 import           Data.Dist

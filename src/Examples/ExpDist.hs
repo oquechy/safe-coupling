@@ -1,7 +1,7 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module ExpDist where
+module Examples.ExpDist where
 
 import           Monad.Distr
 import           Data.Dist

@@ -1,14 +1,14 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.MapM where 
+module TD.Lemmata.Relational.MapM where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, mapM)
 
-import           TD0 
+import           TD.TD0 -- CHECK 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 

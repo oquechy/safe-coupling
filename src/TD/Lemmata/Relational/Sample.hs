@@ -1,16 +1,16 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.Sample where 
+module TD.Lemmata.Relational.Sample where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, uncurry)
 
-import           Lemmata.Relational.Update
+import           TD.Lemmata.Relational.Update
 
-import           TD0 
+import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 

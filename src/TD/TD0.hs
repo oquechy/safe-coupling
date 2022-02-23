@@ -1,6 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 
-module TD0 where
+module TD.TD0 where
 
 -- import           Monad.Implemented.Distr
 import           Monad.Distr

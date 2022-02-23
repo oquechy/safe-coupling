@@ -2,7 +2,7 @@
 {-@ LIQUID "--fast"           @-}
 {-@ LIQUID "--ple-local"      @-}
 
-module Theorem where
+module SGD.Theorem where
 
 import           Prelude                 hiding ( head
                                                 , tail
@@ -14,7 +14,7 @@ import           Misc.ProofCombinators
 
 import           Monad.Distr 
 import           Data.Dist 
-import           SGD 
+import           SGD.SGD 
 
 
 {-@ assume relationalupdatep :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
