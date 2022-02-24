@@ -13,6 +13,10 @@ import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
 import           Monad.Distr 
+import           Monad.Distr.Laws
+import           Monad.Distr.EDist
+import           Monad.Distr.Relational.EDist
+
 import           Data.Dist 
 import           SGD.SGD 
 
@@ -72,7 +76,7 @@ thm :: DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> St
 thm zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
   expDist (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
     === expDist (ppure ws1) (ppure ws2)
-        ? relationalppure distDouble ws1 ws2
+        ? pureDist distDouble ws1 ws2
     === distD ws1 ws2
         ? estabEmp zs1 
     === distD ws1 ws2 + estab zs1 α1
@@ -83,8 +87,8 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     === expDist
           (choice (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
           (choice (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
-    ?   relationalchoice (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
-                         (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
+    ?   choiceDist (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
+                   (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
 
     =<= (one / lend zs1) * (expDist (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
@@ -104,7 +108,7 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
                                     (bind (sgd zs2 ws2 a2 f2) (ppure . update (head zs2) α2 f2 ))) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
-        ?   relUnitBindTry distDouble distDouble (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
+        ?   pureBindDist distDouble distDouble (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
                                     (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
                                     (relationalupdatep (head zs1) α1 f1 (head zs2) α2 f2) 
         
@@ -116,7 +120,7 @@ thm zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
          ? assert (expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) <= distD ws1 ws2 + estab zs1 a1)
     =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
         + (1 - (one / lend zs1)) * (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-        ? expDistBind (distD ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
+        ? bindDistEq (distD ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
                      (lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2)
         ? assert (expDist (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= distD ws1 ws2 + estab zs1 a1)
         ? assert (0 <= (1 - (one / lend zs1)))
@@ -165,7 +169,7 @@ lemma zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z =
         ?   pureUpdateEq z α2 f2
     === expDist (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
                 (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
-        ?   relUnitBindTry distDouble distDouble 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
+        ?   pureBindDist distDouble distDouble 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
                              (update z α2 f2) (sgd zs2 ws2 a2 f2) 
                              (relationalupdateq z α1 f1 z α2 f2)
     =<= expDist (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)

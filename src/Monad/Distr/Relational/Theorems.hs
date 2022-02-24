@@ -1,7 +1,11 @@
+-----------------------------------------------------------------
+-- | Proved Theorems for Relational Properties: mapMSpec   ------
+-----------------------------------------------------------------
+
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module TD.Lemmata.Relational.MapM where 
+module Monad.Distr.Relational.Theorems where 
 
 import           Monad.Distr
 import           Data.Dist
@@ -11,9 +15,26 @@ import           Prelude hiding (max, mapM)
 import           Monad.Distr.Relational.Spec 
 import           Monad.Distr.Predicates
 
-import           TD.TD0 -- CHECK 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
+
+
+{-@ mapMSpec :: {m:_|0 <= m} 
+                   -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 
+                   -> is:List a
+                   -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) 
+                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [llen is, 0] @-}
+mapMSpec :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a 
+               -> (a -> ()) 
+               -> ()
+mapMSpec m f1 f2 is@Nil lemma
+    = pureSpec (bounded m) Nil Nil (boundedNil m)
+mapMSpec m f1 f2 (Cons i is) lemma 
+    = bindSpec (bounded m) (bounded' m)
+            (f1 i) (cons (llen is) (mapM f1 is))
+            (f2 i) (cons (llen is) (mapM f2 is))
+            (lemma i)
+            (consBindLemma m f1 f2 is lemma)
 
 {-@ consLemma :: m:_ -> r1:_ -> rs1:_ -> {r2:_|bounded' m r1 r2} -> {rs2:_|llen rs1 = llen rs2 && bounded m rs1 rs2} 
               -> {bounded m (Cons r1 rs1) (Cons r2 rs2)} @-}
@@ -36,7 +57,7 @@ consBindLemma m f1 f2 is lemma r1 r2
     = bindSpec (bounded m) (bounded m)
                          (mapM f1 is) (ppure `o` (consDouble r1))
                          (mapM f2 is) (ppure `o` (consDouble r2))
-                         (relationalmapM m f1 f2 is lemma) 
+                         (mapMSpec m f1 f2 is lemma) 
                          (pureLemma m r1 r2 f1 f2 is) 
 
 {-@ pureLemma :: {m:_|0 <= m} 
@@ -51,19 +72,3 @@ pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureSpec (bounded m)
                                      (Cons r1 rs1) (Cons r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 
-{-@ relationalmapM :: {m:_|0 <= m} 
-                   -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 
-                   -> is:List a
-                   -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) 
-                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [llen is, 0] @-}
-relationalmapM :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a 
-               -> (a -> ()) 
-               -> ()
-relationalmapM m f1 f2 is@Nil lemma
-    = pureSpec (bounded m) Nil Nil (boundedNil m)
-relationalmapM m f1 f2 (Cons i is) lemma 
-    = bindSpec (bounded m) (bounded' m)
-            (f1 i) (cons (llen is) (mapM f1 is))
-            (f2 i) (cons (llen is) (mapM f2 is))
-            (lemma i)
-            (consBindLemma m f1 f2 is lemma)

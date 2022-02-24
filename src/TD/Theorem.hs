@@ -7,6 +7,9 @@ import           Monad.Distr
 import           Data.Dist
 import           Data.List
 
+import           Monad.Distr.Predicates
+
+
 import           TD.Lemmata.Relational.Act
 import           TD.Lemmata.Relational.Iterate
 

@@ -8,7 +8,9 @@ import           Data.Dist
 import           Data.List
 import           Prelude hiding (max)
 
-import           TD.Lemmata.Relational.MapM
+import           Monad.Distr.Predicates
+import           Monad.Distr.Relational.Theorems (mapMSpec)
+
 import           TD.Lemmata.Relational.Sample
 
 import           TD.TD0 
@@ -21,7 +23,7 @@ import           Language.Haskell.Liquid.ProofCombinators
                   -> {bounded m v1 v2 => lift (bounded (k * m)) (act l t v1) (act l t v2)} @-}
 relationalact :: Int -> Transition -> Double -> ValueFunction -> ValueFunction -> ()
 relationalact _ t m v1 v2 | bounded m v1 v2 
-    = relationalmapM (k * m)
+    = mapMSpec (k * m)
             (sample v1 t) (sample v2 t) 
             (range 0 (llen v1)) 
             (relationalsample m (llen v1) t v1 v2)

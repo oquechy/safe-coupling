@@ -8,6 +8,9 @@ import           Data.Dist
 import           Data.List
 import           Prelude hiding (iterate)
 
+import           Monad.Distr.Relational.Spec 
+import           Monad.Distr.Predicates
+
 import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
@@ -25,10 +28,10 @@ relationaliterate :: Double -> Double -> Int -> Int
                   -> List Double -> List Double
                   -> ()
 relationaliterate m k 0 _ _ _ x1 x2 | bounded m x1 x2
-    =   liftPure (bounded (pow k 0 * m)) x1 x2 ()
+    =   pureSpec (bounded (pow k 0 * m)) x1 x2 ()
 relationaliterate m k n l f lemma x1 x2 | bounded m x1 x2
     =   assert (pow k (n-1) * (k * m) == pow k n * m) ? 
-        liftBind (bounded (pow k n * m)) (bounded (k * m)) 
+        bindSpec (bounded (pow k n * m)) (bounded (k * m)) 
                  (f x1) (iterate (n - 1) (llen x1) f)
                  (f x2) (iterate (n - 1) (llen x2) f)
                  (lemma m x1 x2)

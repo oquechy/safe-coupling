@@ -9,7 +9,7 @@ import           Numeric.Probability.Distribution
                                                 ( decons )
 import           Spec.Utils
 
-import           SGD                            
+import           SGD.SGD                            
 
 {-@ loss :: DataPoint -> {ws:[Weight]|len ws = 1} -> Dbl @-}
 loss :: DataPoint -> Weight -> Double

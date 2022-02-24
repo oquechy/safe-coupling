@@ -1,211 +1,26 @@
-{-@ LIQUID "--reflection"     @-}
-{-@ LIQUID "--ple"     @-}
+-----------------------------------------------------------------
+-- | Implementation of the Distr monad as a wrapper  ------------
+-- | This module includes only executable code       ------------
+-----------------------------------------------------------------
 
+{-@ LIQUID "--reflection" @-}
 module Monad.Distr where 
 
-import Data.Dist (distList, distDouble, Dist, dist, distD, triangularIneqD, symmetryD, absEqDouble)
+import Data.Dist 
 import Data.List hiding (all) 
 
-import Prelude hiding (max)
-import Numeric.Probability.Distribution hiding (Cons)
-
-type Distr a = T Prob a
-
-{-@ reflect bounded @-}
-bounded :: Double -> List Double -> List Double -> Bool
-bounded m v1 v2 = distList distDouble v1 v2 <= m && llen v1 == llen v2
-
-{-@ reflect bounded' @-}
-bounded' :: Double -> Double -> Double -> Bool
-bounded' m x1 x2 = dist distDouble x1 x2 <= m
-
-{-@ boundedNil :: {m:_|0 <= m} -> {bounded m Nil Nil} @-}
-boundedNil :: Double -> ()
-boundedNil _ = ()
-
-{-@ reflect eqP @-}
-eqP :: Eq a => a -> a -> Bool
-eqP = (==)
-
--- TODO: replace with BijCoupling
-{-@ assume liftEq :: e:Distr a -> {lift eqP e e} @-}
-liftEq :: Distr a -> ()
-liftEq _ = ()
-
-{-@ assume liftPure :: p:(a -> b -> Bool) 
-                    -> x1:a -> x2:b -> {_:_|p x1 x2} 
-                    -> {lift p (ppure x1) (ppure x2)} @-}
-liftPure :: (a -> b -> Bool) -> a -> b -> () -> ()
-liftPure _ _ _ _ = ()
-
-{-@ reflect ppureDouble @-}
-{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
-ppureDouble :: List Double -> Distr (List Double)
-ppureDouble x = ppure x 
-
-{-@ assume liftBind :: p:(b -> b -> Bool) -> q:(a -> a -> Bool) -> 
-                e1:Distr a -> f1:(a -> Distr b) -> e2:Distr a -> f2:(a -> Distr b) ->   
-                {_:()|lift q e1 e2} ->
-                (x1:a -> {x2:a|q x1 x2} -> {lift p (f1 x1) (f2 x2)}) ->
-                {lift p (bind e1 f1) (bind e2 f2)} @-}
-liftBind :: (b -> b -> Bool) -> (a -> a -> Bool) -> 
-              Distr a -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> 
-              () ->
-              (a -> a -> ()) -> 
-              ()
-liftBind _ _ _ _ _ _ _ _ = ()
-
-{-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
-{-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b -> {v:Bool | v == Monad.Distr.lift p1 x1 x2} @-}
-lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
-lift p e1 e2 = and (fst <$> (decons act))
-  where act = do x <- e1 
-                 y <- e2
-                 return (p x y)
-
-{-@ reflect trueP @-}
-trueP :: a -> a -> Bool 
-trueP _ _ = True 
-
-  {- do
-      x1 <- e1
-      x2 <- e2
-      return (p x1 x2) -}
-
-{-@ assume expDistPure :: d:Dist a -> x1:a -> x2:a -> {expDist (ppure x1) (ppure x2) = dist d x1 x2} @-}
-expDistPure :: Dist a -> a -> a -> ()
-expDistPure _ _ _ = ()
-
-{-@ assume expDistEq :: x1:Distr a -> {x2:Distr a | x1 = x2 } -> {expDist x1 x2 = 0} @-}
-expDistEq :: Distr a -> Distr a -> ()
-expDistEq _ _ = ()
-
-
--- CHECK IF THIS IS CORRECT 
-{-@ ple relUnitBindTry @-}
-{-@ assume relUnitBindTry :: da:Dist a -> db:Dist b
-                          -> m:Double 
-                          -> f1:(a -> b) -> e1:Distr a 
-                          -> f2:(a -> b) -> e2:Distr a 
-                          -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
-                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= expDist e1 e2 + m } @-}
-relUnitBindTry :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
-relUnitBindTry _ _ m f1 e1 f2 e2 t = () --  maxExpDistLemma e1 e2 `const` relUnitBind m f1 e1 f2 e2 t
-
-
-{-@ assume relUnitBind :: da:Dist a -> db:Dist b -> m:Double 
-                          -> f1:(a -> b) -> e1:Distr a 
-                          -> f2:(a -> b) -> e2:Distr a 
-                          -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
-                          -> { expDist (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= maxExpDist e1 e2 + m } @-}
-relUnitBind :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
-relUnitBind _ _ _ _ _ _ _ _ = ()
-
-
-
-{-@ assume expDistBind :: m:Double 
-                          -> f1:(a -> Distr b) -> e1:Distr a 
-                          -> f2:(a -> Distr b) -> e2:{Distr a | BijCoupling e1 e2 } 
-                          -> (x:a -> { expDist (f1 x) (f2 x) <= m}) 
-                          -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
-expDistBind :: Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
-expDistBind _ _ _ _ _ _ = ()
-
-{-@ assume expDistBindP :: m:Double -> p:(a -> a -> Bool )
-                -> f1:(a -> Distr b) -> e1:Distr a 
-                -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2 } 
-                -> lemma:(x1:a -> {x2:a|p x1 x2} -> { expDist (f1 x1) (f2 x2) <= m}) 
-                -> { expDist (bind e1 f1) (bind e2 f2) <= m } @-}
-expDistBindP :: Double -> (a -> a -> Bool) -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> Distr a -> (a -> a -> ()) -> ()
-expDistBindP _ _ _ _ _ _ _ = ()
-
--------------------------------------------------------------------------------
--- | (Non) Definitions --------------------------------------------------------
--------------------------------------------------------------------------------
-
-{-@ predicate BijCoupling X Y = true @-}
+import Prelude hiding (max, mapM)
+import Numeric.Probability.Distribution hiding (Cons, cons)
 
 {-@ type Prob = {v:Double| 0 <= v && v <= 1} @-}
 type Prob = Double
 
-{-@ assume maxExpDistLemma :: x1:Distr a -> x2:Distr a -> { expDist x1 x2 <=  maxExpDist x1 x2 } @-}
-maxExpDistLemma :: Distr a -> Distr a -> ()
-maxExpDistLemma _ _ = ()
-
-{-@ measure maxExpDist :: Distr a -> Distr a -> Double @-}
-{-@ assume maxExpDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == maxExpDist x1 x2 } @-}
-maxExpDist :: Distr a -> Distr a -> Double
-maxExpDist _ _ = 0
-
-
-{-@ measure Monad.Distr.expDist :: Distr a -> Distr a -> Double @-}
-{-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == Monad.Distr.expDist x1 x2 } @-}
-expDist :: Distr a -> Distr a -> Double
-expDist _ _ = 0
-
-{-@ measure expDistList :: List (Distr a) -> List (Distr b) -> Double @-}
-{-@ assume expDistList :: xs1:List (Distr a) -> xs2:List (Distr a) -> {v:Double | v == expDistList xs1 xs2 } @-}
-expDistList :: List (Distr a) -> List (Distr a) -> Double
-expDistList Nil _ = 0 
-expDistList _ Nil = 0 
-expDistList (Cons x xs) (Cons y ys) = max (expDist x y) (expDistList xs ys)
-
--------------------------------------------------------------------------------
--- | Relational Specifications ------------------------------------------------
--------------------------------------------------------------------------------
-{-@ assume relationalppure :: d:Dist a -> x1:a -> x2:a 
-                    -> { expDist (ppure x1) (ppure x2) = ((dist d) (x1)) (x2) } @-}
-relationalppure :: Dist a -> a -> a -> () 
-relationalppure _ _ _ = () 
-
-{-@ assume leftId :: x:a -> f:(a -> Distr b) -> { bind (ppure x) f = f x } @-}
-leftId :: a -> (a -> Distr b) -> ()
-leftId _ _ = ()
-
-
-{-@ assume relationalunif :: xsl:[a] -> xsr:{[a] | xsl == xsr}
-                          -> {expDist (unif xsl) (unif xsr) == 0 } @-}
-relationalunif :: [a] -> [a] -> ()
-relationalunif _ _ = ()
-
-{-@ assume relationalchoice :: p:Prob -> e1:Distr a -> e1':Distr a 
-        ->  q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
-        ->  { expDist (choice p e1 e1') (choice q e2 e2') <= p * (expDist e1 e2) + (1.0 - p) * (expDist e1' e2')} @-}
-relationalchoice :: Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
-relationalchoice _ _ _ _ _ _ = ()
-
-{-@ reflect impP @-}
-{-@ impP :: x:Bool -> y:Bool -> {v:Bool|v <=> (x => y)} @-}
-impP :: Bool -> Bool -> Bool
-impP True False = False
-impP _    _     = True
-
-{-@ reflect leIntP @-}
-{-@ leIntP :: x:Int -> y:Int -> {v:Bool|v <=> (x <= y)} @-}
-leIntP :: Int -> Int -> Bool
-leIntP x y = x <= y
-
-{-@ reflect leDoubleP @-}
-{-@ leDoubleP :: x:Double -> y:Double -> {v:Bool|v <=> (x <= y)} @-}
-leDoubleP :: Double -> Double -> Bool
-leDoubleP x y = x <= y
-
-{-@ assume relationalbernoulli :: p:Prob -> {q:Prob|leDoubleP p q}
-                               ->  {lift impP (bernoulli p) (bernoulli q)} @-}
-relationalbernoulli :: Prob -> Prob -> ()
-relationalbernoulli _ _ = ()
-
--------------------------------------------------------------------------------
--- | (Non) Implementations ----------------------------------------------------
--------------------------------------------------------------------------------
+type Distr a = T Prob a
 
 {-@ measure Monad.Distr.bind :: Distr a -> (a -> Distr b) -> Distr b @-}
 {-@ assume bind :: forall <p :: a -> Bool>.x1:Distr a<p> -> x2:(a<p> -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
 bind :: Distr a -> (a -> Distr b) -> Distr b
 bind = (>>=)
-
-
-
 
 {-@ measure Monad.Distr.ppure :: a -> Distr a @-}
 {-@ ppure :: x:a -> {v:Distr a | v = Monad.Distr.ppure x } @-}
@@ -223,10 +38,6 @@ choice p x y = cond (bernoulli p) x y
 bernoulli :: Prob -> Distr Bool
 bernoulli p = fromFreqs [(True, p), (False, 1 - p)]
 
-{-@ reflect len @-}
-len :: [a] -> Int
-len [] = 0
-len (_:xs) = 1 + len xs
 
 {-@ reflect unif @-}
 {-@ unif :: {xs:[a]|0 < len xs} -> Distr a @-}
@@ -234,7 +45,49 @@ unif :: [a] -> Distr a
 unif [a]    = ppure a
 unif (x:xs) = choice (1 `mydiv` fromIntegral (len xs + 1)) (ppure x) (unif xs)
 
+{-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
+{-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b 
+                -> {v:Bool | v == Monad.Distr.lift p1 x1 x2 } @-}
+lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool
+lift p e1 e2 = and (fst <$> (decons act))
+  where act = do x <- e1 
+                 y <- e2
+                 return (p x y)
+
+-----------------------------------------------------------------
+-- | mapM: Standard monadic mapM instantiated for LH limitations  
+-----------------------------------------------------------------
+
+{-@ reflect mapM @-}
+{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
+mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
+mapM _ Nil         = ppureDouble Nil
+mapM f (Cons x xs) = bind (f x) (cons (llen xs) (mapM f xs))
+
+-----------------------------------------------------------------
+-- | Helper Definitions for Reflection 
+-----------------------------------------------------------------
+
+{-@ reflect len @-}
+len :: [a] -> Int
+len [] = 0
+len (_:xs) = 1 + len xs
+
 {-@ reflect mydiv @-}
 {-@ mydiv :: Double -> {i:Double | i /= 0 } -> Double @-}
 mydiv :: Double -> Double -> Double
 mydiv x y = x / y 
+
+{-@ reflect ppureDouble @-}
+{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
+ppureDouble :: List Double -> Distr (List Double)
+ppureDouble x = ppure x 
+
+{-@ reflect cons @-}
+{-@ cons :: n:Nat -> Distr ({xs:List Double | llen xs == n}) -> Double -> Distr ({v:List Double | llen v = n + 1}) @-}
+cons :: Int -> Distr (List Double) -> Double -> Distr (List Double)
+cons n xs x = bind xs (ppure `o` (consDouble x))
+
+{-@ reflect o @-}
+o :: (b -> c) -> (a -> b) -> a -> c
+o g f x = g (f x)

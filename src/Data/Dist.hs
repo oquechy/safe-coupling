@@ -1,46 +1,52 @@
+-----------------------------------------------------------------
+-- | Distance as a desugared type class -------------------------
+-----------------------------------------------------------------
+
 {-@ LIQUID "--reflection" @-}
 {-@ LIQUID "--ple-local"  @-}
 
-module Data.Dist
-  ( distList
-  , distEq
-  , triangularIneqD
-  , symmetryD
-  , absEqDouble 
-  , linearity
-  , Dist (..)
-  , distDouble
-  , distD
-  )
-where
+module Data.Dist where
 
 import Prelude hiding (max)
 import Language.Haskell.Liquid.ProofCombinators
 import Misc.ProofCombinators
 import Data.List
 
--- class Dist 
+-----------------------------------------------------------------
+-- | class Dist a -----------------------------------------------
+-----------------------------------------------------------------
 data Dist a = Dist { 
     dist :: a -> a -> Double 
+  , distEq         :: a -> () 
   , triangularIneq :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
   , absEq          :: a -> a -> ()
   }
 
 
-
 {-@ data Dist a = Dist { 
-    dist :: a -> a -> Double 
+    dist :: a -> a -> {v:Double | 0.0 <= v } 
+  , distEq         :: a:a -> {dist a a = 0}
   , triangularIneq :: a:a -> b:a -> c:a -> {dist a c <= dist a b + dist b c}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
   , absEq          :: x:a -> y:a -> {dist x y == dist y x}
   } @-}
 
 
+-----------------------------------------------------------------
+-- | instance Dist Double ---------------------------------------
+-----------------------------------------------------------------
 
 {-@ reflect distDouble@-}
 distDouble :: Dist Double
-distDouble = Dist distD triangularIneqD symmetryD absEqDouble
+distDouble = Dist distD distEqD triangularIneqD symmetryD absEqDouble
+
+{-@ ple distEqD @-}
+{-@ reflect distEqD @-}
+distEqD :: Double -> ()
+{-@ distEqD :: x:Double -> {distD x x == 0 } @-}
+distEqD _ = () 
+
 
 {-@ ple absEqDouble @-}
 {-@ reflect absEqDouble @-}
@@ -54,11 +60,6 @@ absEqDouble _ _ = ()
 triangularIneqD :: Double -> Double -> Double -> ()
 triangularIneqD _ _ _ = ()
 
-
-
-
-
-
 {-@ ple symmetryD @-}
 {-@ reflect symmetryD @-}
 {-@ symmetryD :: a:Double -> b:Double -> {distD a b = distD b a} @-}
@@ -66,13 +67,13 @@ symmetryD :: Double -> Double -> ()
 symmetryD _ _ = ()
 
 {-@ reflect distD @-}
+{-@ distD :: Double -> Double -> {d:Double | 0.0 <= d } @-}
 distD :: Double -> Double -> Double 
 distD x y = if x <= y then y - x else x - y 
 
-{- measure Data.Dist.dist :: a -> a -> Double @-}
-{- assume dist :: x1:a -> x2:a -> {v:Double | v == Data.Dist.dist x1 x2 && v >= 0} @-}
--- dist :: a -> a -> Double
--- dist _ _ = 0
+-----------------------------------------------------------------
+-- | instance Dist a => Dist (List a) ---------------------------
+-----------------------------------------------------------------
 
 {-@ reflect distList @-}
 {-@ distList :: Dist a -> List a -> List a -> {d:Double | 0 <= d } @-}
@@ -81,15 +82,17 @@ distList d Nil _ = 0
 distList d _ Nil = 0
 distList d (Cons x xs) (Cons y ys) = max (dist d x y) (distList d xs ys)
 
-{-@ assume distEq :: d:Dist a -> x:a -> y:a -> {x = y <=> dist d x y = 0} @-} 
-distEq :: Dist a -> a -> a -> () 
-distEq _ _ _ = ()
+
+-----------------------------------------------------------------
+-- | Linearity on Doubles 
+-- | Does not type check forall a, so cannot just get axiomatized
+-----------------------------------------------------------------
 
 {-@ ple linearity @-}
 {-@ linearity :: k:{Double | 0 <= k } -> l:Double -> a:Double -> b:Double 
                      -> { distD (k * a + l) (k * b + l) = k * distD a b} @-}
 linearity :: Double -> Double -> Double -> Double -> ()
 linearity k l a b
-  | a <= b    = assert (k * a + l <= k * b + l) ? ()
-  | otherwise = () 
+  | a <= b    = assert (k * a + l <= k * b + l) 
+  | otherwise = assert (distD (k * a + l) (k * b + l) == k * distD a b)
 

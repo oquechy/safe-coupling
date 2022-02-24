@@ -39,16 +39,7 @@ lq_required _ = ()
 td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
 td0 n v t = iterate n (llen v) (act (llen v) t) v
 
-{-@ reflect cons @-}
-{-@ cons :: n:Nat -> Distr ({xs:List Double | llen xs == n}) -> Double -> Distr ({v:List Double | llen v = n + 1}) @-}
-cons :: Int -> Distr (List Double) -> Double -> Distr (List Double)
-cons n xs x = bind xs (ppure `o` (consDouble x))
 
-{-@ reflect mapM @-}
-{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
-mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
-mapM _ Nil = ppureDouble Nil
-mapM f (Cons x xs) = bind (f x) (cons (llen xs) (mapM f xs))
 
 {-@ reflect iterate @-}
 {-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | llen v == l} -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
@@ -57,9 +48,7 @@ iterate :: Int -> Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction 
 iterate n l _ x | n <= 0 = ppure x
 iterate n l f x = bind (f x) (iterate (n - 1) l f)
 
-{-@ reflect o @-}
-o :: (b -> c) -> (a -> b) -> a -> c
-o g f x = g (f x)
+
 
 {-@ reflect act @-}
 {-@ act :: n:Nat -> TransitionOf n -> v:{ValueFunction|llen v == n} 

@@ -12,8 +12,16 @@ library
      , Data.List
      , Data.Derivative
      , Monad.Distr
-     , Misc.ProofCombinators
 
+     , Monad.Distr.EDist
+     , Monad.Distr.Predicates
+     , Monad.Distr.Laws
+
+     , Monad.Distr.Relational.Spec
+     , Monad.Distr.Relational.EDist
+     , Monad.Distr.Relational.Theorems
+
+     , Misc.ProofCombinators
 
 -- Toy Examples
      , Examples.ExpDist
@@ -27,7 +35,6 @@ library
      , TD.Lemmata.Relational.Update
      , TD.Lemmata.Relational.Sample
      , TD.Lemmata.Relational.Act
-     , TD.Lemmata.Relational.MapM
      , TD.Lemmata.Relational.Iterate
      , TD.Theorem
 
