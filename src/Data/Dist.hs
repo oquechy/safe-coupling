@@ -16,7 +16,7 @@ import Data.List
 -- | class Dist a -----------------------------------------------
 -----------------------------------------------------------------
 data Dist a = Dist { 
-    dist :: a -> a -> Double 
+    dist           :: a -> a -> Double 
   , distEq         :: a -> () 
   , triangularIneq :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
@@ -25,12 +25,17 @@ data Dist a = Dist {
 
 
 {-@ data Dist a = Dist { 
-    dist :: a -> a -> {v:Double | 0.0 <= v } 
+    dist           :: a -> a -> {v:Double | 0.0 <= v } 
   , distEq         :: a:a -> {dist a a = 0}
-  , triangularIneq :: a:a -> b:a -> c:a -> {dist a c <= dist a b + dist b c}
+  , triangularIneq :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
   , absEq          :: x:a -> y:a -> {dist x y == dist y x}
   } @-}
+
+
+
+-- TODO: define this 
+-- distFun :: Dist b -> Dist (a -> b)
 
 
 -----------------------------------------------------------------
@@ -74,6 +79,7 @@ distD x y = if x <= y then y - x else x - y
 -----------------------------------------------------------------
 -- | instance Dist a => Dist (List a) ---------------------------
 -----------------------------------------------------------------
+-- TODO: prove the proof obligations 
 
 {-@ reflect distList @-}
 {-@ distList :: Dist a -> List a -> List a -> {d:Double | 0 <= d } @-}

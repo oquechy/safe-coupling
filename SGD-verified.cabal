@@ -11,14 +11,13 @@ library
        Data.Dist
      , Data.List
      , Data.Derivative
-     , Monad.Distr
 
-     , Monad.Distr.EDist
+     , Monad.Distr
      , Monad.Distr.Predicates
      , Monad.Distr.Laws
 
-     , Monad.Distr.Relational.Spec
-     , Monad.Distr.Relational.EDist
+     , Monad.Distr.Relational.TCB.Spec
+     , Monad.Distr.Relational.TCB.EDist
      , Monad.Distr.Relational.Theorems
 
      , Misc.ProofCombinators
@@ -27,8 +26,8 @@ library
      , Examples.ExpDist
 
 -- Bins Example
-     , Bins.Bins
-     , Bins.Theorem
+      , Bins.Bins
+      , Bins.Theorem
 
 -- TD Case Study      
      , TD.TD0
@@ -41,6 +40,7 @@ library
 -- SGD Case Study      
      , SGD.SGD 
      , SGD.Theorem 
+
   build-depends:
       liquid-base
     , liquid-containers

@@ -18,7 +18,7 @@ type Prob = Double
 type Distr a = T Prob a
 
 {-@ measure Monad.Distr.bind :: Distr a -> (a -> Distr b) -> Distr b @-}
-{-@ assume bind :: forall <p :: a -> Bool>.x1:Distr a<p> -> x2:(a<p> -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
+{-@ assume bind :: x1:Distr a -> x2:(a -> Distr b) -> {v:Distr b | v = bind x1 x2 } @-}
 bind :: Distr a -> (a -> Distr b) -> Distr b
 bind = (>>=)
 
@@ -31,12 +31,12 @@ ppure = pure
 {-@ measure Monad.Distr.choice :: Prob -> Distr a -> Distr a -> Distr a @-}
 {-@ assume choice :: x1:Prob -> x2:Distr a -> x3:Distr a -> {v:Distr a |  v == choice x1 x2 x3 } @-}
 choice :: Prob -> Distr a -> Distr a -> Distr a
-choice p x y = cond (bernoulli p) x y
+choice p x y = cond (fromFreqs [(True, p), (False, 1 - p)]) x y
 
-{-@ measure Monad.Distr.bernoulli :: Prob -> Distr Bool @-}
-{-@ assume bernoulli :: p:Prob -> {v:Distr Bool|v == bernoulli p} @-}
-bernoulli :: Prob -> Distr Bool
-bernoulli p = fromFreqs [(True, p), (False, 1 - p)]
+{-@ measure Monad.Distr.bernoulli :: Prob -> Distr Double @-}
+{-@ assume bernoulli :: p:Prob -> {v:Distr {n:Double | 0 <= n && n <= 1}| v == bernoulli p } @-}
+bernoulli :: Prob -> Distr Double
+bernoulli p = fromFreqs [(1, p), (0, 1 - p)]
 
 
 {-@ reflect unif @-}

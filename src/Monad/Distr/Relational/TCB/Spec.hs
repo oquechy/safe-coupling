@@ -4,7 +4,7 @@
 
 {-@ LIQUID "--reflection" @-}
 
-module Monad.Distr.Relational.Spec where 
+module Monad.Distr.Relational.TCB.Spec where 
 
 import Monad.Distr 
 import Monad.Distr.Predicates
@@ -28,11 +28,16 @@ bindSpec :: (b -> b -> Bool) -> (a -> a -> Bool) ->
               ()
 bindSpec _ _ _ _ _ _ _ _ = ()
 
-{-@ assume bernoulliSpec :: p:Prob -> {q:Prob|leDoubleP p q}
-                         ->  {lift impP (bernoulli p) (bernoulli q)} @-}
+{-@ assume bernoulliSpec :: p:Prob -> {q:Prob| leDoubleP p q}
+                         ->  {lift leDoubleP (bernoulli p) (bernoulli q)} @-}
 bernoulliSpec :: Prob -> Prob -> ()
 bernoulliSpec _ _ = ()
 
 {-@ assume liftSpec :: e:Distr a -> {lift eqP e e} @-}
 liftSpec :: Distr a -> ()
 liftSpec _ = ()
+
+
+{-@ assume liftTrue :: e1:Distr a -> e2:Distr a -> {lift trueP e1 e2} @-}
+liftTrue :: Distr a -> Distr a -> ()
+liftTrue _ _ = ()

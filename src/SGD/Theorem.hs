@@ -14,26 +14,25 @@ import           Misc.ProofCombinators
 
 import           Monad.Distr 
 import           Monad.Distr.Laws
-import           Monad.Distr.EDist
-import           Monad.Distr.Relational.EDist
+import           Monad.Distr.Relational.TCB.EDist
 
 import           Data.Dist 
 import           SGD.SGD 
 
 
-{-@ assume relationalupdatep :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
+{-@ assume relationalupdatep :: d:Dist Double -> z1:DataPoint -> α1:StepSize -> f1:LossFunction 
                              -> z2:DataPoint -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
                              -> ws1:Weight -> ws2:Weight -> 
-                            {distD (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = distD ws1 ws2 + 2.0 * α1} @-}
-relationalupdatep :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
-relationalupdatep _ _ _ _ _ _ _ _ = ()
+                            {dist d (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = dist d ws1 ws2 + 2.0 * α1} @-}
+relationalupdatep :: Dist Double -> DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
+relationalupdatep _ _ _ _ _ _ _ _ _ = ()
 
 
-{-@ assume relationalupdateq :: z1:DataPoint -> α1:StepSize -> f1:LossFunction 
+{-@ assume relationalupdateq :: d:Dist Double -> z1:DataPoint -> α1:StepSize -> f1:LossFunction 
                              -> {z2:DataPoint|z1 = z2} -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
                              -> ws1:Weight -> ws2:Weight -> 
-                            {distD (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = distD ws1 ws2} @-}
-relationalupdateq :: DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
+                            {dist d (update z1 α1 f1 ws1) (update z2  α2 f2 ws2) = dist d ws1 ws2} @-}
+relationalupdateq :: Dist Double -> DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
 relationalupdateq = undefined
 
 
@@ -68,76 +67,76 @@ estabconsR zs x xs
   *** QED 
 
 {-@ ple thm @-}
-{-@ thm :: ed:EDist Double -> zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
+{-@ thm :: d:Dist Double -> zs1:DataSet -> ws1:Weight -> α1:StepSizes -> f1:LossFunction -> 
            zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
             ws2:Weight -> {α2:StepSizes| α2 = α1} -> {f2:LossFunction|f1 = f2} -> 
-            { edist ed (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= distD ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
-thm :: EDist Double -> DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
-thm ed zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
-  edist ed (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
-    === edist ed (ppure ws1) (ppure ws2)
-        ? pureDist ed distDouble ws1 ws2
-    === distD ws1 ws2
+            { dist (kant d) (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist d ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
+thm :: Dist Double -> DataSet -> Weight -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
+thm d zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
+  dist (kant d) (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
+    === dist (kant d) (ppure ws1) (ppure ws2)
+        ? pureDist d ws1 ws2
+    === dist d ws1 ws2
         ? estabEmp zs1 
-    === distD ws1 ws2 + estab zs1 α1
+    === dist d ws1 ws2 + estab zs1 α1
     *** QED 
 
-thm ed zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
-  edist ed (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
-    === edist ed
+thm d zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
+  dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
+    === dist (kant d)
           (choice (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
           (choice (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
-    ?   choiceDist ed (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
+    ?   choiceDist d (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
                    (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
 
-    =<= (one / lend zs1) * (edist ed (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+    =<= (one / lend zs1) * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   leftId (head zs1) sgdRec1 
         ?   leftId (head zs2) sgdRec2 
 
-    =<= (one / lend zs1) * (edist ed (sgdRec1 (head zs1)) (sgdRec2 (head zs2))) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+    =<= (one / lend zs1) * (dist (kant d) (sgdRec1 (head zs1)) (sgdRec2 (head zs2))) 
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
     
-    =<= (one / lend zs1) * (edist ed (bind (sgd zs1 ws1 a1 f1) pureUpd1) 
+    =<= (one / lend zs1) * (dist (kant d) (bind (sgd zs1 ws1 a1 f1) pureUpd1) 
                                     (bind (sgd zs2 ws2 a2 f2) pureUpd2)) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ? pureUpdateEq (head zs1) α1 f1
         ? pureUpdateEq (head zs2) α2 f2
 
-    =<= (one / lend zs1) * (edist ed (bind (sgd zs1 ws1 a1 f1) (ppure . update (head zs1) α1 f1 )) 
+    =<= (one / lend zs1) * (dist (kant d) (bind (sgd zs1 ws1 a1 f1) (ppure . update (head zs1) α1 f1 )) 
                                     (bind (sgd zs2 ws2 a2 f2) (ppure . update (head zs2) α2 f2 ))) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
-        ?   pureBindDist distDouble distDouble ed ed (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
+        ?   pureBindDist d d (2 * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
                                     (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
-                                    (relationalupdatep (head zs1) α1 f1 (head zs2) α2 f2) 
+                                    (relationalupdatep d (head zs1) α1 f1 (head zs2) α2 f2) 
         
-    =<= (one / lend zs1) * (edist ed (sgd zs1 ws1 a1 f1)  
+    =<= (one / lend zs1) * (dist (kant d) (sgd zs1 ws1 a1 f1)  
                                     (sgd zs2 ws2 a2 f2) + (2.0 * α1)) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
-         ? thm ed zs1 ws1 a1 f1 zs2 ws2 a2 f2
-         ? assert (edist ed (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) <= distD ws1 ws2 + estab zs1 a1)
-    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
-        + (1 - (one / lend zs1)) * (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-        ? bindDistEq ed (distD ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
-                     (lemma ed zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2)
-        ? assert (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= distD ws1 ws2 + estab zs1 a1)
+         ? thm d zs1 ws1 a1 f1 zs2 ws2 a2 f2
+         ? assert (dist (kant d) (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2) <= dist d ws1 ws2 + estab zs1 a1)
+    =<= (one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+        ? bindDistEq d (dist d ws1 ws2 + estab zs1 a1) sgdRec1 utail1 sgdRec2 utail2
+                     (lemma d zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2)
+        ? assert (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2) <= dist d ws1 ws2 + estab zs1 a1)
         ? assert (0 <= (1 - (one / lend zs1)))
-        ? multHelper ((one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1))) (1 - (one / lend zs1)) 
-                 (edist ed (bind utail1 sgdRec1) (bind utail2 sgdRec2))
-                 (distD ws1 ws2 + estab zs1 a1)
-    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
-        + (1 - (one / lend zs1)) * (distD ws1 ws2 + estab zs1 a1)
+        ? multHelper ((one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + (2.0 * α1))) (1 - (one / lend zs1)) 
+                 (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+                 (dist d ws1 ws2 + estab zs1 a1)
+    =<= (one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+        + (1 - (one / lend zs1)) * (dist d ws1 ws2 + estab zs1 a1)
 
-    =<= (one / lend zs1) * (distD ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
-            + (1 - (one / lend zs1)) * (distD ws1 ws2 + estab zs1 a1)
+    =<= (one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + (2.0 * α1)) 
+            + (1 - (one / lend zs1)) * (dist d ws1 ws2 + estab zs1 a1)
 
-    =<= distD ws1 ws2 + 2.0 * α1 * (one / lend zs1) + estab zs1 a1
+    =<= dist d ws1 ws2 + 2.0 * α1 * (one / lend zs1) + estab zs1 a1
         ?   estabconsR zs1 α1 a1
                             
-    =<= distD ws1 ws2 + estab zs1 (SS α1 a1)
-    =<= distD ws1 ws2 + estab zs1 as1
+    =<= dist d ws1 ws2 + estab zs1 (SS α1 a1)
+    =<= dist d ws1 ws2 + estab zs1 as1
     *** QED
  where
   pureUpd1 = pureUpdate (head zs1) α1 f1
@@ -148,7 +147,7 @@ thm ed zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   utail1 = unif (tail zs1)
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
-thm _ zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
+thm d zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
 
 {-@ multHelper :: a:Double -> b:{Double | 0 <= b} -> c:Double -> d:{Double | c <= d } 
                -> { a + b * c <= a + b * d }  @-}
@@ -157,24 +156,24 @@ multHelper _ _ _ _ = ()
 
 
 
-{-@ lemma :: ed:EDist Double -> zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
+{-@ lemma :: d:Dist Double -> zs1:DataSet -> ws1:Weight -> α1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
              ws2:Weight -> α2:{StepSize | α1 = α2} -> {a2:StepSizes| a2 = a1} -> f2:{LossFunction|f1 = f2} ->  
              z:DataPoint -> 
-             {edist ed (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= distD ws1 ws2 + estab zs1 a1} / [sslen a1, 1] @-}
-lemma :: EDist Double -> DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSize ->  StepSizes -> LossFunction -> DataPoint -> ()
-lemma ed zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z = 
-  edist ed (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
+             {dist (kant d) (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z) <= dist d ws1 ws2 + estab zs1 a1} / [sslen a1, 1] @-}
+lemma :: Dist Double -> DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSize ->  StepSizes -> LossFunction -> DataPoint -> ()
+lemma d zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z = 
+  dist (kant d) (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
         ?   pureUpdateEq z α1 f1
         ?   pureUpdateEq z α2 f2
-    === edist ed (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
+    === dist (kant d) (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
                 (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
-        ?   pureBindDist distDouble distDouble ed ed 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
+        ?   pureBindDist d d 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
                              (update z α2 f2) (sgd zs2 ws2 a2 f2) 
-                             (relationalupdateq z α1 f1 z α2 f2)
-    =<= edist ed (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
-        ? thm ed zs1 ws1 a1 f1 zs2 ws2 a2 f2
-    =<= distD ws1 ws2 + estab zs1 a1
+                             (relationalupdateq d z α1 f1 z α2 f2)
+    =<= dist (kant d) (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
+        ? thm d zs1 ws1 a1 f1 zs2 ws2 a2 f2
+    =<= dist d ws1 ws2 + estab zs1 a1
     *** QED
 
 

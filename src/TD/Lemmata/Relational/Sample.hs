@@ -8,7 +8,7 @@ import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, uncurry)
 
-import           Monad.Distr.Relational.Spec 
+import           Monad.Distr.Relational.TCB.Spec 
 import           Monad.Distr.Predicates      
 
 import           TD.Lemmata.Relational.Update
