@@ -29,29 +29,16 @@ data EDist a = EDist {
   , maxProp  :: x:Distr a -> y:Distr a -> { edist x y <= maxEdist x y }
   } @-}
 
-{-@ measure Monad.Distr.EDist.expDist :: Distr a -> Distr a -> Double @-}
-{-@ assume expDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == Monad.Distr.EDist.expDist x1 x2 } @-}
-expDist :: Distr a -> Distr a -> Double
-expDist _ _ = 0
+-----------------------------------------------------------------
+-- | instance EDist a => EDist (List a) ---------------------------
+-----------------------------------------------------------------
+-- TODO: prove the proof obligations 
+
+{-@ reflect eDistList @-}
+eDistList ::  EDist a -> List (Distr a) -> List (Distr a) -> Double
+eDistList _ Nil _ = 0 
+eDistList _ _ Nil = 0 
+eDistList ed (Cons x xs) (Cons y ys) 
+  = max (edist ed x y) (eDistList ed xs ys)
 
 
-{-@ measure expDistList :: List (Distr a) -> List (Distr b) -> Double @-}
-{-@ assume expDistList :: xs1:List (Distr a) -> xs2:List (Distr a) -> {v:Double | v == expDistList xs1 xs2 } @-}
-expDistList :: List (Distr a) -> List (Distr a) -> Double
-expDistList Nil _ = 0 
-expDistList _ Nil = 0 
-expDistList (Cons x xs) (Cons y ys) = max (expDist x y) (expDistList xs ys)
-
-{-@ assume maxExpDistLemma :: x1:Distr a -> x2:Distr a -> { expDist x1 x2 <=  maxExpDist x1 x2 } @-}
-maxExpDistLemma :: Distr a -> Distr a -> ()
-maxExpDistLemma _ _ = ()
-
-{-@ measure maxExpDist :: Distr a -> Distr a -> Double @-}
-{-@ assume maxExpDist :: x1:Distr a -> x2:Distr a -> {v:Double | v == maxExpDist x1 x2 } @-}
-maxExpDist :: Distr a -> Distr a -> Double
-maxExpDist _ _ = 0
-
-
-{-@ assume expDistEq :: x1:Distr a -> {x2:Distr a | x1 = x2 } -> {expDist x1 x2 = 0} @-}
-expDistEq :: Distr a -> Distr a -> ()
-expDistEq _ _ = ()
