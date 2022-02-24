@@ -17,16 +17,12 @@ import Prelude hiding (max)
 -----------------------------------------------------------------
 data EDist a = EDist { 
     edist    :: Distr a -> Distr a -> Double 
-  , maxEdist :: Distr a -> Distr a -> Double 
   , edistEq  :: Distr a -> () 
-  , maxProp  :: Distr a -> Distr a -> ()
   }
 
 {-@ data EDist a = EDist { 
     edist    :: Distr a -> Distr a -> {v:Double | 0.0 <= v } 
-  , maxEdist :: Distr a -> Distr a -> {v:Double | 0.0 <= v } 
   , edistEq  :: a:Distr a -> { edist a a = 0}
-  , maxProp  :: x:Distr a -> y:Distr a -> { edist x y <= maxEdist x y }
   } @-}
 
 -----------------------------------------------------------------
