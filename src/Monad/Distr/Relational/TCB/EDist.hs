@@ -49,7 +49,7 @@ choiceDist :: Dist a -> Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a
 choiceDist _ _ _ _ _ _ _ = ()
 
 
-{-@ predicate BijCoupling X Y = true @-}
+{-@ predicate BijCoupling X Y = X == Y @-}
 {-@ assume bindDistEq :: d:Dist b -> m:Double 
                       -> f1:(a -> Distr b) -> e1:Distr a 
                       -> f2:(a -> Distr b) -> e2:{Distr a | BijCoupling e1 e2 } 
@@ -57,3 +57,9 @@ choiceDist _ _ _ _ _ _ _ = ()
                       -> { dist (kant d) (bind e1 f1) (bind e2 f2) <= m } @-}
 bindDistEq :: Dist b -> Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
 bindDistEq _ _ _ _ _ _ _ = () -- NV can we derive this from bindDist? 
+
+{-@ assume bernoulliDist :: d:Dist Double -> p:Prob -> {q:Prob | p <= q}
+                         -> {dist (kant d) (bernoulli p) (bernoulli q) <= dist d 1 0 * (q - p)} @-}
+bernoulliDist :: Dist Double -> Prob -> Prob -> ()
+bernoulliDist d p q = ()
+    where _ = dist (kant d) (bernoulli p) (bernoulli q) <= dist d 1 0 * (q - p)
