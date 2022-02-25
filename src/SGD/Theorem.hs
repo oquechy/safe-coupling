@@ -15,7 +15,7 @@ import           Misc.ProofCombinators
 import           Monad.Distr 
 import           Monad.Distr.Laws
 import           Monad.Distr.Relational.TCB.EDist
-
+import           Monad.Distr.Relational.Theorems (bindDistEq)
 import           Data.Dist 
 import           SGD.SGD 
 
