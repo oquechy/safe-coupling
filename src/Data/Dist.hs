@@ -20,23 +20,18 @@ data Dist a = Dist {
   , distEq         :: a -> () 
   , triangularIneq :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
-  , absEq          :: a -> a -> ()
   }
 
 
 {-@ data Dist a = Dist { 
     dist           :: a -> a -> {v:Double | 0.0 <= v } 
-  , distEq         :: a:a -> {dist a a = 0}
+  , distEq         :: a:a -> {dist a a == 0}
   , triangularIneq :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
-  , absEq          :: x:a -> y:a -> {dist x y == dist y x}
   } @-}
-
-
 
 -- TODO: define this 
 -- distFun :: Dist b -> Dist (a -> b)
-
 
 -----------------------------------------------------------------
 -- | instance Dist Double ---------------------------------------
@@ -44,20 +39,13 @@ data Dist a = Dist {
 
 {-@ reflect distDouble@-}
 distDouble :: Dist Double
-distDouble = Dist distD distEqD triangularIneqD symmetryD absEqDouble
+distDouble = Dist distD distEqD triangularIneqD symmetryD
 
 {-@ ple distEqD @-}
 {-@ reflect distEqD @-}
 distEqD :: Double -> ()
 {-@ distEqD :: x:Double -> {distD x x == 0 } @-}
 distEqD _ = () 
-
-
-{-@ ple absEqDouble @-}
-{-@ reflect absEqDouble @-}
-absEqDouble :: Double -> Double -> ()
-{-@ absEqDouble :: x:Double -> y:Double -> {distD x y == distD y x } @-}
-absEqDouble _ _ = () 
 
 {-@ ple triangularIneqD @-}
 {-@ reflect triangularIneqD @-}
@@ -81,13 +69,39 @@ distD x y = if x <= y then y - x else x - y
 -----------------------------------------------------------------
 -- TODO: prove the proof obligations 
 
+listDist :: Dist a -> Dist (List a)
+listDist d = Dist (distList d) (distListEq d) (distListTri d) (distListSym d)
+
 {-@ reflect distList @-}
-{-@ distList :: Dist a -> List a -> List a -> {d:Double | 0 <= d } @-}
+{-@ distList :: Dist a -> x:List a -> y:List a -> {d:Double | 0 <= d } @-}
 distList :: Dist a -> List a -> List a -> Double
 distList d Nil _ = 0
 distList d _ Nil = 0
 distList d (Cons x xs) (Cons y ys) = max (dist d x y) (distList d xs ys)
 
+{-@ ple distListEq @-}
+{-@ distListEq :: d:Dist a -> x:List a -> { distList d x x == 0 } @-}
+distListEq :: Dist a -> List a -> ()
+distListEq d Nil = () 
+distListEq d (Cons x xs) = distEq d x ? distListEq d xs
+
+{-@ ple distListSym @-}
+{-@ distListSym :: d:Dist a -> x:List a -> y:List a -> { distList d x y == distList d y x } @-}
+distListSym :: Dist a -> List a -> List a -> ()
+distListSym d Nil _ = () 
+distListSym d _ Nil = () 
+distListSym d (Cons x xs) (Cons y ys) = symmetry d x y ? distListSym d xs ys
+
+
+{-@ ple distListTri @-}
+{-@ distListTri :: d:Dist a -> x:List a -> y:List a -> z:List a 
+                -> { distList d x z <= distList d x y + distList d y z } @-}
+distListTri :: Dist a -> List a -> List a -> List a -> ()
+distListTri d x@Nil y z = assert (distList d x z <= distList d x y + distList d y z)
+distListTri d x y@Nil z = assume (distList d x z <= distList d x y + distList d y z)
+distListTri d x y z@Nil = assert (distList d x z <= distList d x y + distList d y z)
+distListTri d (Cons x xs) (Cons y ys) (Cons z zs) 
+  = triangularIneq d x y z ? distListTri d xs ys zs 
 
 -----------------------------------------------------------------
 -- | Linearity on Doubles 
