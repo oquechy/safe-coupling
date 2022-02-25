@@ -13,11 +13,38 @@ import           Data.List
 import           Prelude hiding (max, mapM)
 
 import           Monad.Distr.Relational.TCB.Spec 
+import           Monad.Distr.Relational.TCB.EDist
 import           Monad.Distr.Predicates
 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
+
+-------------------------------------------------------
+-- | bindDistEq when the bind args are BijCoupling  ---
+-------------------------------------------------------
+
+{-@ predicate BijCoupling X Y = X = Y @-}
+{-@ bindDistEq :: d:Dist b -> m:Double 
+               -> f1:(a -> Distr b) -> e1:Distr a 
+               -> f2:(a -> Distr b) -> e2:{Distr a | BijCoupling e1 e2 } 
+               -> (x:a -> { dist (kant d) (f1 x) (f2 x) <= m}) 
+               -> { dist (kant d) (bind e1 f1) (bind e2 f2) <= m } @-}
+bindDistEq :: Eq a => Dist b -> Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
+bindDistEq d m f1 e1 f2 e2 lemma = 
+  bindDist d m eqP f1 e1 f2 (e2 `const` liftSpec e2) 
+          (makeTwoArg d m f1 f2 lemma)
+   
+{-@ makeTwoArg :: d:Dist b -> m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b)
+        -> (x:a -> {v:() | dist (kant d) (f1 x) (f2 x) <= m}) 
+        -> (x:a -> y:{a | eqP x y} -> { dist (kant d) (f1 x) (f2 y) <= m}) @-} 
+makeTwoArg :: Dist b -> Double -> (a -> Distr b) -> (a -> Distr b) -> (a -> ())
+    -> (a -> a -> ())
+makeTwoArg d m f1 f2 lemma x y = lemma x  
+
+-------------------------------------------------------
+-- | mapM Spec ----------------------------------------
+-------------------------------------------------------
 
 {-@ mapMSpec :: {m:_|0 <= m} 
                    -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 
