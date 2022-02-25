@@ -2,14 +2,14 @@
 {-@ LIQUID "--fast"           @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.Update where 
+module TD.Lemmata.Relational.Update where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max)
 
-import           TD0 
+import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 
 {-@ relationalupdate :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:_ ->

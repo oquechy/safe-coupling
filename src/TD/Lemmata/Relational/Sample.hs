@@ -1,16 +1,19 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.Sample where 
+module TD.Lemmata.Relational.Sample where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, uncurry)
 
-import           Lemmata.Relational.Update
+import           Monad.Distr.Relational.TCB.Spec 
+import           Monad.Distr.Predicates      
 
-import           TD0 
+import           TD.Lemmata.Relational.Update
+
+import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
@@ -66,7 +69,7 @@ uncurryLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2)
                     -> {lift (bounded' (k * m)) ((o ppure (uncurry (update v1 i))) (t1)) ((o ppure (uncurry (update v2 i))) (t2))} @-}
 pureUpdateLemma :: Double -> ValueFunction -> ValueFunction -> () -> State -> (State, Reward) -> (State, Reward) -> ()
 pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) = 
-    liftPure (bounded' (k * m))
+    pureSpec (bounded' (k * m))
                 (uncurry (update v1 i) t1) (uncurry (update v2 i) t2)
                 (uncurryLemma m v1 v2 b i t1 t2)
         
@@ -76,9 +79,9 @@ pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) =
                      -> {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
 relationalsample :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()
 relationalsample m n t v1 v2 i | bounded m v1 v2 
-    = liftBind (bounded' (k * m)) eqP
+    = bindSpec (bounded' (k * m)) eqP
                (t `at` i) (ppure `o` (uncurry (update v1 i)))
                (t `at` i) (ppure `o` (uncurry (update v2 i)))
-               (liftEq (t `at` i))
+               (liftSpec (t `at` i))
                (pureUpdateLemma m v1 v2 () i)
 relationalsample _ _ _ _ _ _ = ()

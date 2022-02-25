@@ -1,14 +1,17 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Lemmata.Relational.MapM where 
+module TD.Lemmata.Relational.MapM where 
 
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, mapM)
 
-import           TD0 
+import           Monad.Distr.Relational.Spec 
+import           Monad.Distr.Predicates
+
+import           TD.TD0 -- CHECK 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
@@ -30,7 +33,7 @@ consBindLemma :: Double -> (a -> Distr Double) -> (a -> Distr Double)
               -> Double -> Double
               -> ()
 consBindLemma m f1 f2 is lemma r1 r2
-    = liftBind (bounded m) (bounded m)
+    = bindSpec (bounded m) (bounded m)
                          (mapM f1 is) (ppure `o` (consDouble r1))
                          (mapM f2 is) (ppure `o` (consDouble r2))
                          (relationalmapM m f1 f2 is lemma) 
@@ -44,7 +47,7 @@ consBindLemma m f1 f2 is lemma r1 r2
                                 (o ppure (consDouble r2) rs2)} @-}
 pureLemma :: Double -> Double -> Double -> (a -> Distr Double) -> (a -> Distr Double) 
        -> List a -> List Double -> List Double -> () 
-pureLemma m r1 r2 f1 f2 is rs1 rs2 = liftPure (bounded m) 
+pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureSpec (bounded m) 
                                      (Cons r1 rs1) (Cons r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 
@@ -57,9 +60,9 @@ relationalmapM :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a
                -> (a -> ()) 
                -> ()
 relationalmapM m f1 f2 is@Nil lemma
-    =   liftPure (bounded m) Nil Nil (boundedNil m)
+    = pureSpec (bounded m) Nil Nil (boundedNil m)
 relationalmapM m f1 f2 (Cons i is) lemma 
-    =   liftBind (bounded m) (bounded' m)
+    = bindSpec (bounded m) (bounded' m)
             (f1 i) (cons (llen is) (mapM f1 is))
             (f2 i) (cons (llen is) (mapM f2 is))
             (lemma i)

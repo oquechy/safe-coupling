@@ -10,8 +10,8 @@ import           Numeric.Probability.Distribution
                                          hiding ( map )
 import           Spec.Utils
 
-import           Monad.Implemented.Distr
-import           Bins
+import           Monad.Distr
+import           Bins.Bins
 
 p, q :: Double
 p    = 0.5

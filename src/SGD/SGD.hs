@@ -1,6 +1,6 @@
 {-@ LIQUID "--reflection"     @-}
 
-module SGD where 
+module SGD.SGD where 
 
 import           Prelude  hiding ( head, tail, sum)
 import           Monad.Distr 
@@ -47,9 +47,9 @@ pureUpdate :: DataPoint -> StepSize -> LossFunction -> Weight -> Distr Weight
 pureUpdate zs a f = ppure . update zs a f
 
 
-{-@ measure SGD.update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight @-}
+{-@ measure SGD.SGD.update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight @-}
 {-@ update :: x1:DataPoint -> x2:StepSize -> x3:LossFunction -> x4:Weight 
-           -> {v:Weight | v = SGD.update x1 x2 x3 x4 } @-}
+           -> {v:Weight | v = SGD.SGD.update x1 x2 x3 x4 } @-}
 update :: DataPoint -> StepSize -> LossFunction -> Weight -> Weight
 update z α f w = w - α * (grad (f z) w) 
 

@@ -8,12 +8,12 @@ import           Test.HUnit                     ( assertEqual
                                                 , (@?=)
                                                 , Assertion
                                                 )
-import           TD0                            ( td0
+import           TD.TD0                         ( td0
                                                 , ValueFunction
                                                 , Transition
                                                 )
 
-import           Monad.Implemented.Distr
+import           Monad.Distr
 import           Data.Dist
 import "SGD-verified" Data.List
 
