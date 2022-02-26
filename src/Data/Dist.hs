@@ -64,6 +64,41 @@ symmetryD _ _ = ()
 distD :: Double -> Double -> Double 
 distD x y = if x <= y then y - x else x - y 
 
+
+-----------------------------------------------------------------
+-- | instance Dist Nat ---------------------------------------
+-----------------------------------------------------------------
+
+{-@ reflect distNat @-}
+{-@ distNat :: Dist Nat @-}
+distNat :: Dist Int
+distNat = Dist distN distEqN triangularIneqN symmetryN
+
+{-@ ple distEqN @-}
+{-@ reflect distEqN @-}
+distEqN :: Int -> ()
+{-@ distEqN :: x:Nat -> {distN x x == 0 } @-}
+distEqN _ = () 
+
+{-@ ple triangularIneqN @-}
+{-@ reflect triangularIneqN @-}
+{-@ triangularIneqN :: a:Nat -> b:Nat -> c:Nat -> { distN a c <= distN a b + distN b c} @-}
+triangularIneqN :: Int -> Int -> Int -> ()
+triangularIneqN _ _ _ = ()
+
+{-@ ple symmetryN @-}
+{-@ reflect symmetryN @-}
+{-@ symmetryN :: a:Nat -> b:Nat -> {distN a b = distN b a} @-}
+symmetryN :: Int -> Int -> () 
+symmetryN _ _ = ()
+
+{-@ reflect distN @-}
+{-@ distN :: Nat -> Nat -> {d:Double | 0 <= d } @-}
+distN :: Int -> Int -> Double 
+distN x y = if x <= y then fromIntegral (y - x) else fromIntegral (x - y)
+
+
+
 -----------------------------------------------------------------
 -- | instance Dist a => Dist (List a) ---------------------------
 -----------------------------------------------------------------
@@ -117,4 +152,3 @@ linearity :: Double -> Double -> Double -> Double -> ()
 linearity k l a b
   | a <= b    = assert (k * a + l <= k * b + l) 
   | otherwise = assert (distD (k * a + l) (k * b + l) == k * distD a b)
-
