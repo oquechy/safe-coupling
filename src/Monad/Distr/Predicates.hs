@@ -18,6 +18,10 @@ trueP _ _ = True
 bounded :: Double -> List Double -> List Double -> Bool
 bounded m v1 v2 = distList distDouble v1 v2 <= m && llen v1 == llen v2
 
+{-@ reflect boundedD @-}
+boundedD :: Dist a -> Double -> a -> a -> Bool
+boundedD d m v1 v2 = dist d v1 v2 <= m
+
 {-@ reflect bounded' @-}
 bounded' :: Double -> Double -> Double -> Bool
 bounded' m x1 x2 = distD x1 x2 <= m

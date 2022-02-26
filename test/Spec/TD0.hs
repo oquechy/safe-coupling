@@ -36,7 +36,7 @@ t = Cons (ppure (0, 0)) (Cons (ppure (0, 0)) Nil)
 unit_td0_base :: Assertion
 unit_td0_base =
   v @?= v0 
-  where [(v, 1)] = decons $ td0 0 v0 undefined
+  where [(v, 1)] = decons $ td0 0 v0 t
 
 unit_td0_simple :: Assertion
 unit_td0_simple =

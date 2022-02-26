@@ -22,10 +22,6 @@ type State = Int
 type Action = Int
 type Reward = Double
 
-type PolicyMap = List (Distr Action)
-type RewardFunction = List (Action -> Distr Reward)
-type TransitionFunction = List (Action -> Distr State)
-
 {-@ type TransitionOf N = {v:List (Distr ({i:State|0 <= i && i < N}, Reward))| llen v = N} @-}
 type Transition = List (Distr (State, Reward))
 type ValueFunction = List Reward
