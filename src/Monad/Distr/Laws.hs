@@ -10,3 +10,5 @@ import Monad.Distr
 {-@ assume leftId :: x:a -> f:(a -> Distr b) -> { bind (ppure x) f = f x } @-}
 leftId :: a -> (a -> Distr b) -> ()
 leftId _ _ = ()
+
+

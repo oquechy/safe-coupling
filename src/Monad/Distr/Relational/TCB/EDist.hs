@@ -54,3 +54,9 @@ unifDist _ _ _ = ()
                       -> { dist (kant d) (choice p e1 e1') (choice q e2 e2') <= p * (dist (kant d) e1 e2) + (1.0 - p) * (dist (kant d) e1' e2')} @-}
 choiceDist :: Dist a -> Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
 choiceDist _ _ _ _ _ _ _ = ()
+
+{-@ assume bernoulliDist :: d:Dist Double -> p:Prob -> {q:Prob | p <= q}
+                         -> {dist (kant d) (bernoulli p) (bernoulli q) <= dist d 1 0 * (q - p)} @-}
+bernoulliDist :: Dist Double -> Prob -> Prob -> ()
+bernoulliDist d p q = ()
+    where _ = dist (kant d) (bernoulli p) (bernoulli q) <= dist d 1 0 * (q - p)

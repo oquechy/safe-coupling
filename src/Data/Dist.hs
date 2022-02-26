@@ -67,13 +67,16 @@ distD x y = if x <= y then y - x else x - y
 -----------------------------------------------------------------
 -- | instance Dist a => Dist (List a) ---------------------------
 -----------------------------------------------------------------
--- TODO: prove the proof obligations 
+-- Note the proof obligations hold, but this is not a real metric
+-- since the two lists should have the same len
+-- The following cannot type check 
+-- listDist :: Dist a -> Dist (List a)
+-- listDist d = Dist (distList d) (distListEq d) (distListTri d) (distListSym d)
 
-listDist :: Dist a -> Dist (List a)
-listDist d = Dist (distList d) (distListEq d) (distListTri d) (distListSym d)
-
+{-@ type ListEq a XS = {ys:List a | llen ys == llen XS } @-}
 {-@ reflect distList @-}
-{-@ distList :: Dist a -> x:List a -> y:List a -> {d:Double | 0 <= d } @-}
+{-@ distList :: Dist a -> x:List a -> y:ListEq a {x} 
+                       -> {d:Double | 0 <= d } @-}
 distList :: Dist a -> List a -> List a -> Double
 distList d Nil _ = 0
 distList d _ Nil = 0
@@ -86,7 +89,7 @@ distListEq d Nil = ()
 distListEq d (Cons x xs) = distEq d x ? distListEq d xs
 
 {-@ ple distListSym @-}
-{-@ distListSym :: d:Dist a -> x:List a -> y:List a -> { distList d x y == distList d y x } @-}
+{-@ distListSym :: d:Dist a -> x:List a -> y:ListEq a {x} -> { distList d x y == distList d y x } @-}
 distListSym :: Dist a -> List a -> List a -> ()
 distListSym d Nil _ = () 
 distListSym d _ Nil = () 
@@ -94,11 +97,10 @@ distListSym d (Cons x xs) (Cons y ys) = symmetry d x y ? distListSym d xs ys
 
 
 {-@ ple distListTri @-}
-{-@ distListTri :: d:Dist a -> x:List a -> y:List a -> z:List a 
+{-@ distListTri :: d:Dist a -> x:List a -> y:ListEq a {x} -> z:ListEq a {x}
                 -> { distList d x z <= distList d x y + distList d y z } @-}
 distListTri :: Dist a -> List a -> List a -> List a -> ()
 distListTri d x@Nil y z = assert (distList d x z <= distList d x y + distList d y z)
-distListTri d x y@Nil z = assume (distList d x z <= distList d x y + distList d y z)
 distListTri d x y z@Nil = assert (distList d x z <= distList d x y + distList d y z)
 distListTri d (Cons x xs) (Cons y ys) (Cons z zs) 
   = triangularIneq d x y z ? distListTri d xs ys zs 
