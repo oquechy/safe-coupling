@@ -5,7 +5,7 @@
 {-@ LIQUID "--reflection" @-}
 {-@ LIQUID "--ple-local"  @-}
 
-module Monad.Distr.Predicates where 
+module Monad.PrM.Predicates where 
 
 import Data.Dist 
 import Data.List 

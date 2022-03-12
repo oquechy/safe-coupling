@@ -3,11 +3,11 @@
 
 module Examples.ExpDist where
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
-import           Monad.Distr.Relational.TCB.EDist
+import           Monad.PrM.Relational.TCB.EDist
 import           Misc.ProofCombinators
 
 import           Prelude                 hiding ( map

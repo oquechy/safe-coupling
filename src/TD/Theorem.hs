@@ -3,11 +3,11 @@
 
 module TD.Theorem where 
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
-import           Monad.Distr.Predicates
+import           Monad.PrM.Predicates
 
 
 import           TD.Lemmata.Relational.Act

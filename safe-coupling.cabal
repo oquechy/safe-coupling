@@ -1,4 +1,4 @@
-name:                SGD-verified
+name:                safe-coupling
 version:             0.1.0.0
 license:             BSD3
 license-file:        LICENSE
@@ -12,13 +12,13 @@ library
      , Data.List
      , Data.Derivative
 
-     , Monad.Distr
-     , Monad.Distr.Predicates
-     , Monad.Distr.Laws
+     , Monad.PrM
+     , Monad.PrM.Predicates
+     , Monad.PrM.Laws
 
-     , Monad.Distr.Relational.TCB.Spec
-     , Monad.Distr.Relational.TCB.EDist
-     , Monad.Distr.Relational.Theorems
+     , Monad.PrM.Relational.TCB.Spec
+     , Monad.PrM.Relational.TCB.EDist
+     , Monad.PrM.Relational.Theorems
 
      , Misc.ProofCombinators
 
@@ -51,7 +51,7 @@ library
   default-language:    Haskell2010
   ghc-options:  -fplugin=LiquidHaskell 
 
-test-suite SGD-verified-test
+test-suite safe-coupling-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:

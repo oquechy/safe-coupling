@@ -1,24 +1,24 @@
 -----------------------------------------------------------------
--- | Expected Distance Specifications for Distr Primitives ------
+-- | Expected Distance Specifications for PrM Primitives ------
 -----------------------------------------------------------------
 
 {-@ LIQUID "--reflection" @-}
 
-module Monad.Distr.Relational.TCB.EDist where 
+module Monad.PrM.Relational.TCB.EDist where 
 
 import Data.Dist 
 import Data.List 
-import Monad.Distr
-import Monad.Distr.Relational.TCB.Spec
+import Monad.PrM
+import Monad.PrM.Relational.TCB.Spec
 
-{-@ measure Monad.Distr.Relational.TCB.EDist.kant :: Dist a -> Dist (Distr a) @-}
-{-@ assume kant :: d:Dist a -> {dd:Dist (Distr a) | dd = Monad.Distr.Relational.TCB.EDist.kant d } @-}
-kant :: Dist a -> Dist (Distr a)
+{-@ measure Monad.PrM.Relational.TCB.EDist.kant :: Dist a -> Dist (PrM a) @-}
+{-@ assume kant :: d:Dist a -> {dd:Dist (PrM a) | dd = Monad.PrM.Relational.TCB.EDist.kant d } @-}
+kant :: Dist a -> Dist (PrM a)
 kant = undefined 
 
 {-@ reflect edist @-}
-{-@ edist :: Dist a -> Distr a -> Distr a -> {v:Double | 0 <= v } @-} 
-edist :: Dist a -> Distr a -> Distr a -> Double 
+{-@ edist :: Dist a -> PrM a -> PrM a -> {v:Double | 0 <= v } @-} 
+edist :: Dist a -> PrM a -> PrM a -> Double 
 edist d = dist (kant d)
 
 {-@ assume pureDist :: d:Dist a -> x1:a -> x2:a 
@@ -27,21 +27,21 @@ pureDist :: Dist a -> a -> a -> ()
 pureDist _ _ _ = ()
 
 {-@ assume bindDist :: d:Dist b -> m:Double -> p:(a -> a -> Bool)
-                    -> f1:(a -> Distr b) -> e1:Distr a 
-                    -> f2:(a -> Distr b) -> e2:{Distr a | lift p e1 e2} 
+                    -> f1:(a -> PrM b) -> e1:PrM a 
+                    -> f2:(a -> PrM b) -> e2:{PrM a | lift p e1 e2} 
                     -> lemma:(x1:a -> {x2:a| p x1 x2 } 
                              -> { dist (kant d) (f1 x1) (f2 x2) <= m}) 
                     -> { dist (kant d) (bind e1 f1) (bind e2 f2) <= m } @-}
-bindDist :: Dist b ->  Double -> (a -> a -> Bool) -> (a -> Distr b) -> Distr a -> (a -> Distr b) -> Distr a -> (a -> a -> ()) -> ()
+bindDist :: Dist b ->  Double -> (a -> a -> Bool) -> (a -> PrM b) -> PrM a -> (a -> PrM b) -> PrM a -> (a -> a -> ()) -> ()
 bindDist _ _ _ _ _ _ _ _ = ()
 
 {-@ assume pureBindDist :: da:Dist a -> db:Dist b
                         -> m:Double 
-                        -> f1:(a -> b) -> e1:Distr a 
-                        -> f2:(a -> b) -> e2:Distr a 
+                        -> f1:(a -> b) -> e1:PrM a 
+                        -> f2:(a -> b) -> e2:PrM a 
                         -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
                         -> { dist (kant db) (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= dist (kant da) e1 e2 + m } @-}
-pureBindDist :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
+pureBindDist :: Dist a -> Dist b -> Double -> (a -> b) -> PrM a -> (a -> b) ->  PrM a ->  (a -> a -> ()) -> ()
 pureBindDist _ _ m f1 e1 f2 e2 t = () 
 
 {-@ assume unifDist :: d:Dist a -> xsl:[a] -> xsr:{[a] | xsl == xsr}
@@ -49,10 +49,10 @@ pureBindDist _ _ m f1 e1 f2 e2 t = ()
 unifDist :: Dist a -> [a] -> [a] -> ()
 unifDist _ _ _ = ()
 
-{-@ assume choiceDist :: d:Dist a -> p:Prob -> e1:Distr a -> e1':Distr a 
-                      -> q:{Prob | p = q } -> e2:Distr a -> e2':Distr a 
+{-@ assume choiceDist :: d:Dist a -> p:Prob -> e1:PrM a -> e1':PrM a 
+                      -> q:{Prob | p = q } -> e2:PrM a -> e2':PrM a 
                       -> { dist (kant d) (choice p e1 e1') (choice q e2 e2') <= p * (dist (kant d) e1 e2) + (1.0 - p) * (dist (kant d) e1' e2')} @-}
-choiceDist :: Dist a -> Prob -> Distr a -> Distr a -> Prob -> Distr a -> Distr a -> ()
+choiceDist :: Dist a -> Prob -> PrM a -> PrM a -> Prob -> PrM a -> PrM a -> ()
 choiceDist _ _ _ _ _ _ _ = ()
 
 {-@ assume bernoulliDist :: d:Dist Double -> p:Prob -> {q:Prob | p <= q}

@@ -3,16 +3,16 @@
 
 module Bins.Theorem where
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
 import           Prelude                 hiding ( flip )
 
-import           Monad.Distr.Predicates
-import           Monad.Distr.Relational.TCB.Spec 
-import           Monad.Distr.Relational.TCB.EDist
-import           Monad.Distr.Relational.Theorems
+import           Monad.PrM.Predicates
+import           Monad.PrM.Relational.TCB.Spec 
+import           Monad.PrM.Relational.TCB.EDist
+import           Monad.PrM.Relational.Theorems
 import           Bins.Bins
 
 import           Language.Haskell.Liquid.ProofCombinators
@@ -109,7 +109,7 @@ addBinsDist p q n x
   *** QED
 
 {-@ reflect pure2 @-}
-pure2 :: (a -> b -> c) -> a -> b -> Distr c
+pure2 :: (a -> b -> c) -> a -> b -> PrM c
 pure2 f a b = ppure (f a b)
 
 {-@ addBernoulliEq :: n:{Double | 0 <= n - 1 } -> p:Prob -> q:Prob 
@@ -187,14 +187,14 @@ binsDist p q n
   where d = distDouble
 
 {-@ reflect bins' @-}
-{-@ bins' :: Prob -> Prob -> n:Double -> Distr Double @-}
-bins' :: Double -> Double -> Double -> Distr Double
+{-@ bins' :: Prob -> Prob -> n:Double -> PrM Double @-}
+bins' :: Double -> Double -> Double -> PrM Double
 bins' _ q n | n < 1.0 = ppure 0
 bins' p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
 
--- LV TODO: move to Monad.Distr I think?
+-- LV TODO: move to Monad.PrM I think?
 {-@ reflect seqBind @-}
-seqBind :: Distr b -> (a -> b -> Distr c) -> a -> Distr c
+seqBind :: PrM b -> (a -> b -> PrM c) -> a -> PrM c
 seqBind u f x = bind u (f x)
 
 {-@ reflect flip @-}
@@ -214,8 +214,8 @@ flipPlus' _ _ = ()
 extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
 extDouble _ _ _ = () 
 
-{-@ assume commutative :: e:Distr a -> u:Distr b -> f:(a -> b -> Distr c) 
+{-@ assume commutative :: e:PrM a -> u:PrM b -> f:(a -> b -> PrM c) 
                 -> {bind e (seqBind u f)
                       = bind u (seqBind e (flip f))} @-}
-commutative :: Distr a -> Distr b -> (a -> b -> Distr c) -> ()
+commutative :: PrM a -> PrM b -> (a -> b -> PrM c) -> ()
 commutative _ _ _ = ()

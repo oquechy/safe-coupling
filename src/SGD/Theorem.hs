@@ -12,10 +12,10 @@ import           Language.Haskell.Liquid.ProofCombinators
 
 import           Misc.ProofCombinators
 
-import           Monad.Distr 
-import           Monad.Distr.Laws
-import           Monad.Distr.Relational.TCB.EDist
-import           Monad.Distr.Relational.Theorems (bindDistEq)
+import           Monad.PrM 
+import           Monad.PrM.Laws
+import           Monad.PrM.Relational.TCB.EDist
+import           Monad.PrM.Relational.Theorems (bindDistEq)
 import           Data.Dist 
 import           SGD.SGD 
 

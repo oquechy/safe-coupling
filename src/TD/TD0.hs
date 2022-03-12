@@ -2,8 +2,8 @@
 
 module TD.TD0 where
 
--- import           Monad.Implemented.Distr
-import           Monad.Distr
+-- import           Monad.Implemented.PrM
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
@@ -22,25 +22,25 @@ type State = Int
 type Action = Int
 type Reward = Double
 
-{-@ type TransitionOf N = {v:List (Distr ({i:State|0 <= i && i < N}, Reward))| llen v = N} @-}
-type Transition = List (Distr (State, Reward))
+{-@ type TransitionOf N = {v:List (PrM ({i:State|0 <= i && i < N}, Reward))| llen v = N} @-}
+type Transition = List (PrM (State, Reward))
 type ValueFunction = List Reward
-type DistrValueFunction = Distr (List Reward)
+type PrMValueFunction = PrM (List Reward)
 
 lq_required :: List Int -> ()
 lq_required _ = ()
 
 {-@ reflect td0 @-}
-{-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> DistrValueFunction @-} 
-td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
+{-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> PrMValueFunction @-} 
+td0 :: Int -> ValueFunction -> Transition -> PrMValueFunction
 td0 n v t = iterate n (llen v) (act (llen v) t) v
 
 
 
 {-@ reflect iterate @-}
-{-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | llen v == l} -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
-                v:{ValueFunction | llen v == l}  -> Distr ({v':ValueFunction|llen v' = llen v}) @-}
-iterate :: Int -> Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction -> DistrValueFunction
+{-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | llen v == l} -> PrM ({v':ValueFunction|llen v' = llen v})) -> 
+                v:{ValueFunction | llen v == l}  -> PrM ({v':ValueFunction|llen v' = llen v}) @-}
+iterate :: Int -> Int -> (ValueFunction -> PrMValueFunction) -> ValueFunction -> PrMValueFunction
 iterate n l _ x | n <= 0 = ppure x
 iterate n l f x = bind (f x) (iterate (n - 1) l f)
 
@@ -48,8 +48,8 @@ iterate n l f x = bind (f x) (iterate (n - 1) l f)
 
 {-@ reflect act @-}
 {-@ act :: n:Nat -> TransitionOf n -> v:{ValueFunction|llen v == n} 
-        -> Distr {v':ValueFunction|llen v' = llen v} @-}
-act :: Int -> Transition -> ValueFunction -> DistrValueFunction
+        -> PrM {v':ValueFunction|llen v' = llen v} @-}
+act :: Int -> Transition -> ValueFunction -> PrMValueFunction
 act n t v = mapM (sample v t) (range 0 (llen v)) 
 
 {-@ reflect uncurry @-}
@@ -57,8 +57,8 @@ uncurry :: (a -> b -> c) -> (a, b) -> c
 uncurry f (a, b) = f a b
 
 {-@ reflect sample @-}
-{-@ sample :: v:ValueFunction -> TransitionOf (llen v) -> StateOf v -> Distr Reward @-}
-sample :: ValueFunction -> Transition -> State -> Distr Reward
+{-@ sample :: v:ValueFunction -> TransitionOf (llen v) -> StateOf v -> PrM Reward @-}
+sample :: ValueFunction -> Transition -> State -> PrM Reward
 sample v t i = bind (t `at` i) (ppure `o` (uncurry (update v i)))
 
 {-@ reflect γ @-}
