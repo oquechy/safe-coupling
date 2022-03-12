@@ -21,11 +21,6 @@ data List a = Nil | Cons a (List a)
 consDouble :: Double -> List Double -> List Double 
 consDouble = Cons 
 
-{-@ reflect nilDouble @-}
-{-@ nilDouble :: {v:List Double|llen v = 0} @-}
-nilDouble :: List Double 
-nilDouble = Nil 
-
 {-@ measure llen @-}
 {-@ llen :: List a -> Nat @-}
 llen :: List a -> Int

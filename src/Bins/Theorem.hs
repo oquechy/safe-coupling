@@ -4,6 +4,7 @@
 module Bins.Theorem where
 
 import           Monad.PrM
+import           Monad.PrM.Laws
 import           Data.Dist
 import           Data.List
 
@@ -192,15 +193,6 @@ bins' :: Double -> Double -> Double -> PrM Double
 bins' _ q n | n < 1.0 = ppure 0
 bins' p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
 
--- LV TODO: move to Monad.PrM I think?
-{-@ reflect seqBind @-}
-seqBind :: PrM b -> (a -> b -> PrM c) -> a -> PrM c
-seqBind u f x = bind u (f x)
-
-{-@ reflect flip @-}
-flip :: (a -> b -> c) -> b -> a -> c
-flip f x y = f y x
-
 {-@ flipPlus :: x:Double -> {(flip (pure2 plus) x) == (ppure . (plus x))} @-}
 flipPlus :: Double -> () 
 flipPlus x = extDouble (flip (pure2 plus) x) (ppure . (plus x)) (flipPlus' x)
@@ -213,9 +205,3 @@ flipPlus' _ _ = ()
           -> (x:a -> {v:() | f x == g x}) -> {f == g } @-} 
 extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
 extDouble _ _ _ = () 
-
-{-@ assume commutative :: e:PrM a -> u:PrM b -> f:(a -> b -> PrM c) 
-                -> {bind e (seqBind u f)
-                      = bind u (seqBind e (flip f))} @-}
-commutative :: PrM a -> PrM b -> (a -> b -> PrM c) -> ()
-commutative _ _ _ = ()

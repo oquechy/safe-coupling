@@ -90,3 +90,11 @@ cons n xs x = bind xs (ppure `o` (consDouble x))
 {-@ reflect o @-}
 o :: (b -> c) -> (a -> b) -> a -> c
 o g f x = g (f x)
+
+{-@ reflect seqBind @-}
+seqBind :: PrM b -> (a -> b -> PrM c) -> a -> PrM c
+seqBind u f x = bind u (f x)
+
+{-@ reflect flip @-}
+flip :: (a -> b -> c) -> b -> a -> c
+flip f x y = f y x
