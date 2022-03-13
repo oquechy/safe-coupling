@@ -35,14 +35,14 @@ pureDist _ _ _ = ()
 bindDist :: Dist b ->  Double -> (a -> a -> Bool) -> (a -> PrM b) -> PrM a -> (a -> PrM b) -> PrM a -> (a -> a -> ()) -> ()
 bindDist _ _ _ _ _ _ _ _ = ()
 
-{-@ assume pureBindDist :: da:Dist a -> db:Dist b
+{-@ assume fmapDist :: da:Dist a -> db:Dist b
                         -> m:Double 
                         -> f1:(a -> b) -> e1:PrM a 
                         -> f2:(a -> b) -> e2:PrM a 
                         -> (x1:a -> x2:a -> { dist db (f1 x1) (f2 x2) <= dist da x1 x2 + m}) 
-                        -> { dist (kant db) (bind e1 (ppure . f1 )) (bind e2 (ppure . f2)) <= dist (kant da) e1 e2 + m } @-}
-pureBindDist :: Dist a -> Dist b -> Double -> (a -> b) -> PrM a -> (a -> b) ->  PrM a ->  (a -> a -> ()) -> ()
-pureBindDist _ _ m f1 e1 f2 e2 t = () 
+                        -> { dist (kant db) (fmap f1 e1) (fmap f2 e2) <= dist (kant da) e1 e2 + m } @-}
+fmapDist :: Dist a -> Dist b -> Double -> (a -> b) -> PrM a -> (a -> b) ->  PrM a ->  (a -> a -> ()) -> ()
+fmapDist _ _ _ _ _ _ _ _ = () 
 
 {-@ assume liftA2Dist :: da:Dist a -> db:Dist b -> dc:Dist c 
                       -> ma:Double -> ka:Double -> mb:Double -> kb:Double -> m:Double 

@@ -59,7 +59,7 @@ plusDist _ _ _ = ()
 addBernoulliDist :: Prob -> Prob -> Double -> Double -> ()
 addBernoulliDist p q n y
   =   dist (kant distDouble) (addBernoulli p n y) (addBernoulli q n y)
-        ? pureBindDist distDouble distDouble
+        ? fmapDist distDouble distDouble
                  0
                  (plus y) (bernoulli p)
                  (plus y) (bernoulli q)
@@ -99,7 +99,7 @@ addBinsDist p q n x
   === dist (kant distDouble) 
            (bind (bins p n) (ppure . (plus x)))
            (bind (bins q n) (ppure . (plus x)))
-        ? pureBindDist distDouble distDouble
+        ? fmapDist distDouble distDouble
                        0
                        (plus x) (bins p n)
                        (plus x) (bins q n)
