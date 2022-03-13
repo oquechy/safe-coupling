@@ -70,7 +70,7 @@ test-suite safe-coupling-test
       tasty-discover:tasty-discover
   build-depends:
       liquid-base
-    , SGD-verified
+    , safe-coupling
     , HUnit
     , tasty
     , tasty-hunit
