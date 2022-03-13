@@ -44,6 +44,21 @@ bindDist _ _ _ _ _ _ _ _ = ()
 pureBindDist :: Dist a -> Dist b -> Double -> (a -> b) -> PrM a -> (a -> b) ->  PrM a ->  (a -> a -> ()) -> ()
 pureBindDist _ _ m f1 e1 f2 e2 t = () 
 
+{-@ assume liftA2Dist :: da:Dist a -> db:Dist b -> dc:Dist c 
+                      -> ma:Double -> ka:Double -> mb:Double -> kb:Double -> m:Double 
+                      -> f1:(a -> b -> c) -> e1:PrM a -> u1:PrM b
+                      -> f2:(a -> b -> c) -> e2:PrM a -> u2:PrM b
+                      -> {_:()|dist (kant da) e1 e2 <= ka}
+                      -> {_:()|dist (kant db) u1 u2 <= kb}
+                      -> (x1:a -> y1:b -> x2:a -> y2:b 
+                            -> {dist dc (f1 x1 y1) (f2 x2 y2) <= ma * dist da x1 x2 + mb * dist db y1 y2 + m})
+                      -> {dist (kant dc) (liftA2 f1 e1 u1) (liftA2 f2 e2 u2) <= ma * ka + mb * kb + m} @-}
+liftA2Dist :: Dist a -> Dist b -> Dist c -> Double -> Double -> Double -> Double -> Double 
+           -> (a -> b -> c) -> PrM a -> PrM b -> (a -> b -> c) -> PrM a -> PrM b 
+           -> () -> () -> (a -> b -> a -> b -> ())
+           -> ()  
+liftA2Dist _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = ()
+
 {-@ assume unifDist :: d:Dist a -> xsl:[a] -> xsr:{[a] | xsl == xsr}
                           -> { dist (kant d) (unif xsl) (unif xsr) == 0 } @-}
 unifDist :: Dist a -> [a] -> [a] -> ()

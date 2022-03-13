@@ -29,6 +29,10 @@ library
       , Bins.Bins
       , Bins.Theorem
 
+-- Bins Example using Applicatives
+      , ApplicativeBins.Bins
+      , ApplicativeBins.Theorem
+
 -- TD Case Study      
      , TD.TD0
      , TD.Lemmata.Relational.Update

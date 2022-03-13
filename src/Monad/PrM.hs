@@ -27,8 +27,19 @@ bind = (>>=)
 ppure :: a -> PrM a
 ppure = pure 
 
+{-@ measure Monad.PrM.liftA2 :: (a -> b -> c) -> PrM a -> PrM b -> PrM c @-}
+{-@ liftA2 :: f:(a -> b -> c) -> x:PrM a -> y:PrM b -> {v:PrM c | v = Monad.PrM.liftA2 f x y} @-}
+liftA2 :: (a -> b -> c) -> PrM a -> PrM b -> PrM c
+liftA2 f a b = do x <- a
+                  y <- b
+                  ppure (f x y)
+
+{-@ reflect fmap @-}
+fmap :: (a -> b) -> PrM a -> PrM b
+fmap f a = bind a (ppure . f)
+
 {-@ measure Monad.PrM.choice :: Prob -> PrM a -> PrM a -> PrM a @-}
-{-@ assume choice :: x1:Prob -> x2:PrM a -> x3:PrM a -> {v:PrM a |  v == choice x1 x2 x3 } @-}
+{-@ assume choice :: x1:Prob -> x2:PrM a -> x3:PrM a -> {v:PrM a | v == choice x1 x2 x3 } @-}
 choice :: Prob -> PrM a -> PrM a -> PrM a
 choice p x y = cond (fromFreqs [(True, p), (False, 1 - p)]) x y
 
@@ -36,7 +47,6 @@ choice p x y = cond (fromFreqs [(True, p), (False, 1 - p)]) x y
 {-@ assume bernoulli :: p:Prob -> {v:PrM {n:Double | 0 <= n && n <= 1}| v == bernoulli p } @-}
 bernoulli :: Prob -> PrM Double
 bernoulli p = fromFreqs [(1, p), (0, 1 - p)]
-
 
 {-@ reflect unif @-}
 {-@ unif :: {xs:[a]|0 < len xs} -> PrM a @-}
