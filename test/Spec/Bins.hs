@@ -10,7 +10,7 @@ import           Numeric.Probability.Distribution
                                          hiding ( map )
 import           Spec.Utils
 
-import           Monad.PrM
+import           Monad.PrM               hiding ( fmap )
 import           Bins.Bins
 
 p, q :: Double
