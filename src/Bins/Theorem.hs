@@ -3,16 +3,17 @@
 
 module Bins.Theorem where
 
-import           Monad.Distr
+import           Monad.PrM
+import           Monad.PrM.Laws
 import           Data.Dist
 import           Data.List
 
 import           Prelude                 hiding ( flip )
 
-import           Monad.Distr.Predicates
-import           Monad.Distr.Relational.TCB.Spec 
-import           Monad.Distr.Relational.TCB.EDist
-import           Monad.Distr.Relational.Theorems
+import           Monad.PrM.Predicates
+import           Monad.PrM.Relational.TCB.Spec 
+import           Monad.PrM.Relational.TCB.EDist
+import           Monad.PrM.Relational.Theorems
 import           Bins.Bins
 
 import           Language.Haskell.Liquid.ProofCombinators
@@ -58,7 +59,7 @@ plusDist _ _ _ = ()
 addBernoulliDist :: Prob -> Prob -> Double -> Double -> ()
 addBernoulliDist p q n y
   =   dist (kant distDouble) (addBernoulli p n y) (addBernoulli q n y)
-        ? pureBindDist distDouble distDouble
+        ? fmapDist distDouble distDouble
                  0
                  (plus y) (bernoulli p)
                  (plus y) (bernoulli q)
@@ -98,7 +99,7 @@ addBinsDist p q n x
   === dist (kant distDouble) 
            (bind (bins p n) (ppure . (plus x)))
            (bind (bins q n) (ppure . (plus x)))
-        ? pureBindDist distDouble distDouble
+        ? fmapDist distDouble distDouble
                        0
                        (plus x) (bins p n)
                        (plus x) (bins q n)
@@ -109,7 +110,7 @@ addBinsDist p q n x
   *** QED
 
 {-@ reflect pure2 @-}
-pure2 :: (a -> b -> c) -> a -> b -> Distr c
+pure2 :: (a -> b -> c) -> a -> b -> PrM c
 pure2 f a b = ppure (f a b)
 
 {-@ addBernoulliEq :: n:{Double | 0 <= n - 1 } -> p:Prob -> q:Prob 
@@ -187,19 +188,10 @@ binsDist p q n
   where d = distDouble
 
 {-@ reflect bins' @-}
-{-@ bins' :: Prob -> Prob -> n:Double -> Distr Double @-}
-bins' :: Double -> Double -> Double -> Distr Double
+{-@ bins' :: Prob -> Prob -> n:Double -> PrM Double @-}
+bins' :: Double -> Double -> Double -> PrM Double
 bins' _ q n | n < 1.0 = ppure 0
 bins' p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
-
--- LV TODO: move to Monad.Distr I think?
-{-@ reflect seqBind @-}
-seqBind :: Distr b -> (a -> b -> Distr c) -> a -> Distr c
-seqBind u f x = bind u (f x)
-
-{-@ reflect flip @-}
-flip :: (a -> b -> c) -> b -> a -> c
-flip f x y = f y x
 
 {-@ flipPlus :: x:Double -> {(flip (pure2 plus) x) == (ppure . (plus x))} @-}
 flipPlus :: Double -> () 
@@ -213,9 +205,3 @@ flipPlus' _ _ = ()
           -> (x:a -> {v:() | f x == g x}) -> {f == g } @-} 
 extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
 extDouble _ _ _ = () 
-
-{-@ assume commutative :: e:Distr a -> u:Distr b -> f:(a -> b -> Distr c) 
-                -> {bind e (seqBind u f)
-                      = bind u (seqBind e (flip f))} @-}
-commutative :: Distr a -> Distr b -> (a -> b -> Distr c) -> ()
-commutative _ _ _ = ()

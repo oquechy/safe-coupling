@@ -2,7 +2,7 @@
 
 module Bins.Bins where
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
@@ -23,16 +23,16 @@ type NDouble = Double
 {-@ type PDouble = {v:Double | 0 <= v } @-}
 
 {-@ reflect bins @-}
-{-@ bins :: p:Prob -> n:PDouble -> Distr {d:Double | 0 <= d && d <= n } / [n] @-}
-bins :: Double -> Double -> Distr Double
+{-@ bins :: p:Prob -> n:PDouble -> PrM {d:Double | 0 <= d && d <= n } / [n] @-}
+bins :: Double -> Double -> PrM Double
 bins _ n | n < 1.0 = ppure 0
 bins p n = bind (bins p (n - 1)) (addBernoulli p (n - 1))
 
 -- bins = liftA2 (+) (bins p (n - 1)) (bernoulli p)
 
 {-@ reflect addBernoulli @-}
-{-@ addBernoulli :: Prob -> n:PDouble -> {d:Double | 0 <= d && d <= n } -> Distr {d:Double | 0 <= d && d <= n + 1 } @-}
-addBernoulli :: Double -> Double -> Double -> Distr Double
+{-@ addBernoulli :: Prob -> n:PDouble -> {d:Double | 0 <= d && d <= n } -> PrM {d:Double | 0 <= d && d <= n + 1 } @-}
+addBernoulli :: Double -> Double -> Double -> PrM Double
 addBernoulli p n x = bind (bernoulli p) (ppure . plus x)
 
 {-@ reflect plus @-}

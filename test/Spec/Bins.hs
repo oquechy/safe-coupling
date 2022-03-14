@@ -10,18 +10,18 @@ import           Numeric.Probability.Distribution
                                          hiding ( map )
 import           Spec.Utils
 
-import           Monad.Distr
+import           Monad.PrM               hiding ( fmap )
 import           Bins.Bins
 
 p, q :: Double
 p    = 0.5
 q    = 0.625
 
-coupling :: Double -> Double -> Distr (Bool, Bool)
+coupling :: Double -> Double -> PrM (Bool, Bool)
 coupling p q =
   fromFreqs [((True, True), p), ((False, True), q - p), ((False, False), 1 - q)]
 
-mockbins :: Distr (Bool, Bool) -> Int -> Distr (Int, Int)
+mockbins :: PrM (Bool, Bool) -> Int -> PrM (Int, Int)
 mockbins _ 0 = return (0, 0)
 mockbins c n = do
   (xl, xr) <- c

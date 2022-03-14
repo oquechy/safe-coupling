@@ -3,13 +3,13 @@
 
 module TD.Lemmata.Relational.Act where 
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max)
 
-import           Monad.Distr.Predicates
-import           Monad.Distr.Relational.Theorems (mapMSpec)
+import           Monad.PrM.Predicates
+import           Monad.PrM.Relational.Theorems (mapMSpec)
 
 import           TD.Lemmata.Relational.Sample
 
