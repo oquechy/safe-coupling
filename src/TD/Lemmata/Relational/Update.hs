@@ -4,7 +4,7 @@
 
 module TD.Lemmata.Relational.Update where 
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max)

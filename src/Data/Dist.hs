@@ -117,4 +117,4 @@ linearity :: Double -> Double -> Double -> Double -> ()
 linearity k l a b
   | a <= b    = assert (k * a + l <= k * b + l) 
   | otherwise = assert (distD (k * a + l) (k * b + l) == k * distD a b)
-
+                  ? assert (k * a + l >= k * b + l) 

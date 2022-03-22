@@ -3,13 +3,13 @@
 
 module TD.Lemmata.Relational.Sample where 
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, uncurry)
 
-import           Monad.Distr.Relational.TCB.Spec 
-import           Monad.Distr.Predicates      
+import           Monad.PrM.Relational.TCB.Spec 
+import           Monad.PrM.Predicates      
 
 import           TD.Lemmata.Relational.Update
 

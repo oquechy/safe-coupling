@@ -1,4 +1,4 @@
-name:                SGD-verified
+name:                safe-coupling
 version:             0.1.0.0
 license:             BSD3
 license-file:        LICENSE
@@ -12,13 +12,13 @@ library
      , Data.List
      , Data.Derivative
 
-     , Monad.Distr
-     , Monad.Distr.Predicates
-     , Monad.Distr.Laws
+     , Monad.PrM
+     , Monad.PrM.Predicates
+     , Monad.PrM.Laws
 
-     , Monad.Distr.Relational.TCB.Spec
-     , Monad.Distr.Relational.TCB.EDist
-     , Monad.Distr.Relational.Theorems
+     , Monad.PrM.Relational.TCB.Spec
+     , Monad.PrM.Relational.TCB.EDist
+     , Monad.PrM.Relational.Theorems
 
      , Misc.ProofCombinators
 
@@ -28,6 +28,10 @@ library
 -- Bins Example
       , Bins.Bins
       , Bins.Theorem
+
+-- Bins Example using Applicatives
+      , ApplicativeBins.Bins
+      , ApplicativeBins.Theorem
 
 -- TD Case Study      
      , TD.TD0
@@ -51,7 +55,7 @@ library
   default-language:    Haskell2010
   ghc-options:  -fplugin=LiquidHaskell 
 
-test-suite SGD-verified-test
+test-suite safe-coupling-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
@@ -66,7 +70,7 @@ test-suite SGD-verified-test
       tasty-discover:tasty-discover
   build-depends:
       liquid-base
-    , SGD-verified
+    , safe-coupling
     , HUnit
     , tasty
     , tasty-hunit

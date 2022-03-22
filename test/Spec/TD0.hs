@@ -13,9 +13,9 @@ import           TD.TD0                         ( td0
                                                 , Transition
                                                 )
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
-import "SGD-verified" Data.List
+import "safe-coupling" Data.List
 
 import           Prelude                 hiding ( map
                                                 , repeat

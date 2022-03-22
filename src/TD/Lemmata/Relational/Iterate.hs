@@ -3,13 +3,13 @@
 
 module TD.Lemmata.Relational.Iterate where 
 
-import           Monad.Distr
+import           Monad.PrM
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (iterate)
 
-import           Monad.Distr.Relational.TCB.Spec 
-import           Monad.Distr.Predicates
+import           Monad.PrM.Relational.TCB.Spec 
+import           Monad.PrM.Predicates
 
 import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
@@ -17,13 +17,13 @@ import           Misc.ProofCombinators
 
 
 {-@ relationaliterate :: m:{_|0 <= m} -> {k:_|k >= 0} -> n:Nat -> l:Nat
-                      -> f:(v:ListN l -> Distr (ListN l))
+                      -> f:(v:ListN l -> PrM (ListN l))
                       -> (m:{_|0 <= m} -> y1:{List Double|llen y1 = l} -> y2:{List Double|llen y2 = l} -> {bounded m y1 y2 => lift (bounded (k * m)) (f y1) (f y2)})
                       -> x1:ListN l -> x2:ListN l
                       -> {bounded m x1 x2 => lift (bounded (pow k n * m)) ((iterate n (llen x1) f) (x1)) 
                                                                           ((iterate n (llen x2) f) (x2))} / [n] @-}
 relationaliterate :: Double -> Double -> Int -> Int
-                  -> (List Double -> Distr (List Double)) 
+                  -> (List Double -> PrM (List Double)) 
                   -> (Double -> List Double -> List Double -> ()) 
                   -> List Double -> List Double
                   -> ()

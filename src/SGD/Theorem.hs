@@ -7,15 +7,16 @@ module SGD.Theorem where
 import           Prelude                 hiding ( head
                                                 , tail
                                                 , sum
+                                                , fmap
                                                 )
 import           Language.Haskell.Liquid.ProofCombinators
 
 import           Misc.ProofCombinators
 
-import           Monad.Distr 
-import           Monad.Distr.Laws
-import           Monad.Distr.Relational.TCB.EDist
-import           Monad.Distr.Relational.Theorems (bindDistEq)
+import           Monad.PrM 
+import           Monad.PrM.Laws
+import           Monad.PrM.Relational.TCB.EDist
+import           Monad.PrM.Relational.Theorems (bindDistEq)
 import           Data.Dist 
 import           SGD.SGD 
 
@@ -112,8 +113,11 @@ thm d zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
     =<= (one / lend zs1) * (dist (kant d) (bind (sgd zs1 ws1 a1 f1) (ppure . update (head zs1) α1 f1 )) 
                                     (bind (sgd zs2 ws2 a2 f2) (ppure . update (head zs2) α2 f2 ))) 
         + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+    === (one / lend zs1) * (dist (kant d) (fmap (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1)) 
+                                    (fmap (update (head zs2) α2 f2 ) (sgd zs2 ws2 a2 f2))) 
+        + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
-        ?   pureBindDist d d (2 * lip * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
+        ?   fmapDist d d (2 * lip * α1) (update (head zs1) α1 f1) (sgd zs1 ws1 a1 f1) 
                                     (update (head zs2) α2 f2) (sgd zs2 ws2 a2 f2) 
                                     (relationalupdatep d (head zs1) α1 f1 (head zs2) α2 f2) 
         
@@ -170,18 +174,21 @@ multHelper _ _ _ _ = ()
 lemma :: Dist Double -> DataSet -> Weight -> StepSize -> StepSizes -> LossFunction -> DataSet -> Weight -> StepSize ->  StepSizes -> LossFunction -> DataPoint -> ()
 lemma d zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z = 
   dist (kant d) (sgdRecUpd zs1 ws1 α1 a1 f1 z) (sgdRecUpd zs2 ws2 α2 a2 f2 z)
-        ?   pureUpdateEq z α1 f1
-        ?   pureUpdateEq z α2 f2
     === dist (kant d) (bind (sgd zs1 ws1 a1 f1) (pureUpdate z α1 f1)) 
                 (bind (sgd zs2 ws2 a2 f2) (pureUpdate z α2 f2))
-        ?   pureBindDist d d 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
+        ? pureUpdateEq z α1 f1
+        ? pureUpdateEq z α2 f2
+    === dist (kant d) (bind (sgd zs1 ws1 a1 f1) (ppure . update z α1 f1)) 
+                (bind (sgd zs2 ws2 a2 f2) (ppure . update z α2 f2))
+    === dist (kant d) (fmap (update z α1 f1) (sgd zs1 ws1 a1 f1)) 
+                (fmap (update z α2 f2) (sgd zs2 ws2 a2 f2))
+        ?   fmapDist d d 0 (update z α1 f1) (sgd zs1 ws1 a1 f1)
                              (update z α2 f2) (sgd zs2 ws2 a2 f2) 
                              (relationalupdateq d z α1 f1 z α2 f2)
     =<= dist (kant d) (sgd zs1 ws1 a1 f1) (sgd zs2 ws2 a2 f2)
         ? thm d zs1 ws1 a1 f1 zs2 ws2 a2 f2
     =<= dist d ws1 ws2 + estab zs1 a1
     *** QED
-
 
 {-@ assume pureUpdateEq :: zs:DataPoint -> a:StepSize -> f:LossFunction
                -> {pureUpdate zs a f == ppure . update zs a f} @-}
