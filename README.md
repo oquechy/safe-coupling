@@ -1,6 +1,10 @@
 # safe-coupling
 Library for relational verification of probabilistic algorithms.
 
+Includes examples of verification:
+ - Stability of stochastic gradient descent (src/SGD) 
+ - Convergence of temporal difference learning (src/TD0)
+
 ## Instructions to build the library:
  1. Install stack https://docs.haskellstack.org/en/stable/install_and_upgrade/
 
