@@ -50,6 +50,16 @@ jobs:
           HCKIND: ${{ matrix.compilerKind }}
           HCNAME: ${{ matrix.compiler }}
           HCVER: ${{ matrix.compilerVersion }}
+      - name: Install z3 
+        run: |
+          wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.8/z3-4.8.8-x64-ubuntu-16.04.zip
+          unzip z3-4.8.8-x64-ubuntu-16.04.zip
+          rm -f z3-4.8.8-x64-ubuntu-16.04.zip
+          cp z3-4.8.8-x64-ubuntu-16.04/bin/libz3.a /usr/local/lib
+          cp z3-4.8.8-x64-ubuntu-16.04/bin/z3 /usr/local/bin
+          cp z3-4.8.8-x64-ubuntu-16.04/include/* /usr/local/include
+          rm -rf z3-4.8.8-x64-ubuntu-16.04
+          z3 --version
       - name: Set PATH and environment variables
         run: |
           echo "$HOME/.cabal/bin" >> $GITHUB_PATH
