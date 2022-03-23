@@ -1,10 +1,22 @@
 name:                safe-coupling
+category:            Formal Methods
 version:             0.1.0.0
+synopsis:            Relational Proof System for Probabilistic Algorithms 
+description:         Relational Proof System for Probabilistic Algorithms.
 license:             BSD3
 license-file:        LICENSE
+author:              Lisa Vasilenko, Niki Vazou
+maintainer:          Lisa Vasilenko <vasilliza@gmail.com>
+homepage:            https://github.com/nikivazou/safe-coupling
+bug-reports:         https://github.com/nikivazou/safe-coupling/issues
+copyright:           2020-21 Lisa Vasilenko & Niki Vazou, IMDEA Software Institute
 build-type:          Simple
 extra-source-files:  ChangeLog.md, README.md
 cabal-version:       >=1.10
+
+source-repository head
+  type:     git
+  location: https://github.com/nikivazou/safe-coupling
 
 library
   exposed-modules:     
@@ -46,11 +58,11 @@ library
      , SGD.Theorem 
 
   build-depends:
-      liquid-base
-    , liquid-containers
-    , liquid-prelude
-    , liquidhaskell
-    , probability
+       liquid-base                       >= 4.15.0 && < 4.16
+     , liquidhaskell                     >= 0.8.10 && < 0.9
+     , liquid-containers                 >= 0.6.2 && < 0.7
+     , liquid-prelude                    >= 0.8.10 && < 0.9
+     , probability                       >= 0.2.7 && < 0.3
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:  -fplugin=LiquidHaskell 
@@ -69,11 +81,11 @@ test-suite safe-coupling-test
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
-      liquid-base
+      liquid-base                      >= 4.15.0 && < 4.16
     , safe-coupling
-    , HUnit
-    , tasty
-    , tasty-hunit
-    , probability
-    , sort
+    , HUnit                            >= 1.6.1 && < 1.7
+    , tasty                            >= 1.2.3 && < 1.3
+    , tasty-hunit                      >= 0.10.0 && < 1.11
+    , probability                      >= 0.2.7 && < 0.3
+    , sort                             >= 1.0.0 && < 1.1
   default-language: Haskell2010
