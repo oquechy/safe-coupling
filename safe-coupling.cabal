@@ -2,7 +2,7 @@ name:                safe-coupling
 category:            Formal Methods
 version:             0.1.0.0
 synopsis:            Relational Proof System for Probabilistic Algorithms 
-description:         Relational Proof System for Probabilistic Algorithms.
+description:         Relational Proof System for Probabilistic Algorithms. Supports two proving methods: upper bound Kantorovich distance between two distributions and establish a boolean relation on samples from two distributions (the latter is stronger).
 license:             BSD3
 license-file:        LICENSE
 author:              Lisa Vasilenko, Niki Vazou
@@ -13,14 +13,6 @@ copyright:           2020-21 Lisa Vasilenko & Niki Vazou, IMDEA Software Institu
 build-type:          Simple
 extra-source-files:  ChangeLog.md, README.md
 cabal-version:       >=1.10
-tested-with:   GHC == 8.0.2
-             , GHC == 8.2.2
-             , GHC == 8.4.4
-             , GHC == 8.6.5
-             , GHC == 8.8.4
-             , GHC == 8.10.7
-             , GHC == 9.0.2
-             , GHC == 9.2.2
 
 source-repository head
   type:     git
@@ -71,9 +63,6 @@ library
      , liquid-containers                 >= 0.6.2 && < 0.7
      , liquid-prelude                    >= 0.8.10 && < 0.9
      , probability                       >= 0.2.7 && < 0.3
-     , rest-rewrite                      >= 0.1.0 && < 0.3
-     , time                              >= 1.9.3 && <1.10
-     , containers                        >= 0.6.2 && < 0.7
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:  -fplugin=LiquidHaskell 
@@ -92,7 +81,7 @@ test-suite safe-coupling-test
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
-      liquid-base                      >= 4.14.0 && < 4.16
+      liquid-base                      
     , safe-coupling
     , HUnit                            >= 1.6.1 && < 1.7
     , tasty                            >= 1.2.3 && < 1.5
