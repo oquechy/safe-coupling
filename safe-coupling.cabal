@@ -1,8 +1,8 @@
 name:                safe-coupling
 category:            Formal Methods
 version:             0.1.0.0
-synopsis:            Relational Proof System for Probabilistic Algorithms 
-description:         Relational Proof System for Probabilistic Algorithms. Supports two proving methods: upper bound Kantorovich distance between two distributions and establish a boolean relation on samples from two distributions (the latter is stronger).
+synopsis:            Relational proof system for probabilistic algorithms 
+description:         Relational proof system for probabilistic algorithms. Supports two proving methods: upper bound Kantorovich distance between two distributions and establish a boolean relation on samples from two distributions (the latter is stronger).
 license:             BSD3
 license-file:        LICENSE
 author:              Lisa Vasilenko, Niki Vazou
