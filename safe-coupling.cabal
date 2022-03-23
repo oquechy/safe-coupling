@@ -91,7 +91,7 @@ test-suite safe-coupling-test
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
-      liquid-base                      >= 4.14.0 && < 4.15
+      liquid-base                      >= 4.14.0 && < 4.16
     , safe-coupling
     , HUnit                            >= 1.6.1 && < 1.7
     , tasty                            >= 1.2.3 && < 1.5
