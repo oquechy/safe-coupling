@@ -52,7 +52,7 @@ bernoulli p = fromFreqs [(1, p), (0, 1 - p)]
 {-@ unif :: {xs:[a]|0 < len xs} -> PrM a @-}
 unif :: [a] -> PrM a
 unif [a]    = ppure a
-unif (x:xs) = choice (1 `mydiv` fromIntegral (len xs + 1)) (ppure x) (unif xs)
+unif l@(x:xs) = choice (1 `mydiv` lend l) (ppure x) (unif xs)
 
 {-@ measure Monad.PrM.lift :: (a -> b -> Bool) -> PrM a -> PrM b -> Bool @-}
 {-@ assume lift :: p1:(a -> b -> Bool) -> x1:PrM a -> x2:PrM b 
@@ -108,3 +108,8 @@ seqBind u f x = bind u (f x)
 {-@ reflect flip @-}
 flip :: (a -> b -> c) -> b -> a -> c
 flip f x y = f y x
+
+{-@ reflect lend @-}
+{-@ lend :: xs:[a] -> {v:Double| 0.0 <= v } @-}
+lend :: [a] -> Double
+lend xs = fromIntegral (len xs)

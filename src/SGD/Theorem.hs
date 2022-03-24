@@ -26,7 +26,6 @@ import           SGD.SGD
 lip :: Double
 lip = 10
 
-
 {-@ assume relationalupdatep :: d:Dist Double -> z1:DataPoint -> α1:StepSize -> f1:LossFunction 
                              -> z2:DataPoint -> {α2:StepSize|α1 = α2} -> {f2:LossFunction|f1 = f2} 
                              -> ws1:Weight -> ws2:Weight -> 
@@ -90,25 +89,40 @@ thm d zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
 
 thm d zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
+    === dist (kant d) (bind (unif zs1) (sgdRecUpd zs1 ws1 α1 a1 f1)) 
+                      (bind (unif zs2) (sgdRecUpd zs2 ws2 α2 a2 f2))
+        ?   assert (unif zs1 == choice (1 `mydiv` lend zs1) (ppure z1) (unif zs1'))
+        ?   assert (unif zs2 == choice (1 `mydiv` lend zs2) (ppure z2) (unif zs1'))
+    === dist (kant d) (bind (choice (1 `mydiv` lend zs1) uhead1 utail1) (sgdRecUpd zs1 ws1 α1 a1 f1))
+                      (bind (choice (1 `mydiv` lend zs1) uhead2 utail2) (sgdRecUpd zs2 ws2 α2 a2 f2))
     === dist (kant d)
-          (choice (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
-          (choice (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
-        ?   choiceDist d (one / lend zs1) (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
-                         (one / lend zs2) (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
-    =<= (one / lend zs1) * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
-            + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+            (bind (choice p uhead1 utail1) sgdRec1)
+            (bind (choice p uhead2 utail2) sgdRec2)
+        ? choiceBind p uhead1 utail1 sgdRec1
+    === dist (kant d)
+            (choice p (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
+            (bind (choice p uhead2 utail2) sgdRec2)
+        ? choiceBind p uhead2 utail2 sgdRec2
+    === dist (kant d)
+          (choice p (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
+          (choice p (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
+        ?   choiceDist d p (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
+                         p (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
+    =<= p * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
+            + (1 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmNeq d zs1 ws1 zs2 ws2 α1 a1 f1
-    =<= (one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
-            + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+    =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+            + (1 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmEq d zs1 ws1 zs2 ws2 α1 a1 f1
-    =<= (one / lend zs1) * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
-            + (1 - (one / lend zs1)) * (dist d ws1 ws2 + estab zs1 a1)
-    =<= dist d ws1 ws2 + 2.0 * lip * α1 * (one / lend zs1) + estab zs1 a1
+    =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+            + (1 - p) * (dist d ws1 ws2 + estab zs1 a1)
+    =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
         ?   estabconsR zs1 α1 a1
     =<= dist d ws1 ws2 + estab zs1 (SS α1 a1)
     =<= dist d ws1 ws2 + estab zs1 as1
     *** QED
  where
+  p = one / lend zs1
   pureUpd1 = pureUpdate (head zs1) α1 f1
   pureUpd2 = pureUpdate (head zs2) α2 f2
   sgdRec1 = sgdRecUpd zs1 ws1 α1 a1 f1
@@ -117,6 +131,8 @@ thm d zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 =
   utail1 = unif (tail zs1)
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
+  (z1:zs1'@(_:_)) = zs1 
+  (z2:zs2'@(_:_)) = zs2
 thm d zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
 
 {-@ ple thmNeq @-}

@@ -26,13 +26,7 @@ type DataPrM = PrM DataPoint
        -> PrM Weight / [ sslen ss, 0 ] @-}
 sgd :: DataSet -> Weight -> StepSizes -> LossFunction -> PrM Weight
 sgd _  w0 SSEmp    _ = ppure w0
-sgd zs w0 (SS α a) f = 
-  choice (one / lend zs)
-         (bind uhead (sgdRecUpd zs w0 α a f))
-         (bind utail (sgdRecUpd zs w0 α a f)) 
- where
-  uhead = ppure (head zs)
-  utail = unif (tail zs)
+sgd zs w0 (SS α a) f = bind (unif zs) (sgdRecUpd zs w0 α a f) 
 
 
 {-@ reflect sgdRecUpd @-}
@@ -59,21 +53,10 @@ update z α f w = w - α * (grad (f z) w)
 -------------------------------------------------------------------------------
 
 
-{-@ reflect lend @-}
-{-@ lend :: xs:[a] -> {v:Double| 0.0 <= v } @-}
-lend :: [a] -> Double
-lend xs = fromIntegral (len xs)
-{- 
-lend []       = 0
-lend (_ : xs) = 1 + lend xs
--}
-
 {-@ reflect one @-}
 {-@ one :: {v:Double| v = 1.0 } @-}
 one :: Double
 one = 1
-
-
 
 {-@ reflect head @-}
 {-@ head :: {xs:[a] | len xs > 0 } -> a @-}
