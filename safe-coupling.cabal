@@ -59,10 +59,10 @@ library
      , SGD.Theorem 
 
   build-depends:
-       liquid-base                       >= 4.14.0 && < 4.16
-     , liquidhaskell                     >= 0.8.10 && < 0.9
-     , liquid-containers                 >= 0.6.2 && < 0.7
-     , liquid-prelude                    >= 0.8.10 && < 0.9
+       liquid-base                       >= 4.15.0 && < 4.16
+     , liquidhaskell                     >= 0.8.10.7 && < 0.9
+     , liquid-containers                 >= 0.6.2.1 && < 0.7
+     , liquid-prelude                    >= 0.8.10.2 && < 0.9
      , probability                       >= 0.2.7 && < 0.3
      , rest-rewrite                      >= 0.1.1 && < 0.2
   hs-source-dirs:      src
