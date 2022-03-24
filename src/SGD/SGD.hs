@@ -59,12 +59,14 @@ update z α f w = w - α * (grad (f z) w)
 -------------------------------------------------------------------------------
 
 
-{-@ measure lend @-}
+{-@ reflect lend @-}
 {-@ lend :: xs:[a] -> {v:Double| 0.0 <= v } @-}
 lend :: [a] -> Double
+lend xs = fromIntegral (len xs)
+{- 
 lend []       = 0
 lend (_ : xs) = 1 + lend xs
-
+-}
 
 {-@ reflect one @-}
 {-@ one :: {v:Double| v = 1.0 } @-}
@@ -79,7 +81,7 @@ head :: [a] -> a
 head (z : _) = z
 
 {-@ reflect tail @-}
-{-@ tail :: {xs:[a] | len xs > 0 } -> {v:[a] | len v == len xs - 1 && lend v == lend xs - 1 } @-}
+{-@ tail :: {xs:[a] | len xs > 0 } -> {v:[a] | len v == len xs - 1 } @-}
 tail :: [a] -> [a]
 tail (_ : zs) = zs
 
