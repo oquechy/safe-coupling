@@ -5,8 +5,6 @@ import           Test.HUnit                     ( assertEqual
                                                 , (@?=)
                                                 , Assertion
                                                 )
-import           Numeric.Probability.Distribution
-                                                ( decons )
 import           Spec.Utils
 
 import           SGD.SGD                            
@@ -23,4 +21,4 @@ ss = SS 0.5 (SS 0.5 (SS 0.5 (SS 0.5 SSEmp)))
 
 unit_sgd :: Assertion
 unit_sgd = w @?= (-1)
-  where [(w, 1)] = clean $ decons $ sgd (replicate 4 dp) 1 ss loss
+  where [(w, 1)] = clean $ sgd (replicate 4 dp) 1 ss loss
