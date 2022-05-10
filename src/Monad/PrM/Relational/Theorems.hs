@@ -10,7 +10,7 @@ module Monad.PrM.Relational.Theorems where
 import           Monad.PrM
 import           Data.Dist
 import           Data.List
-import           Prelude hiding (max, mapM)
+import           Prelude hiding (max, mapM, const)
 
 import           Monad.PrM.Relational.TCB.Spec 
 import           Monad.PrM.Relational.TCB.EDist
@@ -46,35 +46,41 @@ makeTwoArg d m f1 f2 lemma x y = lemma x
 -- | mapM Spec ----------------------------------------
 -------------------------------------------------------
 
-{-@ mapMSpec :: {m:_|0 <= m} 
+{-@ mapMSpec :: {m:Double|0 <= m} 
                    -> f1:(a -> PrM Double) -> f2:(a -> PrM Double) 
                    -> is:List a
                    -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) 
-                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [llen is, 0] @-}
+                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [len is, 0] @-}
 mapMSpec :: Double -> (a -> PrM Double) -> (a -> PrM Double) -> List a 
                -> (a -> ()) 
                -> ()
-mapMSpec m f1 f2 is@Nil lemma
-    = pureSpec (bounded m) Nil Nil (boundedNil m)
-mapMSpec m f1 f2 (Cons i is) lemma 
+mapMSpec m f1 f2 is@[] lemma 
+        =       lift (bounded m) (mapM f1 is) (mapM f2 is)
+        ===     lift (bounded m) (ppure nilDouble) (ppure nilDouble)
+        *** QED
+                ?       pureSpec (bounded m) nilDouble nilDouble (boundedNil m)
+
+mapMSpec m f1 f2 (i:is) lemma
     = bindSpec (bounded m) (bounded' m)
-            (f1 i) (cons (llen is) (mapM f1 is))
-            (f2 i) (cons (llen is) (mapM f2 is))
+            (f1 i) (consM (len is) (mapM f1 is))
+            (f2 i) (consM (len is) (mapM f2 is))
             (lemma i)
             (consBindLemma m f1 f2 is lemma)
 
-{-@ consLemma :: m:_ -> r1:_ -> rs1:_ -> {r2:_|bounded' m r1 r2} -> {rs2:_|llen rs1 = llen rs2 && bounded m rs1 rs2} 
-              -> {bounded m (Cons r1 rs1) (Cons r2 rs2)} @-}
+{-@ consLemma :: m:Double -> r1:Double -> rs1:List Double -> {r2:Double|bounded' m r1 r2} 
+              -> {rs2:List Double|len rs1 = len rs2 && bounded m rs1 rs2} 
+              -> {bounded m (cons r1 rs1) (cons r2 rs2)} @-}
 consLemma :: Double -> Double -> List Double -> Double -> List Double -> ()
 consLemma m r1 rs1 r2 rs2 = ()
 
-{-@ consBindLemma :: {m:_|0 <= m} -> f1:_ -> f2:_ -> is:_ 
+{-@ consBindLemma :: {m:Double|0 <= m} -> f1:(a -> PrM Double) -> f2:(a -> PrM Double) 
+                  -> is:List a 
                   -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)})
-                  -> r1:_ 
-                  -> {r2:_|bounded' m r1 r2}
+                  -> r1:Double
+                  -> {r2:Double|bounded' m r1 r2}
                   -> {lift (bounded m) 
-                           ((cons (llen is) (mapM f1 is)) (r1)) 
-                           ((cons (llen is) (mapM f2 is)) (r2))} / [llen is, 1] @-}
+                           ((consM (len is) (mapM f1 is)) (r1)) 
+                           ((consM (len is) (mapM f2 is)) (r2))} / [len is, 1] @-}
 consBindLemma :: Double -> (a -> PrM Double) -> (a -> PrM Double) 
               -> List a 
               -> (a -> ()) 
@@ -87,15 +93,18 @@ consBindLemma m f1 f2 is lemma r1 r2
                          (mapMSpec m f1 f2 is lemma) 
                          (pureLemma m r1 r2 f1 f2 is) 
 
-{-@ pureLemma :: {m:_|0 <= m} 
-           -> r1:_ -> {r2:_|bounded' m r1 r2}  
-           -> f1:_ -> f2:_ -> is:_ 
-           -> rs1:_ -> rs2:{_|bounded m rs1 rs2}
+{-@ pureLemma :: {m:Double|0 <= m} 
+           -> r1:Double -> {r2:Double|bounded' m r1 r2}  
+           -> f1:(a -> PrM Double) -> f2:(a -> PrM Double) -> is:List a 
+           -> rs1:List Double -> rs2:{List Double|bounded m rs1 rs2}
            -> {lift (bounded m) (o ppure (consDouble r1) rs1)
                                 (o ppure (consDouble r2) rs2)} @-}
 pureLemma :: Double -> Double -> Double -> (a -> PrM Double) -> (a -> PrM Double) 
        -> List a -> List Double -> List Double -> () 
 pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureSpec (bounded m) 
-                                     (Cons r1 rs1) (Cons r2 rs2) 
+                                     (r1:rs1) (r2:rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 
+{-@ boundedNil :: {m:Double|0 <= m} -> {bounded m nilDouble nilDouble} @-}
+boundedNil :: Double -> ()
+boundedNil _ = ()

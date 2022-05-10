@@ -10,7 +10,7 @@ import Monad.PrM
 import Monad.PrM.Predicates
 
 {-@ assume pureSpec :: p:(a -> b -> Bool) 
-                    -> x1:a -> x2:b -> {_:_|p x1 x2} 
+                    -> x1:a -> x2:b -> {_:()|p x1 x2} 
                     -> {lift p (ppure x1) (ppure x2)} @-}
 pureSpec :: (a -> b -> Bool) -> a -> b -> () -> ()
 pureSpec _ _ _ _ = ()

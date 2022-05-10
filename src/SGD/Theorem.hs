@@ -13,10 +13,10 @@ import           Language.Haskell.Liquid.ProofCombinators
 
 import           Misc.ProofCombinators
 
-import           Monad.PrM 
+import           Monad.PrM               hiding ( sum )
 import           Monad.PrM.Laws
 import           Monad.PrM.Relational.TCB.EDist
-import           Monad.PrM.Relational.Theorems (bindDistEq)
+import           Monad.PrM.Relational.Theorems ( bindDistEq )
 import           Data.Dist 
 import           SGD.SGD 
 

@@ -21,3 +21,8 @@ commutative _ _ _ = ()
                       -> {choice p (bind e1 f) (bind e2 f) = bind (choice p e1 e2) f} @-}
 choiceBind :: Prob -> PrM a -> PrM a -> (a -> PrM b) -> ()
 choiceBind _ _ _ _ = ()
+
+{-@ assume extDouble :: f:(a -> b) -> g:(a -> b) 
+          -> (x:a -> {v:() | f x == g x}) -> {f == g } @-} 
+extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
+extDouble _ _ _ = () 

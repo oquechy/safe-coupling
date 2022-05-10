@@ -17,15 +17,15 @@ import           TD.TD0
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
-{-@ listLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 
+{-@ listLemma :: v1:ValueFunction -> v2:SameLen v1 -> i:StateOf v1 
               -> {distD (at v1 i) (at v2 i) <= distList distDouble v1 v2} @-}
 listLemma :: ValueFunction -> ValueFunction -> State -> ()
-listLemma Nil v2 i = ()
-listLemma v1 Nil i = ()
-listLemma (Cons x xs) (Cons y ys) 0 = ()
-listLemma (Cons x xs) (Cons y ys) i = listLemma xs ys (i - 1)
+listLemma [] v2 i = ()
+listLemma v1 [] i = ()
+listLemma (x:xs) (y:ys) 0 = ()
+listLemma (x:xs) (y:ys) i = listLemma xs ys (i - 1)
 
-{-@ maxLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> 
+{-@ maxLemma :: v1:ValueFunction -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> 
                     {max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j)) <= distList distDouble v1 v2 } @-}
 maxLemma :: ValueFunction -> ValueFunction -> State -> State -> ()
 maxLemma v1 v2 i j 
@@ -37,7 +37,7 @@ maxLemma v1 v2 i j
     =<= distList distDouble v1 v2
     *** QED
 
-{-@ updateLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:_ -> 
+{-@ updateLemma :: v1:ValueFunction -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:Reward -> 
                     {distD (update v1 i j r) (update v2 i j r) <= k * distList distDouble v1 v2} @-}
 updateLemma :: ValueFunction -> ValueFunction -> State -> State -> Reward -> ()
 updateLemma v1 v2 i j r
@@ -48,7 +48,7 @@ updateLemma v1 v2 i j r
     =<= k * distList distDouble v1 v2
     *** QED
 
-{-@ uncurryLemma :: {m:_|0 <= m} -> v1:_ -> v2:SameLen v1 -> {_:_|bounded m v1 v2} -> i:StateOf v1 
+{-@ uncurryLemma :: {m:Double|0 <= m} -> v1:ValueFunction -> v2:SameLen v1 -> {_:()|bounded m v1 v2} -> i:StateOf v1 
                  -> t1:(StateOf v1, Reward) -> {t2:(StateOf v1, Reward)|t1 = t2}
                  -> {bounded' (k * m) (uncurry (update v1 i) t1) (uncurry (update v2 i) t2)} @-}
 uncurryLemma :: Double -> ValueFunction -> ValueFunction -> () -> State 
@@ -64,7 +64,7 @@ uncurryLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2)
     =<= k * m
     *** QED
 
-{-@ pureUpdateLemma :: {m:_|0 <= m} -> v1:_ -> v2:SameLen v1 -> {_:_|bounded m v1 v2} -> i:StateOf v1 
+{-@ pureUpdateLemma :: {m:Double|0 <= m} -> v1:ValueFunction -> v2:SameLen v1 -> {_:()|bounded m v1 v2} -> i:StateOf v1 
                     -> t1:(StateOf v1, Reward) -> {t2:(StateOf v1, Reward)|eqP t1 t2} 
                     -> {lift (bounded' (k * m)) ((o ppure (uncurry (update v1 i))) (t1)) ((o ppure (uncurry (update v2 i))) (t2))} @-}
 pureUpdateLemma :: Double -> ValueFunction -> ValueFunction -> () -> State -> (State, Reward) -> (State, Reward) -> ()
@@ -74,7 +74,7 @@ pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) =
                 (uncurryLemma m v1 v2 b i t1 t2)
         
 
-{-@ relationalsample :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|llen t = llen v1 && llen v1 == n } -> {v2:_|llen t = llen v2} 
+{-@ relationalsample :: {m:Double|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:ValueFunction|len t = len v1 && len v1 == n } -> {v2:ValueFunction|len t = len v2} 
                      -> i:StateOf t 
                      -> {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
 relationalsample :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()

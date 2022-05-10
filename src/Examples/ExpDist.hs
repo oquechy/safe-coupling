@@ -5,7 +5,6 @@ module Examples.ExpDist where
 
 import           Monad.PrM
 import           Data.Dist
-import           Data.List
 
 import           Monad.PrM.Relational.TCB.EDist
 import           Misc.ProofCombinators
@@ -18,9 +17,10 @@ import           Prelude                 hiding ( map
                                                 , mapM
                                                 , iterate
                                                 , uncurry
+                                                , const
                                                 )
 
-{-@ relationalu :: d:Dist a -> xs:[a] -> { dist (kant d) (unif xs) (unif xs) == 0} @-}
+{-@ relationalu :: d:Dist a -> {xs:[a]|0 < len xs} -> {dist (kant d) (unif xs) (unif xs) == 0} @-}
 relationalu :: Dist a -> [a] -> ()
 relationalu d xs = unifDist d xs xs 
 

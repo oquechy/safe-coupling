@@ -28,14 +28,7 @@ bins :: Double -> Double -> PrM Double
 bins _ n | n < 1.0 = ppure 0
 bins p n = bind (bins p (n - 1)) (addBernoulli p (n - 1))
 
--- bins = liftA2 (+) (bins p (n - 1)) (bernoulli p)
-
 {-@ reflect addBernoulli @-}
 {-@ addBernoulli :: Prob -> n:PDouble -> {d:Double | 0 <= d && d <= n } -> PrM {d:Double | 0 <= d && d <= n + 1 } @-}
 addBernoulli :: Double -> Double -> Double -> PrM Double
 addBernoulli p n x = bind (bernoulli p) (ppure . plus x)
-
-{-@ reflect plus @-}
-{-@ plus :: x:Double -> y:Double -> {d:Double | d = x + y } @-} 
-plus :: Double -> Double -> Double 
-plus x y = x + y 

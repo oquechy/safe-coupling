@@ -109,10 +109,6 @@ addBinsDist p q n x
   =<=  n * (q - p) 
   *** QED
 
-{-@ reflect pure2 @-}
-pure2 :: (a -> b -> c) -> a -> b -> PrM c
-pure2 f a b = ppure (f a b)
-
 {-@ addBernoulliEq :: n:{Double | 0 <= n - 1 } -> p:Prob -> q:Prob 
                    -> {addBernoulli q (n - 1) == seqBind (bernoulli q) (pure2 plus)} @-}
 addBernoulliEq :: Double -> Double -> Double -> () 
@@ -200,8 +196,3 @@ flipPlus x = extDouble (flip (pure2 plus) x) (ppure . (plus x)) (flipPlus' x)
 {-@ flipPlus' :: x:Double -> y:Double -> {(flip (pure2 plus) x y) == (ppure . (plus x)) (y)} @-}
 flipPlus' :: Double -> Double -> () 
 flipPlus' _ _ = ()
-
-{-@ assume extDouble :: f:(a -> b) -> g:(a -> b) 
-          -> (x:a -> {v:() | f x == g x}) -> {f == g } @-} 
-extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
-extDouble _ _ _ = () 

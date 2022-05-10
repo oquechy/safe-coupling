@@ -22,7 +22,7 @@ type State = Int
 type Action = Int
 type Reward = Double
 
-{-@ type TransitionOf N = {v:List (PrM ({i:State|0 <= i && i < N}, Reward))| llen v = N} @-}
+{-@ type TransitionOf N = {v:List (PrM ({i:State|0 <= i && i < N}, Reward))| len v = N} @-}
 type Transition = List (PrM (State, Reward))
 type ValueFunction = List Reward
 type PrMValueFunction = List (PrM Reward)
@@ -31,29 +31,27 @@ lq_required :: List Int -> ()
 lq_required _ = ()
 
 {-@ reflect td0 @-}
-{- td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> PrMValueFunction @-} 
+{- td0 :: Nat -> v:ValueFunction -> TransitionOf (len v) -> PrMValueFunction @-} 
 td0 :: Int -> List Reward -> Transition -> List (PrM Reward)
-td0 n v t = iterate n (llen v) (act (llen v) t) (map ppure v)
+td0 n v t = iterate n (len v) (act (len v) t) (map ppure v)
 
 {-@ reflect iterate @-}
-{- iterate :: n:Nat -> l:Nat -> (v:{PrMValueFunction | llen v == l} -> PrM ({v':ValueFunction|llen v' = llen v})) -> 
-                v:{PrMValueFunction | llen v == l}  -> PrM ({v':PrMValueFunction|llen v' = llen v}) @-}
+{- iterate :: n:Nat -> l:Nat -> (v:{PrMValueFunction | len v == l} -> PrM ({v':ValueFunction|len v' = len v})) -> 
+                v:{PrMValueFunction | len v == l}  -> PrM ({v':PrMValueFunction|len v' = len v}) @-}
 iterate :: Int -> Int -> (PrMValueFunction -> PrMValueFunction) -> PrMValueFunction -> PrMValueFunction
 iterate n l _ x | n <= 0 = x
 iterate n l f x = iterate (n - 1) l f (f x)
 
 {-@ reflect act @-}
-{- act :: n:Nat -> TransitionOf n -> v:{PrMValueFunction|llen v == n} 
-        -> PrM {v':ValueFunction|llen v' = llen v} @-}
+{- act :: n:Nat -> TransitionOf n -> v:{PrMValueFunction|len v == n} 
+        -> PrM {v':ValueFunction|len v' = len v} @-}
 act :: Int -> Transition -> PrMValueFunction -> PrMValueFunction
-act n t v = map (sample v t) (range 0 (llen v)) 
+act n t v = map (sample v t) (range 0 (len v)) 
 
-{-@ reflect uncurry @-}
-uncurry :: (a -> b -> c) -> (a, b) -> c
-uncurry f (a, b) = f a b
+
 
 {-@ reflect sample @-}
-{- sample :: v:PrMValueFunction -> TransitionOf (llen v) -> StateOf v -> PrM Reward @-}
+{- sample :: v:PrMValueFunction -> TransitionOf (len v) -> StateOf v -> PrM Reward @-}
 sample :: PrMValueFunction -> Transition -> State -> PrM Reward
 sample v t i = bind (t `at` i) (uncurry (liftUpdate v i))
 

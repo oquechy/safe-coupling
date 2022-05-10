@@ -15,9 +15,9 @@ trueP :: a -> a -> Bool
 trueP _ _ = True 
 
 {-@ reflect bounded @-}
-{-@ bounded :: Double -> x:List Double -> ListEq Double {x} -> Bool @-}
+{-@ bounded :: Double -> x:List Double -> ListEq Double x -> Bool @-}
 bounded :: Double -> List Double -> List Double -> Bool
-bounded m v1 v2 = distList distDouble v1 v2 <= m && llen v1 == llen v2
+bounded m v1 v2 = distList distDouble v1 v2 <= m && len v1 == len v2
 
 {-@ reflect boundedD @-}
 boundedD :: Dist a -> Double -> a -> a -> Bool
@@ -48,8 +48,3 @@ impP _    _     = True
 leIntP :: Int -> Int -> Bool
 leIntP x y = x <= y
 
--- Properties on Predicates 
-{-@ ple boundedNil @-}
-{-@ boundedNil :: {m:_|0 <= m} -> {bounded m Nil Nil} @-}
-boundedNil :: Double -> ()
-boundedNil _ = ()
