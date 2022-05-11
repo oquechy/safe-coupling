@@ -10,6 +10,7 @@ import           Prelude hiding (iterate)
 
 import           Monad.PrM.Relational.TCB.Spec 
 import           Monad.PrM.Predicates
+import           Monad.PrM.Lift
 
 import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators

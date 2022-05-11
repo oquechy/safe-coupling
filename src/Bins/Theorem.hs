@@ -5,6 +5,7 @@ module Bins.Theorem where
 
 import           Monad.PrM
 import           Monad.PrM.Laws
+import           Monad.PrM.Lift
 import           Data.Dist
 import           Data.List
 

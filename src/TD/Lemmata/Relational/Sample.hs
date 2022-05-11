@@ -10,6 +10,7 @@ import           Prelude hiding (max, uncurry)
 
 import           Monad.PrM.Relational.TCB.Spec 
 import           Monad.PrM.Predicates      
+import           Monad.PrM.Lift      
 
 import           TD.Lemmata.Relational.Update
 

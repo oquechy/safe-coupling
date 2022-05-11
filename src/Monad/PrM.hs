@@ -31,12 +31,6 @@ type PrM a = [(a, Double)]
 {-@ type Prob = {v:Double|0 <= v && v <= 1} @-}
 type Prob = Double
 
-{-@ measure Monad.PrM.lift :: (a -> b -> Bool) -> PrM a -> PrM b -> Bool @-}
-{-@ assume lift :: p1:(a -> b -> Bool) -> x1:PrM a -> x2:PrM b 
-                -> {v:Bool | v == Monad.PrM.lift p1 x1 x2 } @-}
-lift :: (a -> b -> Bool) -> PrM a -> PrM b -> Bool
-lift p e1 e2 = True
-
 {-@ reflect bind' @-}
 bind' :: (a -> PrM b) -> a -> Double -> [(b, Double)]
 bind' f x p = map (bimap id (mul p)) (f x)

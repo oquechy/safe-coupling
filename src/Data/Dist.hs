@@ -73,7 +73,7 @@ distD x y = if x <= y then y - x else x - y
 -- listDist :: Dist a -> Dist (List a)
 -- listDist d = Dist (distList d) (distListEq d) (distListTri d) (distListSym d)
 
-{-@ type ListEq a XS = {ys:List a | len ys == len XS } @-}
+{-@ type ListEq a XS = {ys:[a] | len ys == len XS } @-}
 
 {-@ reflect distList @-}
 {-@ distList :: Dist a -> x:List a -> y:ListEq a {x} 

@@ -4,6 +4,7 @@
 module TD.Lemmata.Relational.Act where 
 
 import           Monad.PrM
+import           Monad.PrM.Lift
 import           Data.Dist
 import           Data.List
 import           Prelude hiding (max)

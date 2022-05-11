@@ -4,6 +4,7 @@
 module Examples.ExpDist where
 
 import           Monad.PrM
+import           Monad.PrM.Lift
 import           Data.Dist
 
 import           Monad.PrM.Relational.TCB.EDist

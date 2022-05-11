@@ -15,8 +15,8 @@ trueP :: a -> a -> Bool
 trueP _ _ = True 
 
 {-@ reflect bounded @-}
-{-@ bounded :: Double -> x:List Double -> ListEq Double x -> Bool @-}
-bounded :: Double -> List Double -> List Double -> Bool
+{-@ bounded :: Double -> x:[Double] -> ListEq Double x -> Bool @-}
+bounded :: Double -> [Double] -> [Double] -> Bool
 bounded m v1 v2 = distList distDouble v1 v2 <= m && len v1 == len v2
 
 {-@ reflect boundedD @-}

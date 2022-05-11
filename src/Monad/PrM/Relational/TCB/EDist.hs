@@ -9,17 +9,13 @@ module Monad.PrM.Relational.TCB.EDist where
 import Data.Dist 
 import Data.List 
 import Monad.PrM
+import Monad.PrM.Lift
 import Monad.PrM.Relational.TCB.Spec
 
-{-@ measure Monad.PrM.Relational.TCB.EDist.kant :: Dist a -> Dist (PrM a) @-}
-{-@ assume kant :: d:Dist a -> {dd:Dist (PrM a) | dd = Monad.PrM.Relational.TCB.EDist.kant d } @-}
-kant :: Dist a -> Dist (PrM a)
-kant = undefined 
-
-{-@ reflect edist @-}
-{-@ edist :: Dist a -> PrM a -> PrM a -> {v:Double | 0 <= v } @-} 
-edist :: Dist a -> PrM a -> PrM a -> Double 
-edist d = dist (kant d)
+{-@ reflect kdist @-}
+{-@ kdist :: Dist a -> PrM a -> PrM a -> {v:Double | 0 <= v } @-} 
+kdist :: Dist a -> PrM a -> PrM a -> Double 
+kdist d = dist (kant d)
 
 {-@ assume pureDist :: d:Dist a -> x1:a -> x2:a 
                     -> { dist (kant d) (ppure x1) (ppure x2) = dist d x1 x2} @-}

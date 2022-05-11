@@ -27,6 +27,7 @@ library
      , Monad.PrM
      , Monad.PrM.Predicates
      , Monad.PrM.Laws
+     , Monad.PrM.Lift
 
      , Monad.PrM.Relational.TCB.Spec
      , Monad.PrM.Relational.TCB.EDist
