@@ -83,7 +83,7 @@ thm d zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
   dist (kant d) (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2)
     === dist (kant d) (ppure ws1) (ppure ws2)
         ? pureDist d ws1 ws2
-    === dist d ws1 ws2
+    =<= dist d ws1 ws2
         ? estabEmp zs1 
     === dist d ws1 ws2 + estab zs1 α1
     *** QED 

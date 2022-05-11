@@ -19,9 +19,7 @@ import Prelude hiding ( fst
 {-@ reflect lift @-}
 {-@ lift :: Eq a => (a -> a -> Bool) -> PrM a -> PrM a -> Bool @-}
 lift :: Eq a => (a -> a -> Bool) -> PrM a -> PrM a -> Bool
-lift p e1 e2 = snd (plift Inf p e1 e2)
-
-type Evidence a = PrM a -> PrM a -> PrM (a, a)
+lift p e1 e2 = snd (plift (Inf e1) p e1 e2)
 
 {-@ measure Monad.PrM.Lift.kant :: Dist a -> Dist (PrM a) @-}
 {-@ assume kant :: d:Dist a -> {dd:Dist (PrM a) | dd = Monad.PrM.Lift.kant d } @-}
@@ -32,12 +30,11 @@ kant = undefined
 edist :: Dist a -> PrM (a, a) -> Double
 edist d mu = expect (uncurry (dist d)) mu
 
-{-@ data KBound a = Inf | K (Dist a) Double @-}
-data KBound a = Inf | K (Dist a) Double
+data KBound a = Inf (PrM a) | K (Dist a) Double
 
 {-@ reflect coupling @-}
 coupling :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> PrM (a, a) -> Bool
-coupling Inf p e1 e2 mu 
+coupling (Inf _) p e1 e2 mu 
     = pi fst mu == e1 && pi snd mu == e2 
     && all (uncurry p) (map fst mu) 
 coupling (K d k) p e1 e2 mu 

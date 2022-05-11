@@ -3,6 +3,7 @@
 -----------------------------------------------------------------
 
 {-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--ple" @-}
 
 module Monad.PrM.Relational.TCB.EDist where 
 
@@ -12,15 +13,31 @@ import Monad.PrM
 import Monad.PrM.Lift
 import Monad.PrM.Relational.TCB.Spec
 
+import           Language.Haskell.Liquid.ProofCombinators
+import           Misc.ProofCombinators
+
 {-@ reflect kdist @-}
 {-@ kdist :: Dist a -> PrM a -> PrM a -> {v:Double | 0 <= v } @-} 
 kdist :: Dist a -> PrM a -> PrM a -> Double 
 kdist d = dist (kant d)
 
-{-@ assume pureDist :: d:Dist a -> x1:a -> x2:a 
-                    -> { dist (kant d) (ppure x1) (ppure x2) = dist d x1 x2} @-}
+{-@ assume muDist :: d:Dist a -> k:Double -> e1:PrM a -> e2:PrM a -> mu:PrM (a, a) 
+                  -> {x:()|edist d mu <= k && pi fst mu = e1 && pi snd mu = e2} 
+                  -> {kdist d e1 e2 <= k} @-}
+muDist :: Dist a -> Double -> PrM a -> PrM a -> PrM (a, a) -> () -> ()
+muDist d k e1 e2 mu lemma = ()
+
+{-@ pureDist :: d:Dist a -> x1:a -> x2:a 
+                    -> { dist (kant d) (ppure x1) (ppure x2) <= dist d x1 x2} @-}
 pureDist :: Dist a -> a -> a -> ()
-pureDist _ _ _ = ()
+pureDist d x1 x2 
+      =   kdist d (ppure x1) (ppure x2)
+            ?   muDist d k (ppure x1) (ppure x2) mu ()
+      =<= k
+      *** QED
+      where 
+            k = dist d x1 x2
+            mu = [((x1, x2), 1)]
 
 {-@ assume bindDist :: d:Dist b -> m:Double -> p:(a -> a -> Bool)
                     -> f1:(a -> PrM b) -> e1:PrM a 
