@@ -1,0 +1,2 @@
+- fix termination on Monad.PrM.Relational.Theorems
+- fix Bins.Theorem

@@ -2,7 +2,6 @@
 -- | Proved Theorems for Relational Properties: mapMSpec   ------
 -----------------------------------------------------------------
 
-{- LIQUID "--no-termination" @-}
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
@@ -48,11 +47,12 @@ makeTwoArg d m f1 f2 lemma x y = lemma x
 -- | mapM Spec ----------------------------------------
 -------------------------------------------------------
 
+{-@ lazy mapMSpec @-}
 {-@ mapMSpec :: {m:Double|0 <= m} 
                    -> f1:(a -> PrM Double) -> f2:(a -> PrM Double) 
-                   -> is:List a
+                   -> xs:[a]
                    -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) 
-                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [len is, 0] @-}
+                   -> {lift (bounded m) (mapM f1 xs) (mapM f2 xs)} / [len xs, 0] @-}
 mapMSpec :: Double -> (a -> PrM Double) -> (a -> PrM Double) -> List a 
                -> (a -> ()) 
                -> ()
@@ -71,14 +71,15 @@ mapMSpec m f1 f2 is'@(i:is) lemma
 consLemma :: Double -> Double -> List Double -> Double -> List Double -> ()
 consLemma m r1 rs1 r2 rs2 = ()
 
+{-@ lazy consBindLemma @-}
 {-@ consBindLemma :: {m:Double|0 <= m} -> f1:(a -> PrM Double) -> f2:(a -> PrM Double) 
-                  -> is:List a 
+                  -> xs:[a] 
                   -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)})
                   -> r1:Double
                   -> {r2:Double|bounded' m r1 r2}
                   -> {lift (bounded m) 
-                           ((consM (len is) (mapM f1 is)) (r1)) 
-                           ((consM (len is) (mapM f2 is)) (r2))} / [len is, 1] @-}
+                           ((consM (len xs) (mapM f1 xs)) (r1)) 
+                           ((consM (len xs) (mapM f2 xs)) (r2))} / [len xs, 1] @-}
 consBindLemma :: Double -> (a -> PrM Double) -> (a -> PrM Double) 
               -> List a 
               -> (a -> ()) 
