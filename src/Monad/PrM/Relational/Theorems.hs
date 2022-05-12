@@ -2,7 +2,7 @@
 -- | Proved Theorems for Relational Properties: mapMSpec   ------
 -----------------------------------------------------------------
 
-{- LIQUID "--no-termination" @-}
+{-@ LIQUID "--no-termination" @-}
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
