@@ -3,6 +3,7 @@
 -----------------------------------------------------------------
 
 {-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--ple"        @-}
 
 module Monad.PrM.Relational.TCB.Spec where 
 
@@ -10,7 +11,9 @@ import Monad.PrM
 import Monad.PrM.Lift 
 import Monad.PrM.Predicates
 
-{-@ assume pureSpec :: Eq a => p:(a -> a -> Bool) 
+import Data.Dist 
+
+{-@ pureSpec :: Eq a => p:(a -> a -> Bool) 
                     -> x1:a -> x2:a -> {_:()|p x1 x2} 
                     -> {lift p (ppure x1) (ppure x2)} @-}
 pureSpec :: Eq a => (a -> a -> Bool) -> a -> a -> () -> ()

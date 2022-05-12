@@ -26,6 +26,12 @@ lift p e1 e2 = snd (plift (Inf e1) p e1 e2)
 kant :: Dist a -> Dist (PrM a)
 kant = undefined 
 
+{-@ assume muDist :: d:Dist a -> k:Double -> e1:PrM a -> e2:PrM a -> mu:PrM (a, a) 
+                  -> {x:()| edist d mu <= k && pi fst mu = e1 && pi snd mu = e2} 
+                  -> {dist (kant d) e1 e2 <= k} @-}
+muDist :: Dist a -> Double -> PrM a -> PrM a -> PrM (a, a) -> () -> ()
+muDist d k e1 e2 mu lemma = ()
+
 {-@ reflect edist @-} 
 edist :: Dist a -> PrM (a, a) -> Double
 edist d mu = expect (uncurry (dist d)) mu
