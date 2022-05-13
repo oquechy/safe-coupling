@@ -12,6 +12,7 @@ import Data.List
 import Monad.PrM
 import Monad.PrM.Lift
 import Monad.PrM.Relational.TCB.Spec
+import Monad.PrM.Relational.Rules
 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
@@ -28,7 +29,7 @@ muDist :: Dist a -> Double -> PrM a -> PrM a -> PrM (a, a) -> () -> ()
 muDist d k e1 e2 mu lemma = ()
 
 {-@ pureDist :: d:Dist a -> x1:a -> x2:a 
-                    -> { dist (kant d) (ppure x1) (ppure x2) <= dist d x1 x2} @-}
+             -> {dist (kant d) (ppure x1) (ppure x2) <= dist d x1 x2} @-}
 pureDist :: Dist a -> a -> a -> ()
 pureDist d x1 x2 
       =   kdist d (ppure x1) (ppure x2)

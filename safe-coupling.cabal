@@ -31,6 +31,7 @@ library
 
      , Monad.PrM.Relational.TCB.Spec
      , Monad.PrM.Relational.TCB.EDist
+     , Monad.PrM.Relational.Rules
      , Monad.PrM.Relational.Theorems
 
      , Misc.ProofCombinators
@@ -40,7 +41,7 @@ library
 
 -- Bins Example
       , Bins.Bins
-      , Bins.Theorem
+     --  , Bins.Theorem
 
 -- Bins Example using Applicatives
       , ApplicativeBins.Bins

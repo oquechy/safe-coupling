@@ -19,7 +19,7 @@ import Prelude hiding ( fst
 {-@ reflect lift @-}
 {-@ lift :: Eq a => (a -> a -> Bool) -> PrM a -> PrM a -> Bool @-}
 lift :: Eq a => (a -> a -> Bool) -> PrM a -> PrM a -> Bool
-lift p e1 e2 = snd (plift (Inf e1) p e1 e2)
+lift = klift Inf
 
 {-@ measure Monad.PrM.Lift.kant :: Dist a -> Dist (PrM a) @-}
 {-@ assume kant :: d:Dist a -> {dd:Dist (PrM a) | dd = Monad.PrM.Lift.kant d } @-}
@@ -30,11 +30,12 @@ kant = undefined
 edist :: Dist a -> PrM (a, a) -> Double
 edist d mu = expect (uncurry (dist d)) mu
 
-data KBound a = Inf (PrM a) | K (Dist a) Double
+{-@ data KBound a = Inf | K (Dist a) {v:Double|0 <= v} @-}
+data KBound a = Inf | K (Dist a) Double
 
 {-@ reflect coupling @-}
 coupling :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> PrM (a, a) -> Bool
-coupling (Inf _) p e1 e2 mu 
+coupling Inf p e1 e2 mu 
     = pi fst mu == e1 && pi snd mu == e2 
     && all (uncurry p) (map fst mu) 
 coupling (K d k) p e1 e2 mu 
@@ -58,6 +59,11 @@ elift dk p e1 e2 f = (mu, coupling dk p e1 e2 mu)
 {-@ plift :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> (PrM (a, a), Bool) @-}
 plift :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> (PrM (a, a), Bool)
 plift k p e1 e2 = elift k p e1 e2 bij2
+
+{-@ reflect klift @-}
+{-@ klift :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> Bool @-}
+klift :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> Bool
+klift k p e1 e2 = snd (plift k p e1 e2)
 
 {-@ reflect bij2 @-}
 {- assume bij2 :: e1:PrM a -> e2:PrM b -> {mu:PrM (a, b)|(pi fst mu == e1) && (pi snd mu == e2)} @-}
