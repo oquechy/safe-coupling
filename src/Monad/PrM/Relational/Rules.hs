@@ -14,15 +14,16 @@ boundBy Inf _ _ = True
 boundBy (K d k) x1 x2 = dist d x1 x2 <= k
 
 {-@ pureT :: k:KBound a -> p:(a -> a -> Bool) -> x1:a -> x2:a 
-          -> {px:()|p x1 x2 && boundBy k x1 x2} 
+          -> {px:()|p x1 x2}
+          -> {bx:()|boundBy k x1 x2} 
           -> {klift k p (ppure x1) (ppure x2)} @-}
-pureT :: KBound a -> (a -> a -> Bool) -> a -> a -> () -> () 
-pureT Inf _ _ _ _ = ()
-pureT _ _ _ _ _ = ()
+pureT :: KBound a -> (a -> a -> Bool) -> a -> a -> () -> () -> () 
+pureT Inf _ _ _ _ _ = ()
+pureT _ _ _ _ _ _ = ()
 
 {- unifT :: Eq a => k:KBound a -> {xs:[a]|0 < len xs} -> {klift k eqP (unif xs) (unif xs)} @-}
+{-@ unifT :: Eq a => k:KBound a -> {xs:[a]|0 < len xs} -> () @-}
 unifT :: KBound a -> [a] -> ()
-unifT _ _ = ()
 unifT Inf [_] = ()
 unifT Inf (_:xs@(_:_)) = unifT Inf xs
 unifT k [_] = ()

@@ -8,9 +8,10 @@
 module Monad.PrM.Relational.TCB.EDist where 
 
 import Data.Dist 
-import Data.List 
+import Data.List
 import Monad.PrM
 import Monad.PrM.Lift
+import Monad.PrM.Predicates
 import Monad.PrM.Relational.TCB.Spec
 import Monad.PrM.Relational.Rules
 
@@ -22,17 +23,14 @@ import           Misc.ProofCombinators
 kdist :: Dist a -> PrM a -> PrM a -> Double 
 kdist d = dist (kant d)
 
-
-
 {-@ pureDist :: d:Dist a -> x1:a -> x2:a 
              -> {dist (kant d) (ppure x1) (ppure x2) <= dist d x1 x2} @-}
 pureDist :: Dist a -> a -> a -> ()
 pureDist d x1 x2 
-      =   kdist d (ppure x1) (ppure x2)
-      ?   muDist d k (ppure x1) (ppure x2) mu ()
-      =<= k
-      *** QED
+      = pureT b trueP x1 x2 (assert (trueP x1 x2)) ()
+            ? muDist d k (ppure x1) (ppure x2) mu ()
       where 
+            b = K d k
             k = dist d x1 x2
             mu = [((x1, x2), 1)]
 

@@ -10,6 +10,7 @@ module Monad.PrM.Relational.TCB.Spec where
 import Monad.PrM 
 import Monad.PrM.Lift 
 import Monad.PrM.Predicates
+import Monad.PrM.Relational.Rules
 
 import Data.Dist
 
@@ -17,7 +18,7 @@ import Data.Dist
                     -> x1:a -> x2:a -> {_:()|p x1 x2} 
                     -> {lift p (ppure x1) (ppure x2)} @-}
 pureSpec :: Eq a => (a -> a -> Bool) -> a -> a -> () -> ()
-pureSpec _ _ _ _ = ()
+pureSpec p x1 x2 px = pureT Inf p x1 x2 px ()
 
 {-@ assume bindSpec :: (Eq a, Eq b) => p:(b -> b -> Bool) -> q:(a -> a -> Bool) 
                     -> e1:PrM a -> f1:(a -> PrM b) 
