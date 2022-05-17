@@ -72,7 +72,6 @@ klift :: Eq a => KBound a -> (a -> a -> Bool) -> PrM a -> PrM a -> Bool
 klift k p e1 e2 = snd (plift k p e1 e2)
 
 {-@ reflect bij2 @-}
-{- assume bij2 :: e1:PrM a -> e2:PrM b -> {mu:PrM (a, b)|(pi fst mu == e1) && (pi snd mu == e2)} @-}
 bij2 :: PrM a -> PrM a -> PrM (a, a)
 bij2 [] _          = []
 bij2 _ []          = []
