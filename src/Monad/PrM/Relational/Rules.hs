@@ -34,14 +34,12 @@ piBij e = assume (pi fst (bij2 e e) == e && pi snd (bij2 e e) == e)
 edistBij :: Dist a -> PrM a -> ()
 edistBij d e = ()
 
-{-assume  @-}
-
 {-@ unifT :: Eq a => k:KBound a -> {xs:[a]|0 < len xs} -> {klift k eqP (unif xs) (unif xs)} @-}
 unifT :: Eq a => KBound a -> [a] -> ()
 unifT Inf xs@[_] = ()
 unifT Inf xs@(_:xs'@(_:_))
     = piBij e
-    ? assert (pi fst (bij2 e e) == e && pi snd (bij2 e e) == e)
+    ? assume (pi fst (bij2 e e) == e && pi snd (bij2 e e) == e)
     ? assume (all (uncurry eqP) (map fst mu))
     where
         e = unif xs
@@ -49,16 +47,61 @@ unifT Inf xs@(_:xs'@(_:_))
 unifT (K d k) xs@[x]
     =   distEq d x
 unifT b@(K d k) xs@(_:xs'@(_:_)) 
-    = (pi fst (bij2 e e) 
-        ? piBij e
-        === e
-        *** QED) 
-    ? (pi snd (bij2 e e) 
-        ? piBij e
-        === e
-        *** QED)
+    = assume (pi fst (bij2 e e) == e) 
+    ? assume (pi snd (bij2 e e) == e) 
     ? assume (all (uncurry eqP) (map fst mu))
     ? edistBij d e
     where
         e = unif xs
         mu = bij2 e e
+
+{-@ assume bernT :: k:KBound Double -> x1:Prob -> x2:Prob -> {_:()|x1 <= x2} -> {klift k (between 0 1) (bernoulli x1) (bernoulli x2)} @-}
+bernT :: KBound Double -> Prob -> Prob -> () -> ()
+bernT _ _ _ _ = ()
+
+{-@ assume choiceT :: m:KBound a -> p:(a -> a -> Bool)
+                   -> q:Prob
+                   -> k:KBound a
+                   -> x1:PrM a -> x2:PrM a 
+                   -> {_:()|klift k p x1 x2} 
+                   -> l:KBound a
+                   -> y1:PrM a -> y2:PrM a
+                   -> {_:()|klift l p y1 y2}
+                   -> {klift m p (choice q x1 y1) (choice q x2 y2)} @-}
+choiceT :: KBound a -> (a -> a -> Bool) -> Prob 
+        -> KBound a -> PrM a -> PrM a -> ()
+        -> KBound a -> PrM a -> PrM a -> ()
+        -> ()
+choiceT _ _ _ _ _ _ _ _ _ _ _ = ()
+
+{-@ assume bindT :: m:KBound b -> p:(b -> b -> Bool)
+                 -> k:KBound a -> q:(a -> a -> Bool)
+                 -> e1:PrM a -> e2:PrM a 
+                 -> {_:()|klift k q e1 e2}
+                 -> l:KBound b
+                 -> f1:(a -> PrM b) -> f2:(a -> PrM b)
+                 -> (x1:a -> x2:a -> {_:()|q x1 x2} -> {klift l p (f1 x1) (f2 x2)})
+                 -> {klift m p (bind e1 f1) (bind e2 f2)} @-}
+bindT :: KBound b -> (b -> b -> Bool)
+      -> KBound a -> (a -> a -> Bool)
+      -> PrM a -> PrM a 
+      -> ()
+      -> KBound b
+      -> (a -> PrM b) -> (a -> PrM b)
+      -> (a -> a -> () -> ())
+      -> ()
+bindT _ _ _ _ _ _ _ _ _ _ _ = ()
+
+{-@ assume fmapT :: m:KBound b -> p:(b -> b -> Bool) 
+                 -> k:KBound a -> q:(a -> a -> Bool) 
+                 -> e1:PrM a -> e2:PrM a 
+                 -> {_:()|klift k q e1 e2} 
+                 -> l:KBound b 
+                 -> f1:(a -> b) -> f2:(a -> b)
+                 -> (x1:a -> x2:a -> {p (f1 x1) (f2 x2) && boundBy l (f1 x1) (f2 x2)})
+                 -> {klift m p (fmap f1 e1) (fmap f2 e2)} @-}
+fmapT :: KBound b -> (b -> b -> Bool) -> KBound a -> (a -> a -> Bool)
+      -> PrM a -> PrM a -> () -> KBound b -> (a -> b) -> (a -> b)
+      -> (a -> a -> ())
+      -> ()
+fmapT _ _ _ _ _ _ _ _ _ _ _ = ()

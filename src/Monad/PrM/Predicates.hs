@@ -31,6 +31,9 @@ bounded' m x1 x2 = distD x1 x2 <= m
 eqP :: Eq a => a -> a -> Bool
 eqP = (==)
 
+{-@ reflect between @-}
+between :: Double -> Double -> Double -> Double -> Bool
+between a b x y = a <= x && x <= y && y <= b
 
 {-@ reflect leDoubleP @-}
 {-@ leDoubleP :: x:Double -> y:Double -> {v:Bool|v <=> (x <= y)} @-}
