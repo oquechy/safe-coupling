@@ -18,11 +18,11 @@ boundBy :: KBound a -> a -> a -> Bool
 boundBy Inf _ _ = True
 boundBy (K d k) x1 x2 = dist d x1 x2 <= k
 
-{-@ pureT :: k:KBound a -> p:(a -> a -> Bool) -> x1:a -> x2:a 
+{-@ pureT :: Eq a => k:KBound a -> p:(a -> a -> Bool) -> x1:a -> x2:a 
           -> {px:()|p x1 x2}
           -> {bx:()|boundBy k x1 x2} 
           -> {klift k p (ppure x1) (ppure x2)} @-}
-pureT :: KBound a -> (a -> a -> Bool) -> a -> a -> () -> () -> () 
+pureT :: Eq a => KBound a -> (a -> a -> Bool) -> a -> a -> () -> () -> () 
 pureT Inf _ _ _ _ _ = ()
 pureT _ _ _ _ _ _ = ()
 
@@ -59,7 +59,7 @@ unifT b@(K d k) xs@(_:xs'@(_:_))
 bernT :: KBound Double -> Prob -> Prob -> () -> ()
 bernT _ _ _ _ = ()
 
-{-@ assume choiceT :: m:KBound a -> p:(a -> a -> Bool)
+{-@ assume choiceT :: Eq a => m:KBound a -> p:(a -> a -> Bool)
                    -> q:Prob
                    -> k:KBound a
                    -> x1:PrM a -> x2:PrM a 
@@ -68,13 +68,13 @@ bernT _ _ _ _ = ()
                    -> y1:PrM a -> y2:PrM a
                    -> {_:()|klift l p y1 y2}
                    -> {klift m p (choice q x1 y1) (choice q x2 y2)} @-}
-choiceT :: KBound a -> (a -> a -> Bool) -> Prob 
+choiceT :: Eq a => KBound a -> (a -> a -> Bool) -> Prob 
         -> KBound a -> PrM a -> PrM a -> ()
         -> KBound a -> PrM a -> PrM a -> ()
         -> ()
 choiceT _ _ _ _ _ _ _ _ _ _ _ = ()
 
-{-@ assume bindT :: m:KBound b -> p:(b -> b -> Bool)
+{-@ assume bindT :: (Eq a, Eq b) => m:KBound b -> p:(b -> b -> Bool)
                  -> k:KBound a -> q:(a -> a -> Bool)
                  -> e1:PrM a -> e2:PrM a 
                  -> {_:()|klift k q e1 e2}
@@ -82,7 +82,7 @@ choiceT _ _ _ _ _ _ _ _ _ _ _ = ()
                  -> f1:(a -> PrM b) -> f2:(a -> PrM b)
                  -> (x1:a -> x2:a -> {_:()|q x1 x2} -> {klift l p (f1 x1) (f2 x2)})
                  -> {klift m p (bind e1 f1) (bind e2 f2)} @-}
-bindT :: KBound b -> (b -> b -> Bool)
+bindT :: (Eq a, Eq b) => KBound b -> (b -> b -> Bool)
       -> KBound a -> (a -> a -> Bool)
       -> PrM a -> PrM a 
       -> ()
@@ -92,16 +92,34 @@ bindT :: KBound b -> (b -> b -> Bool)
       -> ()
 bindT _ _ _ _ _ _ _ _ _ _ _ = ()
 
-{-@ assume fmapT :: m:KBound b -> p:(b -> b -> Bool) 
+{-@ assume fmapT :: (Eq a, Eq b) => m:KBound b -> p:(b -> b -> Bool) 
                  -> k:KBound a -> q:(a -> a -> Bool) 
                  -> e1:PrM a -> e2:PrM a 
                  -> {_:()|klift k q e1 e2} 
                  -> l:KBound b 
                  -> f1:(a -> b) -> f2:(a -> b)
-                 -> (x1:a -> x2:a -> {p (f1 x1) (f2 x2) && boundBy l (f1 x1) (f2 x2)})
+                 -> (x1:a -> x2:a -> {_:()|q x1 x2} -> {p (f1 x1) (f2 x2) && boundBy l (f1 x1) (f2 x2)})
                  -> {klift m p (fmap f1 e1) (fmap f2 e2)} @-}
-fmapT :: KBound b -> (b -> b -> Bool) -> KBound a -> (a -> a -> Bool)
+fmapT :: (Eq a, Eq b) => KBound b -> (b -> b -> Bool) -> KBound a -> (a -> a -> Bool)
       -> PrM a -> PrM a -> () -> KBound b -> (a -> b) -> (a -> b)
-      -> (a -> a -> ())
+      -> (a -> a -> () -> ())
       -> ()
-fmapT _ _ _ _ _ _ _ _ _ _ _ = ()
+fmapT m p k q e1 e2 ehyp l f1 f2 fhyp | klift k q e1 e2
+    = bindT m p k q e1 e2 ehyp l (ppure `o` f1) (ppure `o` f2) (fmapLemma l p q f1 f2 fhyp)
+fmapT m p k q e1 e2 ehyp l f1 f2 fhyp = ()
+
+{-@ fmapLemma :: Eq b => l:KBound b 
+              -> p:(b -> b -> Bool)
+              -> q:(a -> a -> Bool)
+              -> f1:(a -> b) -> f2:(a -> b)
+              -> (x1:a -> x2:a -> {_:()|q x1 x2} -> {p (f1 x1) (f2 x2) && boundBy l (f1 x1) (f2 x2)})
+              -> x1:a -> x2:a -> {_:()|q x1 x2} -> {klift l p (o ppure f1 x1) (o ppure f2 x2)} @-}
+fmapLemma :: Eq b => KBound b -> (b -> b -> Bool) -> (a -> a -> Bool) 
+          -> (a -> b) -> (a -> b) -> (a -> a -> () -> ()) 
+          -> a -> a -> () -> ()
+fmapLemma l p q f1 f2 fhyp x1 x2 xhyp
+    =   klift l p ((ppure . f1) x1) ((ppure . f2) x2)
+    === klift l p (ppure (f1 x1)) (ppure (f2 x2))
+        ? pureT l p (f1 x1) (f2 x2) (fhyp x1 x2 xhyp) (fhyp x1 x2 xhyp)
+    === True
+    *** QED
