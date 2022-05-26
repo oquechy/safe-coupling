@@ -6,8 +6,10 @@ module Examples.ExpDist where
 import           Monad.PrM
 import           Monad.PrM.Lift
 import           Data.Dist
+import           Data.List
 
 import           Monad.PrM.Relational.TCB.EDist
+import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
 import           Prelude                 hiding ( map
@@ -21,8 +23,8 @@ import           Prelude                 hiding ( map
                                                 , const
                                                 )
 
-{-@ relationalu :: d:Dist a -> {xs:[a]|0 < len xs} -> {dist (kant d) (unif xs) (unif xs) == 0} @-}
-relationalu :: Dist a -> [a] -> ()
+{-@ relationalu :: Eq a => d:Dist a -> {xs:[a]|0 < len xs} -> {dist (kant d) (unif xs) (unif xs) == 0} @-}
+relationalu :: Eq a => Dist a -> [a] -> ()
 relationalu d xs = unifDist d xs xs 
 
 
@@ -35,7 +37,7 @@ exDistPure _ = pureDist distDouble 4.0 2.0
                 -> {dist (kant distDouble) (choice p (ppure 4.0) (unif xs)) (choice p (ppure 2.0) (unif xs)) <= p * 2.0 } @-}
 ex2DistPure :: Prob -> [Double] -> ()
 ex2DistPure p xs 
-  = relationalu distDouble xs `const` 
-    exDistPure () `const` 
-    choiceDist distDouble p (ppure 4.0) (unif xs) p (ppure 2.0) (unif xs)
+  = relationalu distDouble xs 
+    ? exDistPure () 
+    ? choiceDist distDouble p (ppure 4.0) (unif xs) p (ppure 2.0) (unif xs)
 

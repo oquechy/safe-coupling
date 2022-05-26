@@ -7,8 +7,8 @@ import           Prelude                 hiding ( map
                                                 , zipWith
                                                 , all
                                                 , foldr
+                                                , elem
                                                 )
-
 
 {-@ type SameLen L = {v:List Double|len v = len L} @-}
 {-@ type ListN N = {v:List Double|len v = N} @-}
@@ -19,6 +19,11 @@ type List a = [a]
 -- {-@ consDouble :: Double -> xs:List Double -> {v:List Double | len v == len xs + 1  } @-}
 -- consDouble :: Double -> List Double -> List Double 
 -- consDouble = (:)
+
+{-@ reflect cons @-}
+{-@ cons :: a -> xs:[a] -> {v:[a]|len v = len xs + 1} @-}
+cons :: a -> [a] -> [a]
+cons = (:)
 
 {-@ measure len @-}
 {-@ len :: List a -> Nat @-}
@@ -85,3 +90,34 @@ insert :: Ord a => a -> [a] -> [a]
 insert x [] = [x]
 insert x (y:xs) | x <= y = x:y:xs
 insert x (y:xs) = y : insert x xs
+
+{-@ reflect elem @-}
+elem :: Eq a => a -> [a] -> Bool
+elem x []                  = False
+elem x (x' : xs) | x == x' = True
+elem x (_ : xs)            = elem x xs
+
+{-@ reflect isPermutation @-}
+{-@ isPermutation :: Eq a => xs:[a] -> {ys:[a]|len xs = len ys} -> Bool @-}
+isPermutation :: Eq a => [a] -> [a] -> Bool
+isPermutation [] []                     = True
+isPermutation (x : xs) xs' | elem x xs' = isPermutation xs (xs' \\ x)
+isPermutation _ _                       = False
+
+{-@ infix \\ @-}
+{-@ reflect \\ @-}
+{-@ (\\) :: Eq a => xs:[a] -> x:a -> {v:[a]|elem x xs => len v = len xs - 1} @-}
+(\\) :: Eq a => [a] -> a -> [a]
+[] \\ x | elem x []             = []
+[] \\ x                         = []
+(x : xs) \\ x' | x == x'        = xs
+xs@(x : xs') \\ x' | elem x' xs = x : (xs' \\ x')
+(x : xs') \\ x'                 = x : (xs' \\ x')
+
+{-@ reflect diff1 @-}
+{-@ diff1 :: Eq a => {xs:[a]|1 <= len xs} -> {ys:[a]|len ys = len xs} 
+          -> (x::a, y::a, zs::[a], Bool) @-}
+diff1 :: Eq a => [a] -> [a] -> (a, a, [a], Bool)
+diff1 xs@(x:xs') ys@(y:ys') 
+    = (x, y, zs, isPermutation (cons x zs) xs && isPermutation (cons y zs) ys)    
+    where zs = xs'
