@@ -164,11 +164,6 @@ const x _ = x
 consM :: Int -> PrM (List Double) -> Double -> PrM (List Double)
 consM n xs x = bind xs (ppure `o` (consDouble x))
 
-{-@ reflect cons @-}
-{-@ cons :: a -> xs:[a] -> {ys:[a]|len ys = len xs + 1} @-}
-cons :: a -> [a] -> [a]
-cons = (:)
-
 {-@ reflect consDouble @-}
 {-@ consDouble :: Double -> xs:[Double] -> {ys:[Double]|len ys = len xs + 1} @-}
 consDouble :: Double -> [Double] -> [Double]
