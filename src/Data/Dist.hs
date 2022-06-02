@@ -17,7 +17,7 @@ import Data.List
 -----------------------------------------------------------------
 data Dist a = Dist { 
     dist           :: a -> a -> Double 
-  , distEq         :: a -> () 
+  , distEq         :: a -> a -> () 
   , triangularIneq :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
   }
@@ -25,7 +25,7 @@ data Dist a = Dist {
 
 {-@ data Dist a = Dist { 
     dist           :: a -> a -> {v:Double | 0.0 <= v } 
-  , distEq         :: a:a -> {dist a a = 0}
+  , distEq         :: a:a -> b:a -> {dist a b = 0 <=> a = b}
   , triangularIneq :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
   } @-}
@@ -43,9 +43,9 @@ distDouble = Dist distD distEqD triangularIneqD symmetryD
 
 {-@ ple distEqD @-}
 {-@ reflect distEqD @-}
-distEqD :: Double -> ()
-{-@ distEqD :: x:Double -> {distD x x == 0 } @-}
-distEqD _ = () 
+distEqD :: Double -> Double -> ()
+{-@ distEqD :: x:Double -> y:Double -> {distD x y == 0 <=> x = y} @-}
+distEqD _ _ = () 
 
 {-@ ple triangularIneqD @-}
 {-@ reflect triangularIneqD @-}
@@ -87,7 +87,7 @@ distList d (x : xs) (y : ys) = max (dist d x y) (distList d xs ys)
 {-@ distListEq :: d:Dist a -> x:List a -> { distList d x x == 0 } @-}
 distListEq :: Dist a -> List a -> ()
 distListEq d [] = () 
-distListEq d (x : xs) = distEq d x ? distListEq d xs
+distListEq d (x : xs) = distEq d x x ? distListEq d xs
 
 {-@ ple distListSym @-}
 {-@ distListSym :: d:Dist a -> x:List a -> y:ListEq a {x} -> { distList d x y == distList d y x } @-}
