@@ -17,11 +17,11 @@ import           Monad.PrM               hiding ( sum )
 import           Monad.PrM.Lift
 import           Monad.PrM.Laws
 import           Monad.PrM.Relational.TCB.EDist
-import           Monad.PrM.Relational.Theorems ( bindDistEq, unifChoice )
+import           Monad.PrM.Relational.Theorems ( bindDistEq, unifChoice, unifPermut )
 import           Data.Dist 
 import           Data.List 
 import           SGD.SGD 
-
+import           SGD.DataPointDist
 
 {-@ measure SGD.Theorem.lip :: Double @-}
 {-@ assume lip :: {v:Double|SGD.Theorem.lip = v && v >= 0 } @-}
@@ -96,10 +96,10 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =   dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
     === dist (kant d) (bind (unif zs1) sgdRec1) 
                       (bind (unif zs2) sgdRec2)
-        ?   unifPermut xs zs1 
+        ?   unifPermut distDataPoint xs zs1 
     === dist (kant d) (bind (unif xs) sgdRec1) 
                       (bind (unif zs2) sgdRec2)
-        ?   unifPermut ys zs2
+        ?   unifPermut distDataPoint ys zs2
     === dist (kant d) (bind (unif (cons x zs)) sgdRec1) 
                       (bind (unif (cons y zs)) sgdRec2)
         -- unifChoice :: unif (cons x xs) = choice (mydiv 1 (lend (cons x xs))) (ppure x) (unif xs)

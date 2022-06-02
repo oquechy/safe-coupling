@@ -67,17 +67,8 @@ liftA2Dist :: Dist a -> Dist b -> Dist c -> Double -> Double -> Double -> Double
            -> ()  
 liftA2Dist _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = ()
 
-{- Normally, this can be proved with distance on lists:
-distEq :: a:a -> b:a -> {dist a b = 0 <=> a = b}
- 
-distEq + unifDist => (unif xs1 = unif xs2)
--}
-{-@ assume unifPermut :: Eq a => xs1:[a] -> {xs2:[a]|isPermutation xs1 xs2} -> {unif xs1 = unif xs2} @-}
-unifPermut :: Eq a => [a] -> [a] -> ()
-unifPermut _ _ = ()
-
 {-@ assume unifDist :: Eq a => d:Dist a -> xs1:[a] -> xs2:{[a]|isPermutation xs1 xs2 || xs1 = xs2}
-                          -> {dist (kant d) (unif xs1) (unif xs1) == 0} @-}
+                          -> {dist (kant d) (unif xs1) (unif xs2) == 0} @-}
 unifDist :: Eq a => Dist a -> [a] -> [a] -> ()
 unifDist _ _ _ = ()
 

@@ -118,4 +118,13 @@ unifChoice x xs@(_:_)
         [] -> ()
         [a] -> ()
         _ -> ()
-                        
+
+{-@ unifPermut :: Eq a => Dist a -> {xs1:[a]|1 <= len xs1} -> {xs2:[a]|1 <= len xs2 && isPermutation xs1 xs2} -> {unif xs1 = unif xs2} @-}
+unifPermut :: Eq a => Dist a -> [a] -> [a] -> ()
+unifPermut d xs1 xs2 | isPermutation xs1 xs2 && 1 <= len xs1 && 1 <= len xs2 
+    = ()
+        ? unifDist d xs1 xs2
+        ? assert (kdist d (unif xs1) (unif xs2) == 0)
+        ? distEq (kant d) (unif xs1) (unif xs2)
+        ? assert ((unif xs1) == (unif xs2))
+unifPermut _ _ _ = ()
