@@ -128,3 +128,7 @@ unifPermut d xs1 xs2 | isPermutation xs1 xs2 && 1 <= len xs1 && 1 <= len xs2
         ? distEq (kant d) (unif xs1) (unif xs2)
         ? assert ((unif xs1) == (unif xs2))
 unifPermut _ _ _ = ()
+
+{-@ permutLen :: Eq a => xs:[a] -> ys:[a] -> {isPermutation xs ys => len xs = len ys} @-}
+permutLen :: Eq a => [a] -> [a] -> ()
+permutLen xs ys = () ? isPermutation xs ys

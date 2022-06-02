@@ -17,7 +17,7 @@ import           Monad.PrM               hiding ( sum )
 import           Monad.PrM.Lift
 import           Monad.PrM.Laws
 import           Monad.PrM.Relational.TCB.EDist
-import           Monad.PrM.Relational.Theorems ( bindDistEq, unifChoice, unifPermut )
+import           Monad.PrM.Relational.Theorems
 import           Data.Dist 
 import           Data.List 
 import           SGD.SGD 
@@ -66,12 +66,13 @@ estabEmp zs =
 {-@ ple estabconsR @-}
 {-@ measure Theorem.estabconsR  :: DataSet -> StepSize -> StepSizes -> ()  @-}
 {-@ estabconsR :: zs:{DataSet | lend zs /= 0} -> x:StepSize -> xs:StepSizes 
-                    -> { estab zs (SS x xs) == 2.0 * lip * x * (one / lend zs) + estab zs xs } @-}
+                    -> { estab zs (SS x xs) == 2.0 * lip * x * (mydiv 1.0 (lend zs)) + estab zs xs } @-}
 estabconsR :: DataSet -> StepSize -> StepSizes -> () 
 estabconsR zs x xs 
   =   estab zs (SS x xs)
   === 2.0 * lip / (lend zs) * sum (SS x xs)
-  === 2.0 * lip * x * (one / lend zs) + estab zs xs 
+  === 2.0 * lip * x * (1 / lend zs) + estab zs xs 
+  === 2.0 * lip * x * (mydiv 1 (lend zs)) + estab zs xs 
   *** QED 
         
 {-@ ple thm @-}
@@ -109,10 +110,6 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
         ?   assert (unif (cons y zs) == choice (1 `mydiv` lend (cons y zs)) (ppure y) (unif zs))
     === dist (kant d) (bind (choice (1 `mydiv` lend (cons x zs)) uhead1 utail1) sgdRec1)
                       (bind (choice (1 `mydiv` lend (cons y zs)) uhead2 utail2) sgdRec2)
-        ?   assert (len xs == len ys)
-        ?   assert (lend xs == lend ys)
-        ?   assert (p == 1 `mydiv` lend (cons x zs))
-        ?   assert (p == 1 `mydiv` lend (cons y zs))
     === dist (kant d)
             (bind (choice p uhead1 utail1) sgdRec1)
             (bind (choice p uhead2 utail2) sgdRec2)
@@ -135,6 +132,8 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1 - p) * (dist d ws1 ws2 + estab zs1 a1)
     =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
+        ?   permutLen xs zs1
+        ?   assert (lend zs1 == lend (cons x zs))
         ?   estabconsR zs1 α1 a1
     =<= dist d ws1 ws2 + estab zs1 (SS α1 a1)
     =<= dist d ws1 ws2 + estab zs1 as1

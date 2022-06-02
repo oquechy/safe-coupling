@@ -98,7 +98,7 @@ elem x (x' : xs) | x == x' = True
 elem x (_ : xs)            = elem x xs
 
 {-@ reflect isPermutation @-}
-{-@ isPermutation :: Eq a => xs:[a] -> ys:[a] -> Bool @-}
+{-@ isPermutation :: Eq a => xs:[a] -> ys:[a] -> {v:Bool|v => (len xs = len ys)} @-}
 isPermutation :: Eq a => [a] -> [a] -> Bool
 isPermutation [] []                     = True
 isPermutation _ []                      = False
