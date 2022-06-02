@@ -100,12 +100,13 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     === dist (kant d) (bind (unif xs) sgdRec1) 
                       (bind (unif zs2) sgdRec2)
         ?   unifPermut ys zs2
-    === dist (kant d) (bind (unif xs) sgdRec1) 
-                      (bind (unif ys) sgdRec2)
-        ?   unifChoice x zs
+    === dist (kant d) (bind (unif (cons x zs)) sgdRec1) 
+                      (bind (unif (cons y zs)) sgdRec2)
+        -- unifChoice :: unif (cons x xs) = choice (mydiv 1 (lend (cons x xs))) (ppure x) (unif xs)
+        ?   unifChoice x zs 
         ?   unifChoice y zs
-        ?   assert (unif xs == choice (1 `mydiv` lend xs) (ppure x) (unif zs))
-        ?   assert (unif ys == choice (1 `mydiv` lend ys) (ppure y) (unif zs))
+        ?   assert (unif (cons x zs) == choice (1 `mydiv` lend (cons x zs)) (ppure x) (unif zs))
+        ?   assert (unif (cons y zs) == choice (1 `mydiv` lend (cons y zs)) (ppure y) (unif zs))
     === dist (kant d) (bind (choice (1 `mydiv` lend (cons x zs)) uhead1 utail1) sgdRec1)
                       (bind (choice (1 `mydiv` lend (cons y zs)) uhead2 utail2) sgdRec2)
         ?   assert (len xs == len ys)
