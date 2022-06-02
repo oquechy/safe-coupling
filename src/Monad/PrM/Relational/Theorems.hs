@@ -109,3 +109,13 @@ pureLemma m r1 r2 f1 f2 is rs1 rs2 = ()
 {-@ boundedNil :: {m:Double|0 <= m} -> {bounded m nilDouble nilDouble} @-}
 boundedNil :: Double -> ()
 boundedNil _ = ()
+
+{-@ unifChoice :: x:a -> {xs:[a]|1 <= len xs} 
+               -> {unif (cons x xs) = choice (mydiv 1 (lend (cons x xs))) (ppure x) (unif xs)} @-}
+unifChoice :: a -> [a] -> ()
+unifChoice x xs@(_:_) 
+    = case cons x xs of 
+        [] -> ()
+        [a] -> ()
+        _ -> ()
+                        

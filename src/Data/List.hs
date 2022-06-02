@@ -116,24 +116,3 @@ isPermutation _ _                       = False
 xs@(x : xs') \\ x' | elem x' xs = x : (xs' \\ x')
 (x : xs') \\ x'                 = x : (xs' \\ x')
 
-{-@ reflect diff1 @-}
-{-@ diff1 :: Eq a => {xs:[a]|1 <= len xs} -> {ys:[a]| 1 <= len ys}
-          -> (x::a, y::a, zs::[a], {v:Bool| v = (len xs == len ys 
-                                            && len zs + 1 == len xs 
-                                            && isPermutation (x:zs) xs 
-                                            && isPermutation (y:zs) ys)}) @-}
-diff1 :: Eq a => [a] -> [a] -> (a, a, [a], Bool)
-diff1 xs@(x : xs') ys@(y : ys') =
-  ( x
-  , y
-  , zs
-  , len xs == len ys
-    && len zs + 1 == len xs
-    && isPermutation (x : zs) xs
-    && isPermutation (y : zs) ys
-  )
-  where zs = xs'
-
-{-@ reflect frth @-}
-frth :: (a, b, c, d) -> d
-frth (_, _, _, x) =x 
