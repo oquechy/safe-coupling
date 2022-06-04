@@ -79,7 +79,8 @@ estabconsR zs x xs
 {-@ thm :: d:Dist Double 
         -> x:DataPoint -> y:DataPoint -> {zs:[DataPoint]|1 <= len zs}
         -> {zs1:DataSet|isPermutation (cons x zs) zs1} -> ws1:Weight -> α1:StepSizes -> f1:LossFunction 
-        -> {zs2:DataSet|isPermutation (cons y zs) zs2} -> ws2:Weight -> {α2:StepSizes|α2 = α1} -> {f2:LossFunction|f1 = f2}
+        -> {zs2:DataSet|isPermutation (cons y zs) zs2} -> ws2:Weight -> {α2:StepSizes|α2 = α1} 
+        -> {f2:LossFunction|f1 = f2}
         -> {dist (kant d) (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist d ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
 thm :: Dist Double -> DataPoint -> DataPoint -> [DataPoint] 
     -> DataSet -> Weight -> StepSizes -> LossFunction 
@@ -104,9 +105,9 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     === dist (kant d) (bind (unif (cons x zs)) sgdRec1) 
                       (bind (unif (cons y zs)) sgdRec2)
         ?   unifChoice x zs 
-        ?   assert (unif (cons x zs) == choice (mydiv 1.0 (lend (cons x zs))) (ppure x) (unif zs))
+--         ?   assert (unif (cons x zs) == choice (mydiv 1.0 (lend (cons x zs))) (ppure x) (unif zs))
         ?   unifChoice y zs
-        ?   assert (unif (cons y zs) == choice (mydiv 1.0 (lend (cons y zs))) (ppure y) (unif zs))
+--         ?   assert (unif (cons y zs) == choice (mydiv 1.0 (lend (cons y zs))) (ppure y) (unif zs))
     === dist (kant d) (bind (choice (1.0 `mydiv` lend (cons x zs)) uhead1 utail1) sgdRec1)
                       (bind (choice (1.0 `mydiv` lend (cons y zs)) uhead2 utail2) sgdRec2)
     === dist (kant d)
@@ -128,6 +129,13 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmEq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
+        ? assert (α1 == α2)
+       ? assert (dist (kant d) (bind (unif zs) (sgdRecUpd zs1 ws1 α1 a1 f1)) 
+                               (bind (unif zs) (sgdRecUpd zs2 ws2 α1 a1 f1)) -- HERE 
+                 <= dist d ws1 ws2 + estab zs1 a1)
+       ? assert (dist (kant d) (bind (unif zs) (sgdRecUpd zs1 ws1 α1 a1 f1)) 
+                               (bind (unif zs) (sgdRecUpd zs2 ws2 α2 a2 f2)) -- HERE 
+                 <= dist d ws1 ws2 + estab zs1 a1)
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist d ws1 ws2 + estab zs1 a1)
     =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
@@ -138,7 +146,7 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =<= dist d ws1 ws2 + estab zs1 as1
     *** QED
  where
-  p = 1 `mydiv` lend (cons x zs)
+  p = 1.0 `mydiv` lend (cons x zs)
   pureUpd1 = pureUpdate x α1 f1
   pureUpd2 = pureUpdate y α2 f2
   sgdRec1 = sgdRecUpd zs1 ws1 α1 a1 f1
@@ -178,7 +186,7 @@ thmNeq d x y zs zs1 ws1 zs2 ws2 α αs f
                       (bind (sgd zs2 ws2 αs f) (ppure . update y α f))
     === dist (kant d) (fmap (update x α f) (sgd zs1 ws1 αs f)) 
                       (fmap (update y α f) (sgd zs2 ws2 αs f))
-        ?   fmapDist d d (2 * lip * α) (update x α f) (sgd zs1 ws1 αs f) 
+        ?   fmapDist d d (2.0 * lip * α) (update x α f) (sgd zs1 ws1 αs f) 
                                        (update y α f) (sgd zs2 ws2 αs f) 
                                        (relationalupdatep d x α f y α f)
     =<= dist (kant d) (sgd zs1 ws1 αs f) (sgd zs2 ws2 αs f) + 2.0 * lip * α
