@@ -277,9 +277,9 @@ _ === y  = y
 
 
 infixl 3 =<=
-{- (=<=) :: x:Double -> y:{Double | x <= y} -> {v:Double | v == x && v <= y} @-}
+{-@ (=<=) :: x:Double -> y:{Double | x <= y} -> {v:Double | v == y && x <= y} @-}
 (=<=) :: Double -> Double -> Double
-x =<= _  = x
+_ =<= x  = x
 
 {-@ assertWith :: b:Bool -> {v:a | b} -> {b} @-}
 assertWith :: Bool -> a -> ()
