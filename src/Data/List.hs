@@ -23,7 +23,7 @@ type List a = [a]
 {-@ reflect cons @-}
 {-@ cons :: x:a -> xs:[a] -> {v:[a]|len v = len xs + 1 && head v = x && tail v = xs} @-}
 cons :: a -> [a] -> [a]
-cons = (:)
+cons x xs= x:xs 
 
 {-@ measure len @-}
 {-@ len :: List a -> Nat @-}

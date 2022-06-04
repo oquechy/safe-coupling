@@ -72,7 +72,7 @@ estabconsR zs x xs
   =   estab zs (SS x xs)
   === 2.0 * lip / (lend zs) * sum (SS x xs)
   === 2.0 * lip * x * (1 / lend zs) + estab zs xs 
-  === 2.0 * lip * x * (mydiv 1 (lend zs)) + estab zs xs 
+  === 2.0 * lip * x * (mydiv 1.0 (lend zs)) + estab zs xs 
   *** QED 
         
 {-@ ple thm @-}
@@ -103,13 +103,12 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
         ?   unifPermut distDataPoint ys zs2
     === dist (kant d) (bind (unif (cons x zs)) sgdRec1) 
                       (bind (unif (cons y zs)) sgdRec2)
-        -- unifChoice :: unif (cons x xs) = choice (mydiv 1 (lend (cons x xs))) (ppure x) (unif xs)
         ?   unifChoice x zs 
+        ?   assert (unif (cons x zs) == choice (mydiv 1.0 (lend (cons x zs))) (ppure x) (unif zs))
         ?   unifChoice y zs
-        ?   assert (unif (cons x zs) == choice (1 `mydiv` lend (cons x zs)) (ppure x) (unif zs))
-        ?   assert (unif (cons y zs) == choice (1 `mydiv` lend (cons y zs)) (ppure y) (unif zs))
-    === dist (kant d) (bind (choice (1 `mydiv` lend (cons x zs)) uhead1 utail1) sgdRec1)
-                      (bind (choice (1 `mydiv` lend (cons y zs)) uhead2 utail2) sgdRec2)
+        ?   assert (unif (cons y zs) == choice (mydiv 1.0 (lend (cons y zs))) (ppure y) (unif zs))
+    === dist (kant d) (bind (choice (1.0 `mydiv` lend (cons x zs)) uhead1 utail1) sgdRec1)
+                      (bind (choice (1.0 `mydiv` lend (cons y zs)) uhead2 utail2) sgdRec2)
     === dist (kant d)
             (bind (choice p uhead1 utail1) sgdRec1)
             (bind (choice p uhead2 utail2) sgdRec2)
@@ -124,13 +123,13 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
         ?   choiceDist d p (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
                          p (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
     =<= p * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
-            + (1 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+            + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmNeq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
-            + (1 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+            + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmEq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
-            + (1 - p) * (dist d ws1 ws2 + estab zs1 a1)
+            + (1.0 - p) * (dist d ws1 ws2 + estab zs1 a1)
     =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
         ?   permutLen xs zs1
         ?   assert (lend zs1 == lend (cons x zs))

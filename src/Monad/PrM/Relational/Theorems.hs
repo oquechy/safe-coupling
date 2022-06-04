@@ -111,13 +111,14 @@ boundedNil :: Double -> ()
 boundedNil _ = ()
 
 {-@ unifChoice :: x:a -> {xs:[a]|1 <= len xs} 
-               -> {unif (cons x xs) = choice (mydiv 1 (lend (cons x xs))) (ppure x) (unif xs)} @-}
+               -> {unif (cons x xs) = choice (mydiv 1.0 (lend (cons x xs))) (ppure x) (unif xs)} @-}
 unifChoice :: a -> [a] -> ()
 unifChoice x xs@(_:_) 
-    = case cons x xs of 
+  = case cons x xs of 
         [] -> ()
         [a] -> ()
-        _ -> ()
+        (y:ys) -> unif (cons x xs) === unif (y:ys) 
+                   ===  choice (1.0 `mydiv` lend (cons x xs)) (ppure y) (unif ys) *** QED 
 
 {-@ unifPermut :: Eq a => Dist a -> {xs1:[a]|1 <= len xs1} -> {xs2:[a]|1 <= len xs2 && isPermutation xs1 xs2} -> {unif xs1 = unif xs2} @-}
 unifPermut :: Eq a => Dist a -> [a] -> [a] -> ()
