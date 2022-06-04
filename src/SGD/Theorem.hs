@@ -131,7 +131,7 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =<= p * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
             + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmNeq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
-    =<= ((p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+    =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmEq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
         ? assert (α1 == α2)
@@ -142,7 +142,15 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
                                (bind (unif zs) (sgdRecUpd zs2 ws2 α2 a2 f2))  
                  <= dist d ws1 ws2 + estab zs1 a1)
        ? assert (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2)
-                 <= dist d ws1 ws2 + estab zs1 a1)))
+                 <= dist d ws1 ws2 + estab zs1 a1)
+       ? assert (0.0 <= 1.0 - p )
+       ? assert (
+           p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+            + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
+          <= 
+           p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+            + (1.0 - p) * (dist d ws1 ws2 + estab zs1 a1)   
+       )
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist d ws1 ws2 + estab zs1 a1)
     =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
