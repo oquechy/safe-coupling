@@ -9,7 +9,7 @@ import           Prelude                 hiding ( head
                                                 , sum
                                                 , fmap
                                                 )
-import           Language.Haskell.Liquid.ProofCombinators hiding ((===), (=<=), (?), (***))
+import           Language.Haskell.Liquid.ProofCombinators -- hiding ((===), (=<=), (?), (***))
 
 import           Misc.ProofCombinators
 
@@ -274,32 +274,3 @@ lemma d x y zs zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z =
                -> {pureUpdate zs a f == ppure . update zs a f} @-}
 pureUpdateEq :: DataPoint -> StepSize -> LossFunction -> ()
 pureUpdateEq zs a f = () 
-
-
--- Monomorphic Proof Combinators 
-
-infixl 3 ===
-{-@ (===) :: x:Double -> y:{Double | y == x} -> {v:Double | v == x && v == y} @-}
-(===) :: Double -> Double -> Double
-_ === y  = y
-
-
-infixl 3 =<=
-{-@ (=<=) :: x:Double -> y:{Double | x <= y} -> {v:Double | v == y && x <= y} @-}
-(=<=) :: Double -> Double -> Double
-_ =<= x  = x
-
-{-@ assertWith :: b:Bool -> {v:a | b} -> {b} @-}
-assertWith :: Bool -> a -> ()
-assertWith _ _ = () 
-
-
-infixl 3 ?
-
-{-@ (?) :: forall a b <pa :: a -> Bool, pb :: b -> Bool>. a<pa> -> b -> a<pa> @-}
-(?) :: a -> b -> a 
-x ? _ = x 
-
-infixl 3 ***
-(***) :: Double -> QED -> Proof
-_ *** _ = ()
