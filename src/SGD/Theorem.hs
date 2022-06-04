@@ -271,7 +271,7 @@ pureUpdateEq zs a f = ()
 -- Monomorphic Proof Combinators 
 
 infixl 3 ===
-{- (===) :: x:Double -> y:{Double | y == x} -> {v:Double | v == x && v == y} @-}
+{-@ (===) :: x:Double -> y:{Double | y == x} -> {v:Double | v == x && v == y} @-}
 (===) :: Double -> Double -> Double
 _ === y  = y
 
