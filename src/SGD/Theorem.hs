@@ -9,7 +9,7 @@ import           Prelude                 hiding ( head
                                                 , sum
                                                 , fmap
                                                 )
-import           Language.Haskell.Liquid.ProofCombinators
+import           Language.Haskell.Liquid.ProofCombinators hiding ((===), (=<=), (?), (***))
 
 import           Misc.ProofCombinators
 
@@ -78,10 +78,10 @@ estabconsR zs x xs
 {-@ ple thm @-}
 {-@ thm :: d:Dist Double 
         -> x:DataPoint -> y:DataPoint -> {zs:[DataPoint]|1 <= len zs}
-        -> {zs1:DataSet|isPermutation (cons x zs) zs1} -> ws1:Weight -> α1:StepSizes -> f1:LossFunction 
-        -> {zs2:DataSet|isPermutation (cons y zs) zs2} -> ws2:Weight -> {α2:StepSizes|α2 = α1} 
+        -> {zs1:DataSet|isPermutation (cons x zs) zs1} -> ws1:Weight -> as1:StepSizes -> f1:LossFunction 
+        -> {zs2:DataSet|isPermutation (cons y zs) zs2} -> ws2:Weight -> {as2:StepSizes|as2 = as1} 
         -> {f2:LossFunction|f1 = f2}
-        -> {dist (kant d) (sgd zs1 ws1 α1 f1) (sgd zs2 ws2 α2 f2) <= dist d ws1 ws2 + estab zs1 α1} / [sslen α1, 0]@-}
+        -> {dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2) <= dist d ws1 ws2 + estab zs1 as1} / [sslen as1, 0]@-}
 thm :: Dist Double -> DataPoint -> DataPoint -> [DataPoint] 
     -> DataSet -> Weight -> StepSizes -> LossFunction 
     -> DataSet -> Weight -> StepSizes -> LossFunction -> ()
@@ -91,11 +91,12 @@ thm d x y zs zs1 ws1 α1@SSEmp f1 zs2 ws2 α2@SSEmp f2 =
         ? pureDist d ws1 ws2
     =<= dist d ws1 ws2
         ? estabEmp zs1 
-    === dist d ws1 ws2 + estab zs1 α1
+    =<= dist d ws1 ws2 + estab zs1 α1
     *** QED 
 
 thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2 
-    =   dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
+    = assertWith (dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2) <= dist d ws1 ws2 + estab zs1 as1) (
+        dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2)
     === dist (kant d) (bind (unif zs1) sgdRec1) 
                       (bind (unif zs2) sgdRec2)
         ?   unifPermut distDataPoint xs zs1 
@@ -123,10 +124,14 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
           (choice p (bind uhead2 sgdRec2) (bind utail2 sgdRec2))
         ?   choiceDist d p (bind uhead1 sgdRec1) (bind utail1 sgdRec1)
                          p (bind uhead2 sgdRec2) (bind utail2 sgdRec2)
+        ? assert (dist (kant d) (sgd zs1 ws1 as1 f1) (sgd zs2 ws2 as2 f2) 
+              == dist (kant d)
+          (choice p (bind uhead1 sgdRec1) (bind utail1 sgdRec1))
+          (choice p (bind uhead2 sgdRec2) (bind utail2 sgdRec2)))
     =<= p * (dist (kant d) (bind uhead1 sgdRec1) (bind uhead2 sgdRec2)) 
             + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmNeq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
-    =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
+    =<= (p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
         ?   thmEq d x y zs zs1 ws1 zs2 ws2 α1 a1 f1
         ? assert (α1 == α2)
@@ -137,7 +142,7 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
                                (bind (unif zs) (sgdRecUpd zs2 ws2 α2 a2 f2))  
                  <= dist d ws1 ws2 + estab zs1 a1)
        ? assert (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2)
-                 <= dist d ws1 ws2 + estab zs1 a1)
+                 <= dist d ws1 ws2 + estab zs1 a1))
     =<= p * (dist d ws1 ws2 + estab zs1 a1 + 2.0 * lip * α1) 
             + (1.0 - p) * (dist d ws1 ws2 + estab zs1 a1)
     =<= dist d ws1 ws2 + 2.0 * lip * α1 * p + estab zs1 a1
@@ -147,6 +152,8 @@ thm d x y zs zs1 ws1 as1@(SS α1 a1) f1 zs2 ws2 as2@(SS α2 a2) f2
     =<= dist d ws1 ws2 + estab zs1 (SS α1 a1)
     =<= dist d ws1 ws2 + estab zs1 as1
     *** QED
+    )
+ 
  where
   p = 1.0 `mydiv` lend (cons x zs)
   pureUpd1 = pureUpdate x α1 f1
@@ -259,3 +266,32 @@ lemma d x y zs zs1 ws1 α1 a1 f1 zs2 ws2 α2 a2 f2 z =
                -> {pureUpdate zs a f == ppure . update zs a f} @-}
 pureUpdateEq :: DataPoint -> StepSize -> LossFunction -> ()
 pureUpdateEq zs a f = () 
+
+
+-- Monomorphic Proof Combinators 
+
+infixl 3 ===
+{-@ (===) :: x:Double -> y:{Double | y == x} -> {v:Double | v == x && v == y} @-}
+(===) :: Double -> Double -> Double
+_ === y  = y
+
+
+infixl 3 =<=
+{-@ (=<=) :: x:Double -> y:{Double | x <= y} -> {v:Double | v == x && v <= y} @-}
+(=<=) :: Double -> Double -> Double
+x =<= _  = x
+
+{-@ assertWith :: b:Bool -> {v:a | b} -> {b} @-}
+assertWith :: Bool -> a -> ()
+assertWith _ _ = () 
+
+
+infixl 3 ?
+
+{-@ (?) :: forall a b <pa :: a -> Bool, pb :: b -> Bool>. a<pa> -> b -> a<pa> @-}
+(?) :: a -> b -> a 
+x ? _ = x 
+
+infixl 3 ***
+(***) :: Double -> QED -> Proof
+_ *** _ = ()
