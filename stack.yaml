@@ -16,3 +16,6 @@ extra-deps:
 - git: https://github.com/ucsd-progsys/liquid-fixpoint.git
   commit: b590314a3e7cdabb10d7ad95007963930dfaa6d8
 allow-newer: true
+
+nix:
+  packages: ["z3"]
