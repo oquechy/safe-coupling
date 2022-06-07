@@ -16,7 +16,7 @@ type Weight = Double
 type LossFunction = DataPoint -> Weight -> Double
 
 type Set a = [a]
-{-@ type DataSet = {v:Set DataPoint| 1 < lend v && 1 < len v } @-}
+{-@ type DataSet = {v:Set DataPoint| 2 <= lend v && 2 <= len v } @-}
 type DataSet = Set DataPoint
 type DataPrM = PrM DataPoint
 

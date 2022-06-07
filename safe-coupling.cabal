@@ -58,6 +58,7 @@ library
 -- SGD Case Study      
      , SGD.SGD 
      , SGD.Theorem 
+     , SGD.DataPointDist 
 
   build-depends:
        liquid-base                       >= 4.15.0 && < 4.16

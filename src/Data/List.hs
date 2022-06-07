@@ -21,9 +21,9 @@ type List a = [a]
 -- consDouble = (:)
 
 {-@ reflect cons @-}
-{-@ cons :: a -> xs:[a] -> {v:[a]|len v = len xs + 1} @-}
+{-@ cons :: x:a -> xs:[a] -> {v:[a]|len v = len xs + 1 && head v = x && tail v = xs} @-}
 cons :: a -> [a] -> [a]
-cons = (:)
+cons x xs= x:xs 
 
 {-@ measure len @-}
 {-@ len :: List a -> Nat @-}
@@ -98,9 +98,11 @@ elem x (x' : xs) | x == x' = True
 elem x (_ : xs)            = elem x xs
 
 {-@ reflect isPermutation @-}
-{-@ isPermutation :: Eq a => xs:[a] -> {ys:[a]|len xs = len ys} -> Bool @-}
+{-@ isPermutation :: Eq a => xs:[a] -> ys:[a] -> {v:Bool|v => (len xs = len ys)} @-}
 isPermutation :: Eq a => [a] -> [a] -> Bool
 isPermutation [] []                     = True
+isPermutation _ []                      = False
+isPermutation [] _                      = False
 isPermutation (x : xs) xs' | elem x xs' = isPermutation xs (xs' \\ x)
 isPermutation _ _                       = False
 
@@ -114,10 +116,3 @@ isPermutation _ _                       = False
 xs@(x : xs') \\ x' | elem x' xs = x : (xs' \\ x')
 (x : xs') \\ x'                 = x : (xs' \\ x')
 
-{-@ reflect diff1 @-}
-{-@ diff1 :: Eq a => {xs:[a]|1 <= len xs} -> {ys:[a]|len ys = len xs} 
-          -> (x::a, y::a, zs::[a], Bool) @-}
-diff1 :: Eq a => [a] -> [a] -> (a, a, [a], Bool)
-diff1 xs@(x:xs') ys@(y:ys') 
-    = (x, y, zs, isPermutation (cons x zs) xs && isPermutation (cons y zs) ys)    
-    where zs = xs'

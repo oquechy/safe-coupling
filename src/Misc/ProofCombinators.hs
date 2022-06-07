@@ -1,5 +1,10 @@
 module Misc.ProofCombinators where 
 
+
+{-@ assertWith :: b:Bool -> {v:a | b} -> {b} @-}
+assertWith :: Bool -> a -> ()
+assertWith _ _ = () 
+
 {-@ assert :: {b:Bool | b} -> {v:() | b } @-}
 assert :: Bool -> () 
 assert _ = ()

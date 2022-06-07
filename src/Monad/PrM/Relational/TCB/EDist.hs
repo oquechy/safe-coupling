@@ -68,7 +68,7 @@ liftA2Dist :: Dist a -> Dist b -> Dist c -> Double -> Double -> Double -> Double
 liftA2Dist _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = ()
 
 {-@ assume unifDist :: Eq a => d:Dist a -> xs1:[a] -> xs2:{[a]|isPermutation xs1 xs2 || xs1 = xs2}
-                          -> {dist (kant d) (unif xs1) (unif xs1) == 0} @-}
+                          -> {dist (kant d) (unif xs1) (unif xs2) == 0} @-}
 unifDist :: Eq a => Dist a -> [a] -> [a] -> ()
 unifDist _ _ _ = ()
 
