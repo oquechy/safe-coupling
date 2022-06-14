@@ -15,8 +15,7 @@ jobs:
           name: Install z3 
           command: |
             wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.15/z3-solver-4.8.15.0.tar.gz
-            gunzip z3-solver-4.8.15.0.tar.gz
-            rm -f z3-solver-4.8.15.0.tar.gz
+            tar -xvzf z3-solver-4.8.12.0.tar.gz
             cd z3-solver-4.8.15.0 && sudo make install-z3py
             z3 --version
       - checkout
