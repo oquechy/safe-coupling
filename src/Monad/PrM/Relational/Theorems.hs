@@ -16,6 +16,7 @@ import           Prelude hiding (max, mapM, const)
 import           Monad.PrM.Relational.TCB.Spec 
 import           Monad.PrM.Relational.TCB.EDist
 import           Monad.PrM.Predicates
+import           Monad.PrM.Laws
 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
@@ -109,3 +110,28 @@ pureLemma m r1 r2 f1 f2 is rs1 rs2 = ()
 {-@ boundedNil :: {m:Double|0 <= m} -> {bounded m nilDouble nilDouble} @-}
 boundedNil :: Double -> ()
 boundedNil _ = ()
+
+{-@ choiceBind :: p:Prob -> e1:PrM (Double, Double) -> e2:PrM (Double, Double) 
+               -> f:((Double, Double) -> PrM Double) 
+               -> {choice p (bind e1 f) (bind e2 f) = bind (choice p e1 e2) f} @-}
+choiceBind :: Prob -> PrM (Double, Double) -> PrM (Double, Double) -> ((Double, Double) -> PrM Double) -> ()
+choiceBind p e1 e2 f
+    =   bind (choice p e1 e2) f
+    === bind (bind (bernoulli p) (bool e1 e2 `o` dToBool)) f
+        ? assoc (bernoulli p) (bool e1 e2 `o` dToBool) f
+    === bind (bernoulli p) (composeBind (bool e1 e2 `o` dToBool) f)
+        ?   ext (composeBind (bool e1 e2 `o` dToBool) f)
+                (bool (bind e1 f) (bind e2 f) `o` dToBool)
+                (choiceBindLemma e1 e2 f)
+    === bind (bernoulli p) (bool (bind e1 f) (bind e2 f) `o` dToBool)
+    === choice p (bind e1 f) (bind e2 f)
+    *** QED
+
+{-@ assume choiceBindLemma :: e1:PrM (Double, Double) -> e2:PrM (Double, Double) 
+                           -> f:((Double, Double) -> PrM Double) -> x:Double
+                           -> {composeBind (o (bool e1 e2) dToBool) f x 
+                                = o (bool (bind e1 f) (bind e2 f)) dToBool x} @-}
+choiceBindLemma :: PrM (Double, Double) -> PrM (Double, Double) -> ((Double, Double) -> PrM Double) 
+                -> Double -> ()
+choiceBindLemma e1 e2 f x | dToBool x = ()
+choiceBindLemma e1 e2 f x             = ()

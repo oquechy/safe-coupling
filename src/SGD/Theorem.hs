@@ -17,7 +17,7 @@ import           Monad.PrM               hiding ( sum )
 import           Monad.PrM.Lift
 import           Monad.PrM.Laws
 import           Monad.PrM.Relational.TCB.EDist
-import           Monad.PrM.Relational.Theorems ( bindDistEq )
+import           Monad.PrM.Relational.Theorems
 import           Data.Dist 
 import           SGD.SGD 
 

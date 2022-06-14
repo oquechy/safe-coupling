@@ -6,16 +6,6 @@ import           Monad.PrM
 import           Data.Dist
 import           Data.List
 
-import           Prelude                 hiding ( map
-                                                , max
-                                                , repeat
-                                                , foldr
-                                                , fmap
-                                                , mapM
-                                                , iterate
-                                                , uncurry
-                                                )
-
 {-@ type NBool = {v:Int | 0 <= v && v <= 1} @-}
 type NBool = Int 
 {-@ type NDouble = {v:Double | 0 <= v && v <= 1} @-}

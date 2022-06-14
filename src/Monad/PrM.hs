@@ -75,9 +75,19 @@ ap = liftA2 id
 (>>) :: PrM a -> PrM b -> PrM b
 a >> b = a >>= (const b)
 
+{-@ reflect bool @-}
+bool :: a -> a -> Bool -> a
+bool x y b = if b then x else y
+
+{-@ reflect dToBool @-}
+dToBool :: Double -> Bool
+dToBool 0 = False
+dToBool _ = True
+
 {-@ reflect choice @-}
+{-@ choice :: Prob -> PrM a -> PrM a -> PrM a @-}
 choice :: Prob -> PrM a -> PrM a -> PrM a
-choice p a b = map (bimap id (mul p)) a ++ map (bimap id (mul (1 - p))) b
+choice p a b = bind (bernoulli p) (bool a b `o` dToBool)
 
 {-@ reflect bernoulli @-}
 {-@ bernoulli :: Prob -> PrM {v:Double| v = 0 || v = 1} @-}
@@ -181,6 +191,10 @@ o g f x = g (f x)
 {-@ reflect seqBind @-}
 seqBind :: PrM b -> (a -> b -> PrM c) -> a -> PrM c
 seqBind u f x = bind u (f x)
+
+{-@ reflect composeBind @-}
+composeBind :: (a -> PrM b) -> (b -> PrM c) -> a -> PrM c
+composeBind g f x = bind (g x) f
 
 {-@ reflect flip @-}
 flip :: (a -> b -> c) -> b -> a -> c
