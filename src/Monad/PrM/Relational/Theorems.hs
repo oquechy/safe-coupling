@@ -135,3 +135,26 @@ choiceBindLemma :: PrM (Double, Double) -> PrM (Double, Double) -> ((Double, Dou
                 -> Double -> ()
 choiceBindLemma e1 e2 f x | dToBool x = ()
 choiceBindLemma e1 e2 f x             = ()
+{-@ unifChoice :: x:a -> {xs:[a]|1 <= len xs} 
+               -> {unif (cons x xs) = choice (mydiv 1.0 (lend (cons x xs))) (ppure x) (unif xs)} @-}
+unifChoice :: a -> [a] -> ()
+unifChoice x xs@(_:_) 
+  = case cons x xs of 
+        [] -> ()
+        [a] -> ()
+        (y:ys) -> unif (cons x xs) === unif (y:ys) 
+                   ===  choice (1.0 `mydiv` lend (cons x xs)) (ppure y) (unif ys) *** QED 
+
+{-@ unifPermut :: Eq a => Dist a -> {xs1:[a]|1 <= len xs1} -> {xs2:[a]|1 <= len xs2 && isPermutation xs1 xs2} -> {unif xs1 = unif xs2} @-}
+unifPermut :: Eq a => Dist a -> [a] -> [a] -> ()
+unifPermut d xs1 xs2 | isPermutation xs1 xs2 && 1 <= len xs1 && 1 <= len xs2 
+    = ()
+        ? unifDist d xs1 xs2
+        ? assert (kdist d (unif xs1) (unif xs2) == 0)
+        ? distEq (kant d) (unif xs1) (unif xs2)
+        ? assert ((unif xs1) == (unif xs2))
+unifPermut _ _ _ = ()
+
+{-@ permutLen :: Eq a => xs:[a] -> ys:[a] -> {isPermutation xs ys => len xs = len ys} @-}
+permutLen :: Eq a => [a] -> [a] -> ()
+permutLen xs ys = () ? isPermutation xs ys

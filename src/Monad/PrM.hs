@@ -98,7 +98,7 @@ bernoulli p = [(1, p), (0, 1 - p)]
 {-@ unif :: {xs:[a]|0 < len xs} -> PrM a @-}
 unif :: [a] -> PrM a
 unif [  a     ] = ppure a
-unif l@(x : xs) = choice (1 `mydiv` lend l) (ppure x) (unif xs)
+unif l@(x : xs) = choice (1.0 `mydiv` lend l) (ppure x) (unif xs)
 
 {-@ reflect expect @-}
 expect :: (a -> Double) -> PrM a -> Double
@@ -161,7 +161,7 @@ bimap :: (a -> b) -> (c -> d) -> (a, c) -> (b, d)
 bimap f g (x, y) = (f x, g y)
 
 {-@ reflect mydiv @-}
-{-@ mydiv :: Double -> {i:Double | i /= 0 } -> Double @-}
+{-@ mydiv :: x:Double -> y:{Double | y /= 0 } -> Double @-}
 mydiv :: Double -> Double -> Double
 mydiv x y = x / y
 
@@ -173,11 +173,6 @@ const x _ = x
 {-@ consM :: n:Nat -> PrM ({xs:List Double | len xs == n}) -> Double -> PrM ({v:List Double | len v = n + 1}) @-}
 consM :: Int -> PrM (List Double) -> Double -> PrM (List Double)
 consM n xs x = bind xs (ppure `o` (consDouble x))
-
-{-@ reflect cons @-}
-{-@ cons :: a -> xs:[a] -> {ys:[a]|len ys = len xs + 1} @-}
-cons :: a -> [a] -> [a]
-cons = (:)
 
 {-@ reflect consDouble @-}
 {-@ consDouble :: Double -> xs:[Double] -> {ys:[Double]|len ys = len xs + 1} @-}
