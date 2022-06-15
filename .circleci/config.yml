@@ -28,8 +28,6 @@ jobs:
 
       - save_cache:
           key: z3-4.8.15-cache
-          paths:
-            - z3-z3-4.8.15
       
       - run:
           name: Test Examples 
