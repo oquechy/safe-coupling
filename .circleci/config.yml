@@ -15,8 +15,8 @@ jobs:
           name: Install z3 
           command: |
             wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
-            tar -xvzf z3-z3-4.8.15.tar.gz
-            cd z3-z3-4.8.15
+            tar -xvzf z3-4.8.15.tar.gz
+            cd z3-4.8.15
             mkdir build
             cd build
             cmake -G "Unix Makefiles" ../
