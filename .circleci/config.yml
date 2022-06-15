@@ -14,9 +14,13 @@ jobs:
       - run: 
           name: Install z3 
           command: |
-            wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.15/z3-solver-4.8.15.0.tar.gz
-            tar -xvzf z3-solver-4.8.15.0.tar.gz
-            cd z3-solver-4.8.15.0/z3 && sudo make install-z3py
+            wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
+            tar -xvzf z3-z3-4.8.15.tar.gz
+            cd z3-z3-4.8.15
+            mkdir build
+            cd build
+            cmake -G "Unix Makefiles" ../
+            make -j4
             z3 --version
       - checkout
       - add_ssh_keys
