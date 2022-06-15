@@ -13,6 +13,9 @@ jobs:
       - checkout
       - add_ssh_keys
 
+      - restore_cache:
+          key: z3-4.8.15-cache
+            
       - run: 
           name: Install z3 
           command: |
@@ -22,6 +25,11 @@ jobs:
             cd z3-z3-4.8.15/build && cmake -G "Unix Makefiles" ../
             cd z3-z3-4.8.15/build && make -j4
             z3 --version
+
+      - save_cache:
+          key: z3-4.8.15-cache
+          paths:
+            - z3-z3-4.8.15
       
       - run:
           name: Test Examples 
