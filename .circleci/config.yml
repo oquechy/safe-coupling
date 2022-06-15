@@ -19,12 +19,15 @@ jobs:
       - run: 
           name: Install z3 
           command: |
-            wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
-            tar -xvzf z3-4.8.15.tar.gz
-            mkdir z3-z3-4.8.15/build
-            cd z3-z3-4.8.15/build && cmake -G "Unix Makefiles" ../
-            cd z3-z3-4.8.15/build && make -j4
-            z3 --version
+            if ! z3 --version 
+            then 
+              wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
+              tar -xvzf z3-4.8.15.tar.gz
+              mkdir z3-z3-4.8.15/build
+              cd z3-z3-4.8.15/build && cmake -G "Unix Makefiles" ../
+              cd z3-z3-4.8.15/build && make -j4
+              z3 --version
+            fi
 
       - save_cache:
           key: z3-4.8.15-cache
