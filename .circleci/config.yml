@@ -21,6 +21,7 @@ jobs:
             cd build
             cmake -G "Unix Makefiles" ../
             make -j4
+            cd ../../
             z3 --version
       - checkout
       - add_ssh_keys
