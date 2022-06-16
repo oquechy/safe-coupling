@@ -10,30 +10,21 @@ jobs:
     steps:
       - run: sudo apt-key del 7fa2af80 && sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
       - run: apt-get update && apt-get install -y git ssh unzip
-      - checkout
-      - add_ssh_keys
 
-      - restore_cache:
-          key: z3-4.8.15
-            
       - run: 
           name: Install z3 
           command: |
-            if ! z3 --version 
-            then 
-              wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
-              tar -xvzf z3-4.8.15.tar.gz
-              mkdir z3-z3-4.8.15/build
-              cd z3-z3-4.8.15/build && cmake -G "Unix Makefiles" ../
-              cd z3-z3-4.8.15/build && make -j4
-              z3 --version
-            fi
+            wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.15/z3-4.8.15-x64-glibc-2.31.zip
+            unzip z3-4.8.15-x64-glibc-2.31.zip
+            rm -f z3-4.8.15-x64-glibc-2.31.zip
+            cp z3-4.8.15-x64-glibc-2.31/bin/libz3.a /usr/local/lib
+            cp z3-4.8.15-x64-glibc-2.31/bin/z3 /usr/local/bin
+            cp z3-4.8.15-x64-glibc-2.31/include/* /usr/local/include
+            rm -rf z3-4.8.15-x64-glibc-2.31
+            z3 --version
+      - checkout
+      - add_ssh_keys
 
-      - save_cache:
-          key: z3-4.8.15
-          paths:
-            - /
-      
       - run:
           name: Test Examples 
           command: stack setup && stack build && stack test
