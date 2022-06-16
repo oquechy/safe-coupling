@@ -23,7 +23,7 @@ jobs:
             cmake -G "Unix Makefiles" ../
             make -j4
             ls
-            ln -s z3 /usr/bin/z3
+            ln -sf z3 /usr/bin/z3
             
       - run:
           name: Test Examples 
