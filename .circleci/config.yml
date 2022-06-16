@@ -19,12 +19,12 @@ jobs:
             wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.8.15.tar.gz
             tar -xvzf z3-4.8.15.tar.gz
             mkdir z3-z3-4.8.15/build
-            cd z3-z3-4.8.15/build && cmake -G "Unix Makefiles" ../
-            cd z3-z3-4.8.15/build && make -j4
-            ls z3-z3-4.8.15/build
-            ln -s z3-z3-4.8.15/build/z3 /usr/bin/z3
+            cd z3-z3-4.8.15/build 
+            cmake -G "Unix Makefiles" ../
+            make -j4
+            ls
+            ln -s z3 /usr/bin/z3
             
-      
       - run:
           name: Test Examples 
           command: stack setup && stack build && stack test
