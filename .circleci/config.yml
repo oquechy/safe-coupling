@@ -22,8 +22,8 @@ jobs:
             cd z3-z3-4.8.15/build 
             cmake -G "Unix Makefiles" ../
             make -j4
-            ls
             ln -sf z3 /usr/bin/z3
+            z3 --version
             
       - run:
           name: Test Examples 
