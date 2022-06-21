@@ -243,3 +243,7 @@ snd (_, b) = b
 {-@ reflect nilDouble @-}
 nilDouble :: [Double]
 nilDouble = []
+
+{-@ reflect abs @-}
+abs :: Double -> Double
+abs x = if x >= 0 then x else -x

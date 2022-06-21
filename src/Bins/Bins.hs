@@ -7,9 +7,7 @@ import           Data.Dist
 import           Data.List
 
 {-@ type NBool = {v:Int | 0 <= v && v <= 1} @-}
-type NBool = Int 
 {-@ type NDouble = {v:Double | 0 <= v && v <= 1} @-}
-type NDouble = Double 
 {-@ type PDouble = {v:Double | 0 <= v } @-}
 
 {-@ reflect bins @-}

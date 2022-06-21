@@ -192,7 +192,7 @@ bins' p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
 
 {-@ flipPlus :: x:Double -> {(flip (pure2 plus) x) == (ppure . (plus x))} @-}
 flipPlus :: Double -> () 
-flipPlus x = extDouble (flip (pure2 plus) x) (ppure . (plus x)) (flipPlus' x)
+flipPlus x = ext (flip (pure2 plus) x) (ppure . (plus x)) (flipPlus' x)
 
 {-@ flipPlus' :: x:Double -> y:Double -> {(flip (pure2 plus) x y) == (ppure . (plus x)) (y)} @-}
 flipPlus' :: Double -> Double -> () 
