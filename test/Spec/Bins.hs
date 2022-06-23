@@ -59,21 +59,21 @@ unit_bins_1_it = do
   resl @?= clean (map (\((a, _), p) -> (fromIntegral a, p)) binsIter1)
   resr @?= clean (map (\((_, b), p) -> (fromIntegral b, p)) binsIter1)
  where
-  resl = clean $ decons $ bins p 1
-  resr = clean $ decons $ bins q 1
+  resl = clean $ decons $ bins 1 p
+  resr = clean $ decons $ bins 1 q
 
 unit_bins_2_it :: Assertion
 unit_bins_2_it = do
   resl @?= clean (map (\((a, _), p) -> (fromIntegral a, p)) binsIter2)
   resr @?= clean (map (\((_, b), p) -> (fromIntegral b, p)) binsIter2)
  where
-  resl = clean $ decons $ bins p 2
-  resr = clean $ decons $ bins q 2
+  resl = clean $ decons $ bins 2 p
+  resr = clean $ decons $ bins 2 q
   
 unit_exp_dist_mockbins :: Assertion
 unit_exp_dist_mockbins =
   expDist == fromIntegral n * (q - p)
-    @? "want: E[dist (bins p n) (bins q n)] <= n * (q - p), got: " ++  show expDist
+    @? "want: E[dist (bins n p) (bins n q)] <= n * (q - p), got: " ++  show expDist
  where
   n       = 10
   bins    = mockbins (coupling p q) n
