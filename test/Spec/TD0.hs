@@ -15,7 +15,7 @@ import           TD.TD0                         ( td0
 
 import           Monad.Distr
 import           Data.Dist
-import "SGD-verified" Data.List
+import "safe-coupling" Data.List
 
 import           Prelude                 hiding ( map
                                                 , repeat

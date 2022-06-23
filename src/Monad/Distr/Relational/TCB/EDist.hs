@@ -9,7 +9,7 @@ module Monad.Distr.Relational.TCB.EDist where
 import Data.Dist 
 import Data.List 
 import Monad.Distr
-import Monad.Distr.Relational.TCB.Spec
+import Monad.Distr.Relational.TCB.Axiom
 
 {-@ measure Monad.Distr.Relational.TCB.EDist.kant :: Dist a -> Dist (Distr a) @-}
 {-@ assume kant :: d:Dist a -> {dd:Dist (Distr a) | dd = Monad.Distr.Relational.TCB.EDist.kant d } @-}

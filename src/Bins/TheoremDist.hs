@@ -1,7 +1,7 @@
 {-@ LIQUID "--reflection"     @-}
 {-@ LIQUID "--ple"            @-}
 
-module Bins.Theorem where
+module Bins.TheoremDist where
 
 import           Monad.Distr
 import           Data.Dist
@@ -10,46 +10,13 @@ import           Data.List
 import           Prelude                 hiding ( flip )
 
 import           Monad.Distr.Predicates
-import           Monad.Distr.Relational.TCB.Spec 
+import           Monad.Distr.Relational.TCB.Axiom 
 import           Monad.Distr.Relational.TCB.EDist
 import           Monad.Distr.Relational.Theorems
 import           Bins.Bins
 
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
-
-{- 
-{-@ relationalinccond :: x1:Double -> {x2:Double|x1 <= x2} -> y1:Double -> {y2:Double|leDoubleP y1 y2} 
-                      -> {lift leDoubleP (incCond x1 y1) (incCond x2 y2)} @-}
-relationalinccond :: Double -> Double -> Double -> Double -> ()
-relationalinccond x1 x2 y1 y2 = pureSpec leDoubleP
-                                         (y1 + x1)
-                                         (y2 + x2)
-                                         ()
-                                
-{-@ relationalbinsrec :: p:Prob -> {q:Prob|leDoubleP p q} -> n:Double -> x1:Double -> {x2:Double| x1 <= x2}
-                      -> {lift leDoubleP (addBernoulli p n x1) (addBernoulli q n x2)} / [n, 1] @-}
-relationalbinsrec :: Double -> Double -> Double -> Double -> Double -> ()
-relationalbinsrec p q n x1 x2
-    = bindSpec leDoubleP leDoubleP
-        (bins p n) (incCond x1)
-        (bins q n) (incCond x2)
-        (binsSpec p q n)
-        (relationalinccond x1 x2)
- 
-{-@ binsSpec :: p:Prob -> {q:Prob|leDoubleP p q} -> n:Double 
-             -> {lift leDoubleP (bins p n) (bins q n)} / [n, 0] @-}
-binsSpec :: Double -> Double -> Double -> ()
-binsSpec p q n | n < 1  
-    = pureSpec leDoubleP 0 0 ()
-binsSpec p q n 
-    = bindSpec leDoubleP leDoubleP
-               (bernoulli p) (addBernoulli p (n - 1))
-               (bernoulli q) (addBernoulli q (n - 1))
-               (bernoulliSpec p q)
-               (relationalbinsrec p q (n - 1))
-
--}
 
 {-@ plusDist :: y:Double -> x1:Double -> x2:Double 
              -> {distD (plus y x1) (plus y x2) = distD x1 x2} @-}
@@ -75,7 +42,7 @@ addBernoulliDist p q n y
   *** QED
 
 {-@ binsDistL :: p:Prob -> {q:Prob|p <= q} -> {n:PDouble|1 <= n}
-             -> {dist (kant distDouble) (bins p n) (bins' p q n) <= q - p} @-}
+             -> {dist (kant distDouble) (bins p n) (gbins p q n) <= q - p} @-}
 binsDistL :: Prob -> Prob -> Double -> ()
 binsDistL p q n 
   = bindDistEq distDouble 
@@ -115,7 +82,6 @@ addBinsDist p q n x
 pure2 :: (a -> b -> c) -> a -> b -> Distr c
 pure2 f a b = ppure (f a b)
 
-
 {-@ addBernoulliEq :: n:{Double | 0 <= n - 1 } -> p:Prob -> q:Prob 
                    -> {addBernoulli q (n - 1) == seqBind (bernoulli q) (pure2 plus)} @-}
 addBernoulliEq :: Double -> Double -> Double -> () 
@@ -138,16 +104,14 @@ addBernoulliEq' n p q x
   === seqBind (bernoulli q) (pure2 plus) x
   *** QED 
 
-
-
 {-@ binsDistR :: p:Prob -> {q:Prob|p <= q} -> {n:PDouble|1 <= n} 
-              -> {dist (kant distDouble) (bins' p q n) (bins q n) <= (n - 1) * (q - p)} 
+              -> {dist (kant distDouble) (gbins p q n) (bins q n) <= (n - 1) * (q - p)} 
               / [n, 0] @-}
 binsDistR ::Prob -> Prob -> Double -> ()
 binsDistR p q n 
-  =   dist (kant d) (bins' p q n) (bins q n)
+  =   dist (kant d) (gbins p q n) (bins q n)
       ? addBernoulliEq n p q 
-      ? assert (bins' p q n == bind (bins p (n - 1)) (seqBind (bernoulli q) (pure2 plus)))
+      ? assert (gbins p q n == bind (bins p (n - 1)) (seqBind (bernoulli q) (pure2 plus)))
       ? assert (bins q n == bind (bins q (n - 1)) (seqBind (bernoulli q) (pure2 plus)))
   === dist (kant d) 
            (bind (bins p (n - 1)) (seqBind (bernoulli q) (pure2 plus))) 
@@ -172,34 +136,32 @@ binsDistR p q n
 binsDist :: Prob -> Prob -> Double -> ()
 binsDist p q n | n < 1.0 
   = pureDist distDouble 0 0 
---   ? assert (dist (kant distDouble) (pure 0.0) (pure 0.0) == 0.0) 
   ? assert (0 <= n) 
   ? assert (0 <= (q - p)) 
   ? assert (dist (kant distDouble) (bins p n) (bins q n) <= n * (q - p)) 
 binsDist p q n
   =   dist (kant d) (bins p n) (bins q n)
-      ? triangularIneq (kant d) (bins p n) (bins' p q n) (bins q n)
+      ? trinequality (kant d) (bins p n) (gbins p q n) (bins q n)
       ? assert (dist (kant d) (bins p n) (bins q n) 
-                   <= dist (kant d) (bins p n) (bins' p q n)
-                    + dist (kant d) (bins' p q n) (bins q n))
-  =<= dist (kant d) (bins p n) (bins' p q n)
-        + dist (kant d) (bins' p q n) (bins q n)  
+                   <= dist (kant d) (bins p n) (gbins p q n)
+                    + dist (kant d) (gbins p q n) (bins q n))
+  =<= dist (kant d) (bins p n) (gbins p q n)
+        + dist (kant d) (gbins p q n) (bins q n)  
       ? binsDistL p q n
   =<= q - p
-        + dist (kant d) (bins' p q n) (bins q n)  
+        + dist (kant d) (gbins p q n) (bins q n)  
       ? binsDistR p q n
   =<= q - p + (n - 1) * (q - p)
   =<= n * (q - p)
   *** QED
   where d = distDouble
 
-{-@ reflect bins' @-}
-{-@ bins' :: Prob -> Prob -> n:Double -> Distr Double @-}
-bins' :: Double -> Double -> Double -> Distr Double
-bins' _ q n | n < 1.0 = ppure 0
-bins' p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
+{-@ reflect gbins @-}
+{-@ gbins :: Prob -> Prob -> n:Double -> Distr Double @-}
+gbins :: Double -> Double -> Double -> Distr Double
+gbins _ q n | n < 1.0 = ppure 0
+gbins p q n = bind (bins p (n - 1)) (addBernoulli q (n - 1))
 
--- LV TODO: move to Monad.Distr I think?
 {-@ reflect seqBind @-}
 seqBind :: Distr b -> (a -> b -> Distr c) -> a -> Distr c
 seqBind u f x = bind u (f x)
@@ -220,9 +182,6 @@ flipPlus' _ _ = ()
           -> (x:a -> {v:() | f x == g x}) -> {f == g } @-} 
 extDouble :: (a -> b) -> (a -> b) -> (a -> ()) -> () 
 extDouble _ _ _ = () 
-
-
-
 
 {-@ assume commutative :: e:Distr a -> u:Distr b -> f:(a -> b -> Distr c) 
                 -> {bind e (seqBind u f)

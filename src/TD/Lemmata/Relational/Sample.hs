@@ -8,7 +8,7 @@ import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, uncurry)
 
-import           Monad.Distr.Relational.TCB.Spec 
+import           Monad.Distr.Relational.TCB.Axiom 
 import           Monad.Distr.Predicates      
 
 import           TD.Lemmata.Relational.Update
@@ -42,7 +42,7 @@ maxLemma v1 v2 i j
 updateLemma :: ValueFunction -> ValueFunction -> State -> State -> Reward -> ()
 updateLemma v1 v2 i j r
     =   distD (update v1 i j r) (update v2 i j r)
-        ? relationalupdate v1 v2 i j r
+        ? updateSpec v1 v2 i j r
     =<= k * max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j))
         ? maxLemma v1 v2 i j
     =<= k * distList distDouble v1 v2
@@ -69,19 +69,19 @@ uncurryLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2)
                     -> {lift (bounded' (k * m)) ((o ppure (uncurry (update v1 i))) (t1)) ((o ppure (uncurry (update v2 i))) (t2))} @-}
 pureUpdateLemma :: Double -> ValueFunction -> ValueFunction -> () -> State -> (State, Reward) -> (State, Reward) -> ()
 pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) = 
-    pureSpec (bounded' (k * m))
+    pureAxiom (bounded' (k * m))
                 (uncurry (update v1 i) t1) (uncurry (update v2 i) t2)
                 (uncurryLemma m v1 v2 b i t1 t2)
         
 
-{-@ relationalsample :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|llen t = llen v1 && llen v1 == n } -> {v2:_|llen t = llen v2} 
+{-@ sampleSpec :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|llen t = llen v1 && llen v1 == n } -> {v2:_|llen t = llen v2} 
                      -> i:StateOf t 
                      -> {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
-relationalsample :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()
-relationalsample m n t v1 v2 i | bounded m v1 v2 
-    = bindSpec (bounded' (k * m)) eqP
+sampleSpec :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()
+sampleSpec m n t v1 v2 i | bounded m v1 v2 
+    = bindAxiom (bounded' (k * m)) eqP
                (t `at` i) (ppure `o` (uncurry (update v1 i)))
                (t `at` i) (ppure `o` (uncurry (update v2 i)))
-               (liftSpec (t `at` i))
+               (liftAxiom (t `at` i))
                (pureUpdateLemma m v1 v2 () i)
-relationalsample _ _ _ _ _ _ = ()
+sampleSpec _ _ _ _ _ _ = ()

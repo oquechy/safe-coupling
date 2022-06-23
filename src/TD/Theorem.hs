@@ -18,8 +18,8 @@ import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
 
-{-@ relationaltd0 :: n:Nat -> l:Nat -> t:TransitionOf l -> {v1:_|llen v1 = l} -> v2:SameLen v1 -> 
+{-@ td0Spec :: n:Nat -> l:Nat -> t:TransitionOf l -> {v1:_|llen v1 = l} -> v2:SameLen v1 -> 
         {lift (bounded (pow k n * (distList distDouble v1 v2))) (td0 n v1 t) (td0 n v2 t)} @-}
-relationaltd0 :: Int -> Int -> Transition -> ValueFunction -> ValueFunction -> ()
-relationaltd0 n l t v1 v2 
-    = relationaliterate (distList distDouble v1 v2) k n l (act l t) (relationalact l t) v1 v2 
+td0Spec :: Int -> Int -> Transition -> ValueFunction -> ValueFunction -> ()
+td0Spec n l t v1 v2 
+    = iterateSpec (distList distDouble v1 v2) k n l (act l t) (actSpec l t) v1 v2 

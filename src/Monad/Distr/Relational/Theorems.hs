@@ -12,7 +12,7 @@ import           Data.Dist
 import           Data.List
 import           Prelude hiding (max, mapM)
 
-import           Monad.Distr.Relational.TCB.Spec 
+import           Monad.Distr.Relational.TCB.Axiom 
 import           Monad.Distr.Relational.TCB.EDist
 import           Monad.Distr.Predicates
 
@@ -32,7 +32,7 @@ import           Misc.ProofCombinators
                -> { dist (kant d) (bind e1 f1) (bind e2 f2) <= m } @-}
 bindDistEq :: Eq a => Dist b -> Double -> (a -> Distr b) -> Distr a -> (a -> Distr b) ->  Distr a ->  (a -> ()) -> ()
 bindDistEq d m f1 e1 f2 e2 lemma = 
-  bindDist d m eqP f1 e1 f2 (e2 `const` liftSpec e2) 
+  bindDist d m eqP f1 e1 f2 (e2 `const` liftAxiom e2) 
           (makeTwoArg d m f1 f2 lemma)
    
 {-@ makeTwoArg :: d:Dist b -> m:Double -> f1:(a -> Distr b) -> f2:(a -> Distr b)
@@ -55,9 +55,9 @@ mapMSpec :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a
                -> (a -> ()) 
                -> ()
 mapMSpec m f1 f2 is@Nil lemma
-    = pureSpec (bounded m) Nil Nil (boundedNil m)
+    = pureAxiom (bounded m) Nil Nil (boundedNil m)
 mapMSpec m f1 f2 (Cons i is) lemma 
-    = bindSpec (bounded m) (bounded' m)
+    = bindAxiom (bounded m) (bounded' m)
             (f1 i) (cons (llen is) (mapM f1 is))
             (f2 i) (cons (llen is) (mapM f2 is))
             (lemma i)
@@ -81,7 +81,7 @@ consBindLemma :: Double -> (a -> Distr Double) -> (a -> Distr Double)
               -> Double -> Double
               -> ()
 consBindLemma m f1 f2 is lemma r1 r2
-    = bindSpec (bounded m) (bounded m)
+    = bindAxiom (bounded m) (bounded m)
                          (mapM f1 is) (ppure `o` (consDouble r1))
                          (mapM f2 is) (ppure `o` (consDouble r2))
                          (mapMSpec m f1 f2 is lemma) 
@@ -95,7 +95,7 @@ consBindLemma m f1 f2 is lemma r1 r2
                                 (o ppure (consDouble r2) rs2)} @-}
 pureLemma :: Double -> Double -> Double -> (a -> Distr Double) -> (a -> Distr Double) 
        -> List a -> List Double -> List Double -> () 
-pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureSpec (bounded m) 
+pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureAxiom (bounded m) 
                                      (Cons r1 rs1) (Cons r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 

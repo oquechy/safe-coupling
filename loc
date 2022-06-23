@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# THIS SCRIPT MAY TAKE SOME TIME TO FINISH.
+# DO NOT EDIT FILES IN SAFE-COUPLING IN THE MEANTIME!!!
+
+# touch the file to trigger a rebuild
+poke () {
+    # append an empty line to the end of the file
+    echo "" >> "$1"
+}
+
+# restore the file's initial state
+restore () {
+    tail -n 1 "$1" | wc -c | xargs -I {} truncate "$1" -s -{}
+}
+
+# measure rebuilding time
+measure () {
+    TIMEFORMAT="%R"; { time stack install > /dev/null 2> /dev/null; } 2>&1
+}
+
+# number of iterations to measure avg building time
+N=3
+
+# paths to files
+bins_dist=src/Bins/TheoremDist.hs
+bins_spec=src/Bins/TheoremSpec.hs
+td=src/TD/Theorem.hs
+td_lemmata="src/TD/Lemmata/Relational/Act.hs
+src/TD/Lemmata/Relational/Iterate.hs
+src/TD/Lemmata/Relational/Sample.hs
+src/TD/Lemmata/Relational/Update.hs"
+
+sgd=src/SGD/Theorem.hs
+
+# time measurments
+bins_dist_t=0
+bins_spec_t=0
+td_t=0
+sgd_t=0
+
+echo building safe-coupling
+measure
+
+echo $N iterations will be made
+
+for i in $(seq $N)
+do
+    TIMEFORMAT=%R
+
+    poke $bins_dist
+    bins_dist_t_d=$(measure)
+    echo bins_dist_t = $bins_dist_t + $bins_dist_t_d
+    bins_dist_t=$(echo "scale=2;$bins_dist_t+$bins_dist_t_d" | bc)
+
+    poke $bins_spec
+    bins_spec_t_d=$(measure)
+    echo bins_spec_t = $bins_spec_t + $bins_spec_t_d
+    bins_spec_t=$(echo "scale=2;$bins_spec_t+$bins_spec_t_d" | bc)
+
+    poke $td
+    for lemma in $td_lemmata
+    do
+        poke $lemma
+    done
+    td_t_d=$(measure)
+    echo td_t = $td_t + $td_t_d
+    td_t=$(echo "scale=2;$td_t+$td_t_d" | bc)
+
+    poke $sgd
+    sgd_t_d=$(measure)
+    echo sgd_t = $sgd_t + $sgd_t_d
+    sgd_t=$(echo "scale=2;$sgd_t+$sgd_t_d" | bc)
+done
+
+bins_dist_t=$(echo "scale=2;$bins_dist_t/$N" | bc)
+bins_spec_t=$(echo "scale=2;$bins_spec_t/$N" | bc)
+td_t=$(echo "scale=2;$td_t/$N" | bc)
+sgd_t=$(echo "scale=2;$sgd_t/$N" | bc)
+
+for run in $(seq $N)
+do 
+    restore $bins_dist
+    restore $bins_spec
+    restore $td
+    for lemma in $td_lemmata
+    do
+        restore $lemma
+    done
+    restore $sgd
+done
+
+echo bins dist t $bins_dist_t
+echo bins spec t $bins_spec_t
+echo td t $td_t
+echo sgd t $sgd_t

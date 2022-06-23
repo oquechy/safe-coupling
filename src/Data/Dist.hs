@@ -17,16 +17,16 @@ import Data.List
 -----------------------------------------------------------------
 data Dist a = Dist { 
     dist           :: a -> a -> Double 
-  , distEq         :: a -> () 
-  , triangularIneq :: a -> a -> a -> ()
+  , identity         :: a -> () 
+  , trinequality :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
   }
 
 
 {-@ data Dist a = Dist { 
     dist           :: a -> a -> {v:Double | 0.0 <= v } 
-  , distEq         :: a:a -> {dist a a == 0}
-  , triangularIneq :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
+  , identity         :: a:a -> {dist a a == 0}
+  , trinequality :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
   } @-}
 
@@ -39,19 +39,19 @@ data Dist a = Dist {
 
 {-@ reflect distDouble@-}
 distDouble :: Dist Double
-distDouble = Dist distD distEqD triangularIneqD symmetryD
+distDouble = Dist distD identityD trinequalityD symmetryD
 
-{-@ ple distEqD @-}
-{-@ reflect distEqD @-}
-distEqD :: Double -> ()
-{-@ distEqD :: x:Double -> {distD x x == 0 } @-}
-distEqD _ = () 
+{-@ ple identityD @-}
+{-@ reflect identityD @-}
+identityD :: Double -> ()
+{-@ identityD :: x:Double -> {distD x x == 0 } @-}
+identityD _ = () 
 
-{-@ ple triangularIneqD @-}
-{-@ reflect triangularIneqD @-}
-{-@ triangularIneqD :: a:Double -> b:Double -> c:Double -> { distD a c <= distD a b + distD b c} @-}
-triangularIneqD :: Double -> Double -> Double -> ()
-triangularIneqD _ _ _ = ()
+{-@ ple trinequalityD @-}
+{-@ reflect trinequalityD @-}
+{-@ trinequalityD :: a:Double -> b:Double -> c:Double -> { distD a c <= distD a b + distD b c} @-}
+trinequalityD :: Double -> Double -> Double -> ()
+trinequalityD _ _ _ = ()
 
 {-@ ple symmetryD @-}
 {-@ reflect symmetryD @-}
@@ -86,7 +86,7 @@ distList d (Cons x xs) (Cons y ys) = max (dist d x y) (distList d xs ys)
 {-@ distListEq :: d:Dist a -> x:List a -> { distList d x x == 0 } @-}
 distListEq :: Dist a -> List a -> ()
 distListEq d Nil = () 
-distListEq d (Cons x xs) = distEq d x ? distListEq d xs
+distListEq d (Cons x xs) = identity d x ? distListEq d xs
 
 {-@ ple distListSym @-}
 {-@ distListSym :: d:Dist a -> x:List a -> y:ListEq a {x} -> { distList d x y == distList d y x } @-}
@@ -103,7 +103,7 @@ distListTri :: Dist a -> List a -> List a -> List a -> ()
 distListTri d x@Nil y z = assert (distList d x z <= distList d x y + distList d y z)
 distListTri d x y z@Nil = assert (distList d x z <= distList d x y + distList d y z)
 distListTri d (Cons x xs) (Cons y ys) (Cons z zs) 
-  = triangularIneq d x y z ? distListTri d xs ys zs 
+  = trinequality d x y z ? distListTri d xs ys zs 
 
 -----------------------------------------------------------------
 -- | Linearity on Doubles 

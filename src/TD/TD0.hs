@@ -2,7 +2,6 @@
 
 module TD.TD0 where
 
--- import           Monad.Implemented.Distr
 import           Monad.Distr
 import           Data.Dist
 import           Data.List
@@ -35,16 +34,12 @@ lq_required _ = ()
 td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
 td0 n v t = iterate n (llen v) (act (llen v) t) v
 
-
-
 {-@ reflect iterate @-}
 {-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | llen v == l} -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
                 v:{ValueFunction | llen v == l}  -> Distr ({v':ValueFunction|llen v' = llen v}) @-}
 iterate :: Int -> Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction -> DistrValueFunction
 iterate n l _ x | n <= 0 = ppure x
 iterate n l f x = bind (f x) (iterate (n - 1) l f)
-
-
 
 {-@ reflect act @-}
 {-@ act :: n:Nat -> TransitionOf n -> v:{ValueFunction|llen v == n} 
@@ -61,16 +56,16 @@ uncurry f (a, b) = f a b
 sample :: ValueFunction -> Transition -> State -> Distr Reward
 sample v t i = bind (t `at` i) (ppure `o` (uncurry (update v i)))
 
-{-@ reflect γ @-}
-{-@ reflect α @-}
+{-@ reflect gamma @-}
+{-@ reflect alpha @-}
 {-@ reflect k @-}
-γ, α, k :: Double
-γ = 0.2
-α = 0.5
-k = 1 - α + α * γ
+gamma, alpha, k :: Double
+gamma = 0.2
+alpha = 0.5
+k = 1 - alpha + alpha * gamma
 
 {-@ reflect update @-}
 {-@ update :: v:ValueFunction -> StateOf v -> StateOf v -> Reward -> Reward @-}
 update :: ValueFunction -> State -> State -> Reward -> Reward
-update v i j r = (1 - α) * (v `at` i) + α * (r + γ * v `at` j)
+update v i j r = (1 - alpha) * (v `at` i) + alpha * (r + gamma * v `at` j)
 
