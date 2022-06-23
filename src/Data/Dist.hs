@@ -78,31 +78,31 @@ distD x y = if x <= y then y - x else x - y
 {-@ distList :: Dist a -> x:List a -> y:ListEq a {x} 
                        -> {d:Double | 0 <= d } @-}
 distList :: Dist a -> List a -> List a -> Double
-distList d Nil _ = 0
-distList d _ Nil = 0
-distList d (Cons x xs) (Cons y ys) = max (dist d x y) (distList d xs ys)
+distList d [] _ = 0
+distList d _ [] = 0
+distList d (x:xs) (y:ys) = max (dist d x y) (distList d xs ys)
 
 {-@ ple distListEq @-}
 {-@ distListEq :: d:Dist a -> x:List a -> { distList d x x == 0 } @-}
 distListEq :: Dist a -> List a -> ()
-distListEq d Nil = () 
-distListEq d (Cons x xs) = identity d x ? distListEq d xs
+distListEq d [] = () 
+distListEq d (x:xs) = identity d x ? distListEq d xs
 
 {-@ ple distListSym @-}
 {-@ distListSym :: d:Dist a -> x:List a -> y:ListEq a {x} -> { distList d x y == distList d y x } @-}
 distListSym :: Dist a -> List a -> List a -> ()
-distListSym d Nil _ = () 
-distListSym d _ Nil = () 
-distListSym d (Cons x xs) (Cons y ys) = symmetry d x y ? distListSym d xs ys
+distListSym d [] _ = () 
+distListSym d _ [] = () 
+distListSym d (x:xs) (y:ys) = symmetry d x y ? distListSym d xs ys
 
 
 {-@ ple distListTri @-}
 {-@ distListTri :: d:Dist a -> x:List a -> y:ListEq a {x} -> z:ListEq a {x}
                 -> { distList d x z <= distList d x y + distList d y z } @-}
 distListTri :: Dist a -> List a -> List a -> List a -> ()
-distListTri d x@Nil y z = assert (distList d x z <= distList d x y + distList d y z)
-distListTri d x y z@Nil = assert (distList d x z <= distList d x y + distList d y z)
-distListTri d (Cons x xs) (Cons y ys) (Cons z zs) 
+distListTri d x@[] y z = assert (distList d x z <= distList d x y + distList d y z)
+distListTri d x y z@[] = assert (distList d x z <= distList d x y + distList d y z)
+distListTri d (x:xs) (y:ys) (z:zs) 
   = trinequality d x y z ? distListTri d xs ys zs 
 
 -----------------------------------------------------------------

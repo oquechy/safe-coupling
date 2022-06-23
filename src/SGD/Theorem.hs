@@ -17,14 +17,17 @@ import           Monad.Distr.Laws
 import           Monad.Distr.Relational.TCB.EDist
 import           Monad.Distr.Relational.Theorems (bindDistEq)
 import           Data.Dist 
+import           Data.List 
 import           SGD.SGD 
 
+-----------------------------------------------------------------
+-- | Assumptions ------------------------------------------------
+-----------------------------------------------------------------
 
 {-@ measure SGD.Theorem.lip :: Double @-}
 {-@ assume lip :: {v:Double|SGD.Theorem.lip = v && v >= 0 } @-}
 lip :: Double
 lip = 10
-
 
 {-@ assume bounded :: d:Dist Double -> z1:DataPoint -> alpha1:StepSize -> f1:LossFunction 
                              -> z2:DataPoint -> {alpha2:StepSize|alpha1 = alpha2} -> {f2:LossFunction|f1 = f2} 
@@ -41,6 +44,9 @@ bounded _ _ _ _ _ _ _ _ _ = ()
 contractive :: Dist Double -> DataPoint -> StepSize -> LossFunction -> DataPoint -> StepSize -> LossFunction -> Weight  -> Weight -> ()
 contractive = undefined
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
 
 {-@ reflect sum @-}
 {-@ sum :: StepSizes -> {v:StepSize | 0.0 <= v } @-}
@@ -64,12 +70,12 @@ estabEmp zs =
 {-@ ple estabconsR @-}
 {-@ measure Theorem.estabconsR  :: DataSet -> StepSize -> StepSizes -> ()  @-}
 {-@ estabconsR :: zs:{DataSet | lend zs /= 0} -> x:StepSize -> xs:StepSizes 
-                    -> { estab zs (SS x xs) == 2.0 * lip * x * (one / lend zs) + estab zs xs } @-}
+                    -> { estab zs (SS x xs) == 2.0 * lip * x * (1.0 / lend zs) + estab zs xs } @-}
 estabconsR :: DataSet -> StepSize -> StepSizes -> () 
 estabconsR zs x xs 
   =   estab zs (SS x xs)
   === 2.0 * lip / (lend zs) * sum (SS x xs)
-  === 2.0 * lip * x * (one / lend zs) + estab zs xs 
+  === 2.0 * lip * x * (1.0 / lend zs) + estab zs xs 
   *** QED 
 
 {-@ ple sgdDist @-}
@@ -109,8 +115,8 @@ sgdDist d zs1 ws1 as1@(SS alpha1 a1) f1 zs2 ws2 as2@(SS alpha2 a2) f2 =
         ? pureUpdateEq (head zs1) alpha1 f1
         ? pureUpdateEq (head zs2) alpha2 f2
 
-    =<= (one / lend zs1) * (dist (kant d) (bind (sgd zs1 ws1 a1 f1) (ppure . update (head zs1) alpha1 f1 )) 
-                                    (bind (sgd zs2 ws2 a2 f2) (ppure . update (head zs2) alpha2 f2 ))) 
+    =<= (one / lend zs1) * (dist (kant d) (bind (sgd zs1 ws1 a1 f1) (ppure . (update (head zs1) alpha1 f1))) 
+                                    (bind (sgd zs2 ws2 a2 f2) (ppure . (update (head zs2) alpha2 f2)))) 
         + (1 - (one / lend zs1)) * (dist (kant d) (bind utail1 sgdRec1) (bind utail2 sgdRec2))
 
         ?   pureBindDist d d (2 * lip * alpha1) (update (head zs1) alpha1 f1) (sgd zs1 ws1 a1 f1) 
@@ -153,14 +159,13 @@ sgdDist d zs1 ws1 as1@(SS alpha1 a1) f1 zs2 ws2 as2@(SS alpha2 a2) f2 =
   utail1 = unif (tail zs1)
   uhead2 = ppure (head zs2)
   utail2 = unif (tail zs2)
+  one = 1.0
 sgdDist d zs1 ws1 _ f1 zs2 ws2 _ f2 = ()
 
 {-@ multHelper :: a:Double -> b:{Double | 0 <= b} -> c:Double -> d:{Double | c <= d } 
                -> { a + b * c <= a + b * d }  @-}
 multHelper :: Double -> Double -> Double -> Double -> () 
 multHelper _ _ _ _ = ()
-
-
 
 {-@ lemma :: d:Dist Double -> zs1:DataSet -> ws1:Weight -> alpha1:StepSize -> a1:StepSizes -> f1:LossFunction -> 
              zs2:{DataSet | lend zs1 == lend zs2 && tail zs1 = tail zs2} -> 
@@ -182,8 +187,7 @@ lemma d zs1 ws1 alpha1 a1 f1 zs2 ws2 alpha2 a2 f2 z =
     =<= dist d ws1 ws2 + estab zs1 a1
     *** QED
 
-
 {-@ assume pureUpdateEq :: zs:DataPoint -> a:StepSize -> f:LossFunction
-               -> {pureUpdate zs a f == ppure . update zs a f} @-}
+               -> {pureUpdate zs a f == ppure . (update zs a f)} @-}
 pureUpdateEq :: DataPoint -> StepSize -> LossFunction -> ()
-pureUpdateEq zs a f = () 
+pureUpdateEq zs a f = ()

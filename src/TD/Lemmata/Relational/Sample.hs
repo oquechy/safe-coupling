@@ -17,13 +17,17 @@ import           TD.TD0
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
+
 {-@ listLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 
               -> {distD (at v1 i) (at v2 i) <= distList distDouble v1 v2} @-}
 listLemma :: ValueFunction -> ValueFunction -> State -> ()
-listLemma Nil v2 i = ()
-listLemma v1 Nil i = ()
-listLemma (Cons x xs) (Cons y ys) 0 = ()
-listLemma (Cons x xs) (Cons y ys) i = listLemma xs ys (i - 1)
+listLemma [] v2 i = ()
+listLemma v1 [] i = ()
+listLemma (x:xs) (y:ys) 0 = ()
+listLemma (x:xs) (y:ys) i = listLemma xs ys (i - 1)
 
 {-@ maxLemma :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> 
                     {max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j)) <= distList distDouble v1 v2 } @-}

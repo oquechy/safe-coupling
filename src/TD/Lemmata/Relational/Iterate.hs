@@ -15,6 +15,9 @@ import           TD.TD0
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
 
 {-@ iterateSpec :: m:{_|0 <= m} -> {k:_|k >= 0} -> n:Nat -> l:Nat
                       -> f:(v:ListN l -> Distr (ListN l))

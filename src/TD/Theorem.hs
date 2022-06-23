@@ -17,6 +17,9 @@ import           TD.TD0
 import           Language.Haskell.Liquid.ProofCombinators
 import           Misc.ProofCombinators
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
 
 {-@ td0Spec :: n:Nat -> l:Nat -> t:TransitionOf l -> {v1:_|llen v1 = l} -> v2:SameLen v1 -> 
         {lift (bounded (pow k n * (distList distDouble v1 v2))) (td0 n v1 t) (td0 n v2 t)} @-}

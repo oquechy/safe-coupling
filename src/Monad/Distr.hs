@@ -61,8 +61,8 @@ lift p e1 e2 = and (fst <$> (decons act))
 {-@ reflect mapM @-}
 {-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
-mapM _ Nil         = ppureDouble Nil
-mapM f (Cons x xs) = bind (f x) (cons (llen xs) (mapM f xs))
+mapM _ []         = ppureDouble []
+mapM f (x:xs) = bind (f x) (cons (llen xs) (mapM f xs))
 
 -----------------------------------------------------------------
 -- | Helper Definitions for Reflection 
@@ -91,3 +91,15 @@ cons n xs x = bind xs (ppure `o` (consDouble x))
 {-@ reflect o @-}
 o :: (b -> c) -> (a -> b) -> a -> c
 o g f x = g (f x)
+
+{-@ reflect seqBind @-}
+seqBind :: Distr b -> (a -> b -> Distr c) -> a -> Distr c
+seqBind u f x = bind u (f x)
+
+{-@ reflect flip @-}
+flip :: (a -> b -> c) -> b -> a -> c
+flip f x y = f y x
+
+{-@ reflect pure2 @-}
+pure2 :: (a -> b -> c) -> a -> b -> Distr c
+pure2 f a b = ppure (f a b)

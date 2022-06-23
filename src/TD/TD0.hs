@@ -16,6 +16,13 @@ import           Prelude                 hiding ( map
                                                 , uncurry
                                                 )
 
+lq_required :: List Int -> ()
+lq_required _ = ()
+
+-------------------------------------------------------------------------------
+-- | Executable code ----------------------------------------------------------
+-------------------------------------------------------------------------------
+
 {-@ type StateOf V = Idx V @-}
 type State = Int
 type Action = Int
@@ -25,9 +32,6 @@ type Reward = Double
 type Transition = List (Distr (State, Reward))
 type ValueFunction = List Reward
 type DistrValueFunction = Distr (List Reward)
-
-lq_required :: List Int -> ()
-lq_required _ = ()
 
 {-@ reflect td0 @-}
 {-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> DistrValueFunction @-} 

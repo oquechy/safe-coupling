@@ -16,6 +16,9 @@ import           TD.Lemmata.Relational.Sample
 import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
 
 {-@ actSpec :: l:Nat -> t:TransitionOf l -> m:{_|0 <= m} -> v1:{_ | llen v1 == l} 
                   -> {v2:_|llen v2 = l} 
@@ -27,3 +30,4 @@ actSpec _ t m v1 v2 | bounded m v1 v2
             (range 0 (llen v1)) 
             (sampleSpec m (llen v1) t v1 v2)
 actSpec _ _ _ _ _ = ()
+

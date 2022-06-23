@@ -54,9 +54,9 @@ makeTwoArg d m f1 f2 lemma x y = lemma x
 mapMSpec :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a 
                -> (a -> ()) 
                -> ()
-mapMSpec m f1 f2 is@Nil lemma
-    = pureAxiom (bounded m) Nil Nil (boundedNil m)
-mapMSpec m f1 f2 (Cons i is) lemma 
+mapMSpec m f1 f2 is@[] lemma
+    = pureAxiom (bounded m) [] [] (boundedNil m)
+mapMSpec m f1 f2 (i:is) lemma 
     = bindAxiom (bounded m) (bounded' m)
             (f1 i) (cons (llen is) (mapM f1 is))
             (f2 i) (cons (llen is) (mapM f2 is))
@@ -64,7 +64,7 @@ mapMSpec m f1 f2 (Cons i is) lemma
             (consBindLemma m f1 f2 is lemma)
 
 {-@ consLemma :: m:_ -> r1:_ -> rs1:_ -> {r2:_|bounded' m r1 r2} -> {rs2:_|llen rs1 = llen rs2 && bounded m rs1 rs2} 
-              -> {bounded m (Cons r1 rs1) (Cons r2 rs2)} @-}
+              -> {bounded m (consDouble r1 rs1) (consDouble r2 rs2)} @-}
 consLemma :: Double -> Double -> List Double -> Double -> List Double -> ()
 consLemma m r1 rs1 r2 rs2 = ()
 
@@ -96,6 +96,6 @@ consBindLemma m f1 f2 is lemma r1 r2
 pureLemma :: Double -> Double -> Double -> (a -> Distr Double) -> (a -> Distr Double) 
        -> List a -> List Double -> List Double -> () 
 pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureAxiom (bounded m) 
-                                     (Cons r1 rs1) (Cons r2 rs2) 
+                                     (consDouble r1 rs1) (consDouble r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 

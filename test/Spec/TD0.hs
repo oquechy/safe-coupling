@@ -28,10 +28,10 @@ import           Numeric.Probability.Distribution
                                                 ( decons )
 
 v0 :: ValueFunction
-v0 = Cons 1.0 (Cons (-1.0) Nil)
+v0 = [1.0, -1.0]
 
 t :: Transition
-t = Cons (ppure (0, 0)) (Cons (ppure (0, 0)) Nil)
+t = [ppure (0, 0), ppure (0, 0)]
 
 unit_td0_base :: Assertion
 unit_td0_base =
@@ -40,7 +40,7 @@ unit_td0_base =
 
 unit_td0_simple :: Assertion
 unit_td0_simple =
-  v @?= Cons 0.36 (Cons (-0.14) Nil)
+  v @?= [0.36, -0.14]
   where 
       [(v, 1)] = decons $ td0 2 v0 t 
       

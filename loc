@@ -19,19 +19,31 @@ measure () {
     TIMEFORMAT="%R"; { time stack install > /dev/null 2> /dev/null; } 2>&1
 }
 
+# count lines of code without LH comments and helper definitions
+loc () {
+    sed -n '/-- | Executable code/,$p' $1 | sed -n '/-- | Helper/q;p' | sed '/{-@/d;/---/d' | wc -l
+}
+
+# count lines of proof
+p_loc () {
+    sed -n '/-- | Proof/,$p' $1 | sed '/---/d' | wc -l
+}
+
 # number of iterations to measure avg building time
 N=3
 
 # paths to files
 bins_dist=src/Bins/TheoremDist.hs
 bins_spec=src/Bins/TheoremSpec.hs
+bins_src=src/Bins/Bins.hs
 td=src/TD/Theorem.hs
+td_src=src/TD/TD0.hs
 td_lemmata="src/TD/Lemmata/Relational/Act.hs
 src/TD/Lemmata/Relational/Iterate.hs
 src/TD/Lemmata/Relational/Sample.hs
 src/TD/Lemmata/Relational/Update.hs"
-
 sgd=src/SGD/Theorem.hs
+sgd_src=src/SGD/SGD.hs
 
 # time measurments
 bins_dist_t=0
@@ -44,6 +56,7 @@ measure
 
 echo $N iterations will be made
 
+# measure avg time over N iterations
 for i in $(seq $N)
 do
     TIMEFORMAT=%R
@@ -73,11 +86,6 @@ do
     sgd_t=$(echo "scale=2;$sgd_t+$sgd_t_d" | bc)
 done
 
-bins_dist_t=$(echo "scale=2;$bins_dist_t/$N" | bc)
-bins_spec_t=$(echo "scale=2;$bins_spec_t/$N" | bc)
-td_t=$(echo "scale=2;$td_t/$N" | bc)
-sgd_t=$(echo "scale=2;$sgd_t/$N" | bc)
-
 for run in $(seq $N)
 do 
     restore $bins_dist
@@ -90,7 +98,26 @@ do
     restore $sgd
 done
 
-echo bins dist t $bins_dist_t
-echo bins spec t $bins_spec_t
-echo td t $td_t
-echo sgd t $sgd_t
+# count code lines
+bins_loc=$(loc $bins_src)
+td_loc=$(loc $td_src)
+sgd_loc=$(loc $sgd_src)
+
+# count proof lines
+bins_dist_loc=$(p_loc $bins_dist)
+bins_spec_loc=$(p_loc $bins_spec)
+td_p_loc=$(p_loc $td)
+for lemma in $td_lemmata
+do
+    lemma_loc=$(p_loc $lemma)
+    td_p_loc=$(echo "scale=2;$td_p_loc+$lemma_loc" | bc)
+done
+sgd_p_loc=$(p_loc $sgd)
+
+# print table 2
+printf "\n%26s\n" "Table 2"
+printf "%10s %10s %10s %10s\n" " " "loc" "p. loc" "t (sec)"
+printf "%10s %10d %10d %10.2f\n" "bins spec" $bins_loc $bins_spec_loc $bins_spec_t
+printf "%10s %10d %10d %10.2f\n" "bins dist" $bins_loc $bins_dist_loc $bins_dist_t
+printf "%10s %10d %10d %10.2f\n" "td" $td_loc $td_p_loc $td_t
+printf "%10s %10d %10d %10.2f\n" "sgd" $sgd_loc $sgd_p_loc $sgd_t

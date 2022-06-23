@@ -50,6 +50,6 @@ leIntP x y = x <= y
 
 -- Properties on Predicates 
 {-@ ple boundedNil @-}
-{-@ boundedNil :: {m:_|0 <= m} -> {bounded m Nil Nil} @-}
+{-@ boundedNil :: {m:_|0 <= m} -> {bounded m [] []} @-}
 boundedNil :: Double -> ()
 boundedNil _ = ()

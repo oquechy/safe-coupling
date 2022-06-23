@@ -12,6 +12,10 @@ import           Prelude hiding (max)
 import           TD.TD0 
 import           Language.Haskell.Liquid.ProofCombinators
 
+-----------------------------------------------------------------
+-- | Proof ------------------------------------------------------
+-----------------------------------------------------------------
+
 {-@ updateSpec :: v1:_ -> v2:SameLen v1 -> i:StateOf v1 -> j:StateOf v1 -> r:_ ->
                         {distD (update v1 i j r) (update v2 i j r) 
                             <= k * max (distD (at v1 i) (at v2 i)) (distD (at v1 j) (at v2 j))} @-}
