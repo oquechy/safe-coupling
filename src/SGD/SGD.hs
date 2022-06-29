@@ -21,7 +21,7 @@ type Weight = Double
 type LossFunction = DataPoint -> Weight -> Double
 
 type Set a = [a]
-{-@ type DataSet = {v:Set DataPoint| 1 < lend v && 1 < len v} @-}
+{-@ type DataSet = {v:Set DataPoint| 2 <= lend v && 2 <= len v} @-}
 type DataSet = Set DataPoint
 type DataDistr = Distr DataPoint
 
@@ -31,14 +31,7 @@ type DataDistr = Distr DataPoint
        -> Distr Weight / [ sslen ss, 0 ] @-}
 sgd :: DataSet -> Weight -> StepSizes -> LossFunction -> Distr Weight
 sgd _  w0 SSEmp    _ = ppure w0
-sgd zs w0 (SS alpha a) f = 
-  choice (1.0 / lend zs)
-         (bind uhead (sgdRecUpd zs w0 alpha a f))
-         (bind utail (sgdRecUpd zs w0 alpha a f)) 
- where
-  uhead = ppure (head zs)
-  utail = unif (tail zs)
-
+sgd zs w0 (SS alpha a) f = bind (unif zs) (sgdRecUpd zs w0 alpha a f) 
 
 {-@ reflect sgdRecUpd @-}
 {-@ sgdRecUpd :: zs:{DataSet | 1 < len zs && 1 < lend zs } -> Weight -> StepSize -> ss:StepSizes -> LossFunction 

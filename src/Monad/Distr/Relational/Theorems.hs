@@ -50,7 +50,7 @@ makeTwoArg d m f1 f2 lemma x y = lemma x
                    -> f1:(a -> Distr Double) -> f2:(a -> Distr Double) 
                    -> is:List a
                    -> (i:a -> {lift (bounded' m) (f1 i) (f2 i)}) 
-                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [llen is, 0] @-}
+                   -> {lift (bounded m) (mapM f1 is) (mapM f2 is)} / [len is, 0] @-}
 mapMSpec :: Double -> (a -> Distr Double) -> (a -> Distr Double) -> List a 
                -> (a -> ()) 
                -> ()
@@ -58,12 +58,12 @@ mapMSpec m f1 f2 is@[] lemma
     = pureAxiom (bounded m) [] [] (boundedNil m)
 mapMSpec m f1 f2 (i:is) lemma 
     = bindAxiom (bounded m) (bounded' m)
-            (f1 i) (cons (llen is) (mapM f1 is))
-            (f2 i) (cons (llen is) (mapM f2 is))
+            (f1 i) (cons (len is) (mapM f1 is))
+            (f2 i) (cons (len is) (mapM f2 is))
             (lemma i)
             (consBindLemma m f1 f2 is lemma)
 
-{-@ consLemma :: m:_ -> r1:_ -> rs1:_ -> {r2:_|bounded' m r1 r2} -> {rs2:_|llen rs1 = llen rs2 && bounded m rs1 rs2} 
+{-@ consLemma :: m:_ -> r1:_ -> rs1:_ -> {r2:_|bounded' m r1 r2} -> {rs2:_|len rs1 = len rs2 && bounded m rs1 rs2} 
               -> {bounded m (consDouble r1 rs1) (consDouble r2 rs2)} @-}
 consLemma :: Double -> Double -> List Double -> Double -> List Double -> ()
 consLemma m r1 rs1 r2 rs2 = ()
@@ -73,8 +73,8 @@ consLemma m r1 rs1 r2 rs2 = ()
                   -> r1:_ 
                   -> {r2:_|bounded' m r1 r2}
                   -> {lift (bounded m) 
-                           ((cons (llen is) (mapM f1 is)) (r1)) 
-                           ((cons (llen is) (mapM f2 is)) (r2))} / [llen is, 1] @-}
+                           ((cons (len is) (mapM f1 is)) (r1)) 
+                           ((cons (len is) (mapM f2 is)) (r2))} / [len is, 1] @-}
 consBindLemma :: Double -> (a -> Distr Double) -> (a -> Distr Double) 
               -> List a 
               -> (a -> ()) 
@@ -99,3 +99,30 @@ pureLemma m r1 r2 f1 f2 is rs1 rs2 = pureAxiom (bounded m)
                                      (consDouble r1 rs1) (consDouble r2 rs2) 
                                      (consLemma m r1 rs1 r2 rs2)
 
+{-@ assume choiceBind :: p:Prob -> e1:Distr (Double, Double) -> e2:Distr (Double, Double) 
+               -> f:((Double, Double) -> Distr Double) 
+               -> {choice p (bind e1 f) (bind e2 f) = bind (choice p e1 e2) f} @-}
+choiceBind :: Prob -> Distr (Double, Double) -> Distr (Double, Double) -> ((Double, Double) -> Distr Double) -> ()
+choiceBind p e1 e2 f = ()
+
+{-@ unifChoice :: x:a -> {xs:[a]|1 <= len xs} 
+               -> {unif (cons' x xs) = choice (mydiv 1.0 (lend (cons' x xs))) (ppure x) (unif xs)} @-}
+unifChoice :: a -> [a] -> ()
+unifChoice x xs@(_:_) 
+  = case (cons' x xs) of 
+        l@(y:ys) -> unif (cons' x xs) === unif l === unif (cons' y ys)
+                   ===  choice (1.0 `mydiv` lend l) (ppure y) (unif ys) *** QED 
+
+{-@ unifPermut :: Eq a => Dist a -> {xs1:[a]|1 <= len xs1} -> {xs2:[a]|1 <= len xs2 && isPermutation xs1 xs2} -> {unif xs1 = unif xs2} @-}
+unifPermut :: Eq a => Dist a -> [a] -> [a] -> ()
+unifPermut d xs1 xs2 | isPermutation xs1 xs2 && 1 <= len xs1 && 1 <= len xs2 
+    = ()
+        ? unifDist d xs1 xs2
+        ? assert (dist (kant d) (unif xs1) (unif xs2) == 0)
+        ? identity (kant d) (unif xs1) (unif xs2)
+        ? assert ((unif xs1) == (unif xs2))
+unifPermut _ _ _ = ()
+
+{-@ permutLen :: Eq a => xs:[a] -> ys:[a] -> {isPermutation xs ys => len xs = len ys} @-}
+permutLen :: Eq a => [a] -> [a] -> ()
+permutLen xs ys = () ? isPermutation xs ys

@@ -7,31 +7,37 @@ import           Prelude                 hiding ( map
                                                 , zipWith
                                                 , all
                                                 , foldr
+                                                , elem
                                                 )
 
 
-{-@ type SameLen L = {v:_|llen v = llen L} @-}
-{-@ type ListN N = {v:_|llen v = N} @-}
+{-@ type SameLen L = {v:_|len v = len L} @-}
+{-@ type ListN N = {v:_|len v = N} @-}
 
 type List a = [a]
 
 {-@ reflect consDouble @-}
-{-@ consDouble :: Double -> xs:List Double -> {v:List Double | llen v == llen xs + 1  } @-}
+{-@ consDouble :: Double -> xs:List Double -> {v:List Double | len v == len xs + 1  } @-}
 consDouble :: Double -> List Double -> List Double 
 consDouble x xs = x:xs
 
+{-@ reflect cons' @-}
+{-@ cons' :: a -> xs:List a -> {v:List a | len v == len xs + 1 && 1 <= len v} @-}
+cons' :: a -> List a -> List a 
+cons' x xs = x:xs
+
 {-@ reflect nilDouble @-}
-{-@ nilDouble :: {v:List Double|llen v = 0} @-}
+{-@ nilDouble :: {v:List Double|len v = 0} @-}
 nilDouble :: List Double 
 nilDouble = []
 
-{-@ measure llen @-}
-{-@ llen :: List a -> Nat @-}
-llen :: List a -> Int
-llen []         = 0
-llen (_:xs) = 1 + llen xs
+{-@ measure len @-}
+{-@ len :: List a -> Nat @-}
+len :: List a -> Int
+len []         = 0
+len (_:xs) = 1 + len xs
 
-{-@ type Idx V = {i:Int | 0 <= i && i < llen V} @-}
+{-@ type Idx V = {i:Int | 0 <= i && i < len V} @-}
 
 {-@ reflect at @-}
 {-@ at :: xs:List a -> Idx xs -> a @-}
@@ -40,13 +46,13 @@ at (x:_) i | i == 0 = x
 at (_:xs) i         = at xs (i - 1)
 
 {-@ reflect range @-}
-{-@ range :: i:Nat -> len:Nat -> {v:List {j:Nat|j < i + len}|llen v = len} / [len] @-}
+{-@ range :: i:Nat -> l:Nat -> {v:List {j:Nat|j < i + l}|len v = l} / [l] @-}
 range :: Int -> Int -> List Int
 range _ 0   = []
 range i len = i : (range (i + 1) (len - 1))
 
 {-@ reflect map @-}
-{-@ map :: (a -> b) -> xs:List a -> {ys:List b|llen ys = llen xs} @-}
+{-@ map :: (a -> b) -> xs:List a -> {ys:List b|len ys = len xs} @-}
 map :: (a -> b) -> List a -> List b
 map f []         = []
 map f (x:xs) = (f x) : (map f xs)
@@ -81,11 +87,10 @@ foldr :: (a -> b -> b) -> b -> List a -> b
 foldr _ z [] = z                  
 foldr f z (x:xs) = f x (foldr f z xs)
 
-{-@ measure lend @-}
-{-@ lend :: xs:[a] -> {v:Double| 0.0 <= v } @-}
+{-@ reflect lend @-}
+{-@ lend :: xs:[a] -> {v:Double| 0.0 <= v} @-}
 lend :: [a] -> Double
-lend []       = 0
-lend (_ : xs) = 1 + lend xs
+lend xs = fromIntegral (len xs)
 
 {-@ reflect head @-}
 {-@ head :: {xs:[a] | len xs > 0 } -> a @-}
@@ -93,6 +98,32 @@ head :: [a] -> a
 head (z : _) = z
 
 {-@ reflect tail @-}
-{-@ tail :: {xs:[a] | len xs > 0 } -> {v:[a] | len v == len xs - 1 && lend v == lend xs - 1 } @-}
+{-@ tail :: {xs:[a] | len xs > 0 } -> {v:[a] | len v == len xs - 1} @-}
 tail :: [a] -> [a]
 tail (_ : zs) = zs
+
+{-@ reflect elem @-}
+elem :: Eq a => a -> [a] -> Bool
+elem x []                  = False
+elem x (x' : xs) | x == x' = True
+elem x (_ : xs)            = elem x xs
+
+{-@ reflect isPermutation @-}
+{-@ isPermutation :: Eq a => xs:[a] -> ys:[a] -> {v:Bool|v => (len xs = len ys)} @-}
+isPermutation :: Eq a => [a] -> [a] -> Bool
+isPermutation [] []                     = True
+isPermutation _ []                      = False
+isPermutation [] _                      = False
+isPermutation (x : xs) xs' | elem x xs' = isPermutation xs (xs' \\ x)
+isPermutation _ _                       = False
+
+{-@ infix \\ @-}
+{-@ reflect \\ @-}
+{-@ (\\) :: Eq a => xs:[a] -> x:a -> {v:[a]|elem x xs => len v = len xs - 1} @-}
+(\\) :: Eq a => [a] -> a -> [a]
+[] \\ x | elem x []             = []
+[] \\ x                         = []
+(x : xs) \\ x' | x == x'        = xs
+xs@(x : xs') \\ x' | elem x' xs = x : (xs' \\ x')
+(x : xs') \\ x'                 = x : (xs' \\ x')
+

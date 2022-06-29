@@ -43,7 +43,7 @@ bernoulli p = fromFreqs [(1, p), (0, 1 - p)]
 {-@ unif :: {xs:[a]|0 < len xs} -> Distr a @-}
 unif :: [a] -> Distr a
 unif [a]    = ppure a
-unif (x:xs) = choice (1 `mydiv` fromIntegral (len xs + 1)) (ppure x) (unif xs)
+unif l@(x:xs) = choice (1 `mydiv` lend l) (ppure x) (unif xs)
 
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
 {-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b 
@@ -59,19 +59,14 @@ lift p e1 e2 = and (fst <$> (decons act))
 -----------------------------------------------------------------
 
 {-@ reflect mapM @-}
-{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| llen ys = llen xs }) @-}
+{-@ mapM :: (a -> Distr Double) -> xs:List a -> Distr ({ys:List Double| len ys = len xs }) @-}
 mapM :: (a -> Distr Double) -> List a -> Distr (List Double)
 mapM _ []         = ppureDouble []
-mapM f (x:xs) = bind (f x) (cons (llen xs) (mapM f xs))
+mapM f (x:xs) = bind (f x) (cons (len xs) (mapM f xs))
 
 -----------------------------------------------------------------
 -- | Helper Definitions for Reflection 
 -----------------------------------------------------------------
-
-{-@ reflect len @-}
-len :: [a] -> Int
-len [] = 0
-len (_:xs) = 1 + len xs
 
 {-@ reflect mydiv @-}
 {-@ mydiv :: Double -> {i:Double | i /= 0 } -> Double @-}
@@ -79,12 +74,12 @@ mydiv :: Double -> Double -> Double
 mydiv x y = x / y 
 
 {-@ reflect ppureDouble @-}
-{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | llen v == llen xs}) @-}
+{-@ ppureDouble :: xs:List Double -> Distr ({v:List Double | len v == len xs}) @-}
 ppureDouble :: List Double -> Distr (List Double)
 ppureDouble x = ppure x 
 
 {-@ reflect cons @-}
-{-@ cons :: n:Nat -> Distr ({xs:List Double | llen xs == n}) -> Double -> Distr ({v:List Double | llen v = n + 1}) @-}
+{-@ cons :: n:Nat -> Distr ({xs:List Double | len xs == n}) -> Double -> Distr ({v:List Double | len v = n + 1}) @-}
 cons :: Int -> Distr (List Double) -> Double -> Distr (List Double)
 cons n xs x = bind xs (ppure `o` (consDouble x))
 

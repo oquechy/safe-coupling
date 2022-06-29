@@ -37,6 +37,7 @@ library
 
 -- SGD Case Study      
      , SGD.SGD 
+     , SGD.DataPointDist
      , SGD.Theorem 
 
   build-depends:

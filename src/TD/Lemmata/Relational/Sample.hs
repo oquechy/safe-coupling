@@ -78,7 +78,7 @@ pureUpdateLemma m v1 v2 b i t1@(j1, r1) t2@(j2, r2) =
                 (uncurryLemma m v1 v2 b i t1 t2)
         
 
-{-@ sampleSpec :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|llen t = llen v1 && llen v1 == n } -> {v2:_|llen t = llen v2} 
+{-@ sampleSpec :: {m:_|0 <= m} -> n:Nat -> t:TransitionOf n -> {v1:_|len t = len v1 && len v1 == n } -> {v2:_|len t = len v2} 
                      -> i:StateOf t 
                      -> {bounded m v1 v2 => lift (bounded' (k * m)) (sample v1 t i) (sample v2 t i)} @-}
 sampleSpec :: Double -> Int ->  Transition -> ValueFunction -> ValueFunction -> State -> ()

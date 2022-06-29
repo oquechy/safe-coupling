@@ -28,35 +28,35 @@ type State = Int
 type Action = Int
 type Reward = Double
 
-{-@ type TransitionOf N = {v:List (Distr ({i:State|0 <= i && i < N}, Reward))| llen v = N} @-}
+{-@ type TransitionOf N = {v:List (Distr ({i:State|0 <= i && i < N}, Reward))| len v = N} @-}
 type Transition = List (Distr (State, Reward))
 type ValueFunction = List Reward
 type DistrValueFunction = Distr (List Reward)
 
 {-@ reflect td0 @-}
-{-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (llen v) -> DistrValueFunction @-} 
+{-@ td0 :: Nat -> v:ValueFunction -> TransitionOf (len v) -> DistrValueFunction @-} 
 td0 :: Int -> ValueFunction -> Transition -> DistrValueFunction
-td0 n v t = iterate n (llen v) (act (llen v) t) v
+td0 n v t = iterate n (len v) (act (len v) t) v
 
 {-@ reflect iterate @-}
-{-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | llen v == l} -> Distr ({v':ValueFunction|llen v' = llen v})) -> 
-                v:{ValueFunction | llen v == l}  -> Distr ({v':ValueFunction|llen v' = llen v}) @-}
+{-@ iterate :: n:Nat -> l:Nat -> (v:{ValueFunction | len v == l} -> Distr ({v':ValueFunction|len v' = len v})) -> 
+                v:{ValueFunction | len v == l}  -> Distr ({v':ValueFunction|len v' = len v}) @-}
 iterate :: Int -> Int -> (ValueFunction -> DistrValueFunction) -> ValueFunction -> DistrValueFunction
 iterate n l _ x | n <= 0 = ppure x
 iterate n l f x = bind (f x) (iterate (n - 1) l f)
 
 {-@ reflect act @-}
-{-@ act :: n:Nat -> TransitionOf n -> v:{ValueFunction|llen v == n} 
-        -> Distr {v':ValueFunction|llen v' = llen v} @-}
+{-@ act :: n:Nat -> TransitionOf n -> v:{ValueFunction|len v == n} 
+        -> Distr {v':ValueFunction|len v' = len v} @-}
 act :: Int -> Transition -> ValueFunction -> DistrValueFunction
-act n t v = mapM (sample v t) (range 0 (llen v)) 
+act n t v = mapM (sample v t) (range 0 (len v)) 
 
 {-@ reflect uncurry @-}
 uncurry :: (a -> b -> c) -> (a, b) -> c
 uncurry f (a, b) = f a b
 
 {-@ reflect sample @-}
-{-@ sample :: v:ValueFunction -> TransitionOf (llen v) -> StateOf v -> Distr Reward @-}
+{-@ sample :: v:ValueFunction -> TransitionOf (len v) -> StateOf v -> Distr Reward @-}
 sample :: ValueFunction -> Transition -> State -> Distr Reward
 sample v t i = bind (t `at` i) (ppure `o` (uncurry (update v i)))
 

@@ -17,16 +17,16 @@ import Data.List
 -----------------------------------------------------------------
 data Dist a = Dist { 
     dist           :: a -> a -> Double 
-  , identity         :: a -> () 
-  , trinequality :: a -> a -> a -> ()
+  , identity       :: a -> a -> () 
+  , trinequality   :: a -> a -> a -> ()
   , symmetry       :: a -> a -> ()
   }
 
 
 {-@ data Dist a = Dist { 
     dist           :: a -> a -> {v:Double | 0.0 <= v } 
-  , identity         :: a:a -> {dist a a == 0}
-  , trinequality :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
+  , identity       :: a:a -> b:a -> {dist a b = 0 <=> a = b}
+  , trinequality   :: x:a -> y:a -> z:a -> {dist x z <= dist x y + dist y z}
   , symmetry       :: a:a -> b:a -> {dist a b = dist b a}
   } @-}
 
@@ -43,9 +43,9 @@ distDouble = Dist distD identityD trinequalityD symmetryD
 
 {-@ ple identityD @-}
 {-@ reflect identityD @-}
-identityD :: Double -> ()
-{-@ identityD :: x:Double -> {distD x x == 0 } @-}
-identityD _ = () 
+identityD :: Double -> Double -> ()
+{-@ identityD :: x:Double -> y:Double -> {distD x y == 0 <=> x = y} @-}
+identityD _ _ = () 
 
 {-@ ple trinequalityD @-}
 {-@ reflect trinequalityD @-}
@@ -73,7 +73,7 @@ distD x y = if x <= y then y - x else x - y
 -- listDist :: Dist a -> Dist (List a)
 -- listDist d = Dist (distList d) (distListEq d) (distListTri d) (distListSym d)
 
-{-@ type ListEq a XS = {ys:List a | llen ys == llen XS } @-}
+{-@ type ListEq a XS = {ys:List a | len ys == len XS } @-}
 {-@ reflect distList @-}
 {-@ distList :: Dist a -> x:List a -> y:ListEq a {x} 
                        -> {d:Double | 0 <= d } @-}
@@ -86,7 +86,7 @@ distList d (x:xs) (y:ys) = max (dist d x y) (distList d xs ys)
 {-@ distListEq :: d:Dist a -> x:List a -> { distList d x x == 0 } @-}
 distListEq :: Dist a -> List a -> ()
 distListEq d [] = () 
-distListEq d (x:xs) = identity d x ? distListEq d xs
+distListEq d (x:xs) = identity d x x ? distListEq d xs
 
 {-@ ple distListSym @-}
 {-@ distListSym :: d:Dist a -> x:List a -> y:ListEq a {x} -> { distList d x y == distList d y x } @-}
@@ -117,4 +117,4 @@ linearity :: Double -> Double -> Double -> Double -> ()
 linearity k l a b
   | a <= b    = assert (k * a + l <= k * b + l) 
   | otherwise = assert (distD (k * a + l) (k * b + l) == k * distD a b)
-
+                  ? assert (k * a + l >= k * b + l) 

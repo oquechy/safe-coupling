@@ -44,7 +44,7 @@ bindDist _ _ _ _ _ _ _ _ = ()
 pureBindDist :: Dist a -> Dist b -> Double -> (a -> b) -> Distr a -> (a -> b) ->  Distr a ->  (a -> a -> ()) -> ()
 pureBindDist _ _ m f1 e1 f2 e2 t = () 
 
-{-@ assume unifDist :: d:Dist a -> xsl:[a] -> xsr:{[a] | xsl == xsr}
+{-@ assume unifDist :: d:Dist a -> xsl:[a] -> xsr:{[a] | xsl == xsr || isPermutation xsl xsr}
                           -> { dist (kant d) (unif xsl) (unif xsr) == 0 } @-}
 unifDist :: Dist a -> [a] -> [a] -> ()
 unifDist _ _ _ = ()
