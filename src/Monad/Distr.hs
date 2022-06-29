@@ -43,7 +43,7 @@ bernoulli p = fromFreqs [(1, p), (0, 1 - p)]
 {-@ unif :: {xs:[a]|0 < len xs} -> Distr a @-}
 unif :: [a] -> Distr a
 unif [a]    = ppure a
-unif l@(x:xs) = choice (1 `mydiv` lend l) (ppure x) (unif xs)
+unif l@(x:xs) = choice (1.0 `mydiv` lend l) (ppure x) (unif xs)
 
 {-@ measure Monad.Distr.lift :: (a -> b -> Bool) -> Distr a -> Distr b -> Bool @-}
 {-@ assume lift :: p1:(a -> b -> Bool) -> x1:Distr a -> x2:Distr b 
