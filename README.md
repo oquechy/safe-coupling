@@ -1,3 +1,5 @@
+[![Haskell CI](https://github.com/nikivazou/safe-coupling/actions/workflows/haskell.yml/badge.svg)](https://github.com/nikivazou/safe-coupling/actions/workflows/haskell.yml)
+
 # safe-coupling
 Library for relational verification of probabilistic algorithms.
 
