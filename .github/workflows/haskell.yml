@@ -1,0 +1,48 @@
+name: Haskell CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-haskell@v1
+      with:
+        ghc-version: '8.10.7'
+        enable-stack: true
+        stack-version: 'latest'
+
+    - name: Cache
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-cabal
+      with:
+        path: ~/.cabal
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Install Z3
+      run: |
+        wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.9.1.tar.gz
+        tar -xvzf z3-4.9.1.tar.gz
+        mkdir z3-z3-4.9.1/build
+        cd z3-z3-4.9.1/build 
+        cmake -G "Unix Makefiles" ../
+        make -j4
+        cp z3 /usr/bin/
+        z3 --version
+    - name: Run tests
+      run: stack setup && stack build && stack test
