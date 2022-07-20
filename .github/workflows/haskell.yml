@@ -1,4 +1,4 @@
-name: Haskell CI
+name: Stack Build & Test
 
 on:
   push:
