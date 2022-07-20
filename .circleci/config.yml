@@ -15,7 +15,9 @@ jobs:
             
       - run: 
           name: Install z3 
+          no_output_timeout: 30m
           command: |
+            z3 --version
             wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-4.9.1.tar.gz
             tar -xvzf z3-4.9.1.tar.gz
             mkdir z3-z3-4.9.1/build
