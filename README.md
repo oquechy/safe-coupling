@@ -3,7 +3,7 @@
 # safe-coupling
 Library for relational verification of probabilistic algorithms.
 
-Branch [icfp-22-artifact](https://github.com/oquechy/safe-coupling/tree/icfp-22-artifact) corresponds to the artifact of our ICFP'22 [submission](https://disk.yandex.ru/i/UxXDQ-tQS-kqrA).
+See branch [icfp-22-artifact](https://github.com/oquechy/safe-coupling/tree/icfp-22-artifact) for the older version that corresponds to our ICFP'22 [submission](https://disk.yandex.ru/i/UxXDQ-tQS-kqrA).
 
 Supports two proving modes:
  - Upper bound _Kantorovich distance_ between two distributions
