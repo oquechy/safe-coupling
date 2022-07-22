@@ -87,4 +87,3 @@ This concludes the mechanized proof of the boundary _(q-p)·n_.
 In case of errors try
 
     $ stack clean
-
